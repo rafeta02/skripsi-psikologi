@@ -48,11 +48,13 @@ class Application extends Model implements HasMedia
         'deleted_at',
     ];
 
-    public const STATUS_SELECT = [
+    public const STATUS_SELECT = [ 
         'submitted' => 'submitted',
         'approved'  => 'approved',
         'rejected'  => 'rejected',
         'scheduled' => 'scheduled',
+        'result'    => 'result',
+        'revision'  => 'revision',
         'done'      => 'done',
     ];
 
@@ -81,4 +83,49 @@ class Application extends Model implements HasMedia
     {
         $this->attributes['submitted_at'] = $value ? Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s') : null;
     }
+
+    public function actions()
+    {
+        return $this->hasMany(ApplicationAction::class);
+    }
+
+    public function skripsiRegistration()
+    {
+        return $this->hasOne(SkripsiRegistration::class);
+    }
+
+    public function mbkmRegistration()
+    {
+        return $this->hasOne(MbkmRegistration::class);
+    }
+
+    /**
+     * Check if mahasiswa already has an active application
+     */
+    public static function hasActiveApplication($mahasiswaId)
+    {
+        return self::where('mahasiswa_id', $mahasiswaId)
+            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
+            ->exists();
+    }
+
+    /**
+     * Get active application for mahasiswa
+     */
+    public static function getActiveApplication($mahasiswaId)
+    {
+        return self::where('mahasiswa_id', $mahasiswaId)
+            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
+            ->orderBy('created_at', 'desc')
+            ->first();
+    }
+
+    /**
+     * Scope to get active applications
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', ['submitted', 'approved', 'scheduled']);
+    }
 }
+

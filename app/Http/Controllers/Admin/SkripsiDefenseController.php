@@ -24,7 +24,7 @@ class SkripsiDefenseController extends Controller
         abort_if(Gate::denies('skripsi_defense_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = SkripsiDefense::with(['application', 'created_by'])->select(sprintf('%s.*', (new SkripsiDefense)->table));
+            $query = SkripsiDefense::with(['application.mahasiswa.user', 'created_by'])->select(sprintf('%s.*', (new SkripsiDefense)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -45,8 +45,34 @@ class SkripsiDefenseController extends Controller
                 ));
             });
 
+            $table->addColumn('mahasiswa_name', function ($row) {
+                return $row->application && $row->application->mahasiswa && $row->application->mahasiswa->user 
+                    ? $row->application->mahasiswa->user->name 
+                    : 'N/A';
+            });
+
+            $table->addColumn('mahasiswa_nim', function ($row) {
+                return $row->application && $row->application->mahasiswa 
+                    ? $row->application->mahasiswa->nim 
+                    : 'N/A';
+            });
+
             $table->addColumn('application_status', function ($row) {
-                return $row->application ? $row->application->status : '';
+                if (!$row->application) return '';
+                $status = $row->application->status;
+                $badgeClass = $status === 'approved' ? 'badge-success' : ($status === 'submitted' ? 'badge-warning' : 'badge-info');
+                return '<span class="badge ' . $badgeClass . '">' . ucfirst($status) . '</span>';
+            });
+
+            $table->editColumn('status', function ($row) {
+                $status = $row->status ?? 'pending';
+                if ($status === 'accepted') {
+                    return '<span class="badge badge-success badge-lg"><i class="fas fa-check-circle"></i> Diterima</span>';
+                } elseif ($status === 'rejected') {
+                    return '<span class="badge badge-danger badge-lg"><i class="fas fa-times-circle"></i> Ditolak</span>';
+                } else {
+                    return '<span class="badge badge-warning badge-lg"><i class="fas fa-clock"></i> Menunggu</span>';
+                }
             });
 
             $table->editColumn('title', function ($row) {
@@ -171,7 +197,7 @@ class SkripsiDefenseController extends Controller
                 return implode(', ', $links);
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'defence_document', 'plagiarism_report', 'ethics_statement', 'research_instruments', 'data_collection_letter', 'research_module', 'mbkm_recommendation_letter', 'publication_statement', 'defense_approval_page', 'spp_receipt', 'krs_latest', 'eap_certificate', 'transcript', 'mbkm_report', 'research_poster', 'siakad_supervisor_screenshot', 'supervision_logbook']);
+            $table->rawColumns(['actions', 'placeholder', 'application', 'status', 'application_status', 'defence_document', 'plagiarism_report', 'ethics_statement', 'research_instruments', 'data_collection_letter', 'research_module', 'mbkm_recommendation_letter', 'publication_statement', 'defense_approval_page', 'spp_receipt', 'krs_latest', 'eap_certificate', 'transcript', 'mbkm_report', 'research_poster', 'siakad_supervisor_screenshot', 'supervision_logbook']);
 
             return $table->make(true);
         }
@@ -500,9 +526,41 @@ class SkripsiDefenseController extends Controller
     {
         abort_if(Gate::denies('skripsi_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $skripsiDefense->load('application', 'created_by');
+        $skripsiDefense->load('application.mahasiswa.user', 'created_by');
 
         return view('admin.skripsiDefenses.show', compact('skripsiDefense'));
+    }
+
+    public function accept(Request $request, SkripsiDefense $skripsiDefense)
+    {
+        abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $skripsiDefense->update([
+            'status' => 'accepted',
+            'admin_note' => $request->input('admin_note'),
+        ]);
+
+        return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+            ->with('message', 'Pendaftaran sidang skripsi berhasil diterima.');
+    }
+
+    public function reject(Request $request, SkripsiDefense $skripsiDefense)
+    {
+        abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $request->validate([
+            'admin_note' => 'required|string',
+        ], [
+            'admin_note.required' => 'Alasan penolakan harus diisi.',
+        ]);
+
+        $skripsiDefense->update([
+            'status' => 'rejected',
+            'admin_note' => $request->input('admin_note'),
+        ]);
+
+        return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+            ->with('message', 'Pendaftaran sidang skripsi berhasil ditolak.');
     }
 
     public function destroy(SkripsiDefense $skripsiDefense)

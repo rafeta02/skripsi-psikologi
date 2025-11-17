@@ -1,84 +1,120 @@
 @extends('layouts.frontend')
 @section('content')
-<div class="container">
+<link rel="stylesheet" href="{{ asset('css/modern-form.css') }}">
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-
-            <div class="card">
-                <div class="card-header">
-                    {{ trans('global.create') }} {{ trans('cruds.mbkmSeminar.title_singular') }}
+        <div class="col-lg-10">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2>Pendaftaran Seminar Proposal MBKM</h2>
+                    <p>Daftar seminar proposal untuk program MBKM Anda</p>
                 </div>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route("frontend.mbkm-seminars.store") }}" enctype="multipart/form-data">
-                        @method('POST')
-                        @csrf
-                        <div class="form-group">
-                            <label for="application_id">{{ trans('cruds.mbkmSeminar.fields.application') }}</label>
-                            <select class="form-control select2" name="application_id" id="application_id">
-                                @foreach($applications as $id => $entry)
-                                    <option value="{{ $id }}" {{ old('application_id') == $id ? 'selected' : '' }}>{{ $entry }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('application'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('application') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmSeminar.fields.application_helper') }}</span>
+                <form method="POST" action="{{ route("frontend.mbkm-seminars.store") }}" enctype="multipart/form-data">
+                    @method('POST')
+                    @csrf
+                    
+                    <div class="form-body">
+                        <div class="info-box info">
+                            <div class="info-box-title">Persyaratan Seminar Proposal MBKM</div>
+                            <div class="info-box-text">
+                                <ul class="mb-0">
+                                    <li>Proposal sudah disetujui oleh dosen pembimbing</li>
+                                    <li>Upload dokumen proposal dalam format PDF (maksimal 25 MB)</li>
+                                    <li>Sertakan form persetujuan yang sudah ditandatangani</li>
+                                    <li>Lampirkan hasil cek plagiarisme (maksimal 20%)</li>
+                                </ul>
+                            </div>
                         </div>
+
+                        <!-- Informasi Aplikasi Aktif -->
+                        <div class="info-box success mb-4">
+                            <div class="info-box-title">
+                                <i class="fas fa-check-circle mr-2"></i> Aplikasi MBKM Aktif
+                            </div>
+                            <div class="info-box-text">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Mahasiswa:</strong> {{ $activeApplication->mahasiswa->nama ?? '-' }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>NIM:</strong> {{ $activeApplication->mahasiswa->nim ?? '-' }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Type:</strong> <span class="badge badge-info">{{ strtoupper($activeApplication->type) }}</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Status:</strong> <span class="badge badge-success">{{ ucfirst($activeApplication->status) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group">
-                            <label for="title">{{ trans('cruds.mbkmSeminar.fields.title') }}</label>
-                            <input class="form-control" type="text" name="title" id="title" value="{{ old('title', '') }}">
+                            <label for="title">Judul Proposal <span class="required">*</span></label>
+                            <input class="form-control" type="text" name="title" id="title" value="{{ old('title', '') }}" placeholder="Masukkan judul proposal skripsi" required>
                             @if($errors->has('title'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('title') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('title') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmSeminar.fields.title_helper') }}</span>
+                            <span class="help-block">Judul proposal yang akan dipresentasikan</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="proposal_document">{{ trans('cruds.mbkmSeminar.fields.proposal_document') }}</label>
+                            <label for="proposal_document">Dokumen Proposal <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="proposal_document-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF dokumen proposal (maksimal 25 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('proposal_document'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('proposal_document') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('proposal_document') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmSeminar.fields.proposal_document_helper') }}</span>
+                            <span class="help-block">Upload dokumen proposal skripsi lengkap</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="approval_document">{{ trans('cruds.mbkmSeminar.fields.approval_document') }}</label>
+                            <label for="approval_document">Form Persetujuan Pembimbing <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="approval_document-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF form persetujuan (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('approval_document'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('approval_document') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('approval_document') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmSeminar.fields.approval_document_helper') }}</span>
+                            <span class="help-block">Upload form persetujuan yang sudah ditandatangani dosen pembimbing</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="plagiarism_document">{{ trans('cruds.mbkmSeminar.fields.plagiarism_document') }}</label>
+                            <label for="plagiarism_document">Hasil Cek Plagiarisme <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="plagiarism_document-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF hasil cek plagiarisme (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('plagiarism_document'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('plagiarism_document') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('plagiarism_document') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmSeminar.fields.plagiarism_document_helper') }}</span>
+                            <span class="help-block">Upload hasil cek plagiarisme dari Turnitin/software sejenis (maksimal 20%)</span>
                         </div>
-                        <div class="form-group">
-                            <button class="btn btn-danger" type="submit">
-                                {{ trans('global.save') }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                    </div>
 
+                    <div class="form-actions">
+                        <a href="{{ route('frontend.mbkm-seminars.index') }}" class="btn-back">
+                            <i class="fas fa-arrow-left mr-2"></i> Kembali
+                        </a>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-paper-plane mr-2"></i> Daftar Seminar
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -86,9 +122,9 @@
 
 @section('scripts')
 <script>
-    Dropzone.options.proposalDocumentDropzone = {
+Dropzone.options.proposalDocumentDropzone = {
     url: '{{ route('frontend.mbkm-seminars.storeMedia') }}',
-    maxFilesize: 25, // MB
+    maxFilesize: 25,
     maxFiles: 1,
     addRemoveLinks: true,
     headers: {
@@ -119,7 +155,7 @@
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -130,15 +166,13 @@
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    Dropzone.options.approvalDocumentDropzone = {
+
+Dropzone.options.approvalDocumentDropzone = {
     url: '{{ route('frontend.mbkm-seminars.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     maxFiles: 1,
     addRemoveLinks: true,
     headers: {
@@ -169,7 +203,7 @@
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -180,15 +214,13 @@
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    Dropzone.options.plagiarismDocumentDropzone = {
+
+Dropzone.options.plagiarismDocumentDropzone = {
     url: '{{ route('frontend.mbkm-seminars.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     maxFiles: 1,
     addRemoveLinks: true,
     headers: {
@@ -219,7 +251,7 @@
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -230,7 +262,6 @@
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }

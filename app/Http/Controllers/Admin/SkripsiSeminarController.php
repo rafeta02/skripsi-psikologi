@@ -11,6 +11,7 @@ use App\Models\Application;
 use App\Models\SkripsiSeminar;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
@@ -157,7 +158,7 @@ class SkripsiSeminarController extends Controller
     {
         abort_if(Gate::denies('skripsi_seminar_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $skripsiSeminar->load('application', 'created_by');
+        $skripsiSeminar->load('application', 'created_by', 'reviewer1', 'reviewer2');
 
         return view('admin.skripsiSeminars.show', compact('skripsiSeminar'));
     }
@@ -192,5 +193,96 @@ class SkripsiSeminarController extends Controller
         $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
+    }
+
+    /**
+     * Approve seminar proposal and assign reviewers
+     */
+    public function approve(Request $request, $id)
+    {
+        $seminar = SkripsiSeminar::with('application')->findOrFail($id);
+        
+        $request->validate([
+            'reviewer_1_id' => 'required|exists:dosens,id',
+            'reviewer_2_id' => 'required|exists:dosens,id|different:reviewer_1_id',
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            DB::transaction(function () use ($seminar, $request) {
+                // Update seminar with reviewers
+                $seminar->update([
+                    'reviewer_1_id' => $request->reviewer_1_id,
+                    'reviewer_2_id' => $request->reviewer_2_id,
+                ]);
+
+                // Update application status to approved
+                $seminar->application->update([
+                    'status' => 'approved',
+                ]);
+
+                // Log action
+                \App\Models\ApplicationAction::create([
+                    'application_id' => $seminar->application_id,
+                    'action_type' => 'seminar_approved',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->notes ?? 'Seminar proposal disetujui',
+                    'metadata' => [
+                        'reviewer_1_id' => $request->reviewer_1_id,
+                        'reviewer_2_id' => $request->reviewer_2_id,
+                    ],
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Seminar proposal berhasil disetujui dan reviewer telah ditugaskan'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject seminar proposal with reason
+     */
+    public function reject(Request $request, $id)
+    {
+        $seminar = SkripsiSeminar::with('application')->findOrFail($id);
+        
+        $request->validate([
+            'reason' => 'required|string|min:10',
+        ]);
+
+        try {
+            DB::transaction(function () use ($seminar, $request) {
+                // Update application status to rejected
+                $seminar->application->update([
+                    'status' => 'rejected',
+                    'notes' => $request->reason,
+                ]);
+
+                // Log action
+                \App\Models\ApplicationAction::create([
+                    'application_id' => $seminar->application_id,
+                    'action_type' => 'seminar_rejected',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->reason,
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Seminar proposal ditolak'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

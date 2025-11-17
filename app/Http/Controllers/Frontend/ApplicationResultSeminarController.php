@@ -31,9 +31,24 @@ class ApplicationResultSeminarController extends Controller
     {
         abort_if(Gate::denies('application_result_seminar_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
+        // Get current mahasiswa's active application
+        $user = auth()->user();
+        $mahasiswa = $user->mahasiswa;
+        
+        if (!$mahasiswa) {
+            return redirect()->back()->with('error', 'Profil mahasiswa tidak ditemukan');
+        }
 
-        return view('frontend.applicationResultSeminars.create', compact('applications'));
+        $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
+            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$activeApplication) {
+            return redirect()->back()->with('error', 'Tidak ada aplikasi aktif. Silakan buat aplikasi terlebih dahulu.');
+        }
+
+        return view('frontend.applicationResultSeminars.create', compact('activeApplication'));
     }
 
     public function store(StoreApplicationResultSeminarRequest $request)
@@ -41,27 +56,56 @@ class ApplicationResultSeminarController extends Controller
         $applicationResultSeminar = ApplicationResultSeminar::create($request->all());
 
         foreach ($request->input('report_document', []) as $file) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'report_document',
+                'BA'
+            );
         }
 
         if ($request->input('attendance_document', false)) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('attendance_document'))))->toMediaCollection('attendance_document');
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('attendance_document'))),
+                'attendance_document',
+                'DAFTAR_HADIR'
+            );
         }
 
         foreach ($request->input('form_document', []) as $file) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('form_document');
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'form_document',
+                'FORM_PENILAIAN'
+            );
         }
 
         if ($request->input('latest_script', false)) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('latest_script'))))->toMediaCollection('latest_script');
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
+                'latest_script',
+                'NASKAH'
+            );
         }
 
         foreach ($request->input('documentation', []) as $file) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('documentation');
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'documentation',
+                'DOKUMENTASI'
+            );
         }
 
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $applicationResultSeminar->id]);
+        }
+
+        // Update the application stage and status
+        if ($request->input('application_id')) {
+            Application::where('id', $request->input('application_id'))->update([
+                'stage' => 'seminar',
+                'status' => 'result',
+                'submitted_at' => now(),
+            ]);
         }
 
         return redirect()->route('frontend.application-result-seminars.index');
@@ -71,11 +115,9 @@ class ApplicationResultSeminarController extends Controller
     {
         abort_if(Gate::denies('application_result_seminar_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
-
         $applicationResultSeminar->load('application');
 
-        return view('frontend.applicationResultSeminars.edit', compact('applicationResultSeminar', 'applications'));
+        return view('frontend.applicationResultSeminars.edit', compact('applicationResultSeminar'));
     }
 
     public function update(UpdateApplicationResultSeminarRequest $request, ApplicationResultSeminar $applicationResultSeminar)
@@ -92,7 +134,11 @@ class ApplicationResultSeminarController extends Controller
         $media = $applicationResultSeminar->report_document->pluck('file_name')->toArray();
         foreach ($request->input('report_document', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'report_document',
+                    'BA'
+                );
             }
         }
 
@@ -101,7 +147,11 @@ class ApplicationResultSeminarController extends Controller
                 if ($applicationResultSeminar->attendance_document) {
                     $applicationResultSeminar->attendance_document->delete();
                 }
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('attendance_document'))))->toMediaCollection('attendance_document');
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('attendance_document'))),
+                    'attendance_document',
+                    'DAFTAR_HADIR'
+                );
             }
         } elseif ($applicationResultSeminar->attendance_document) {
             $applicationResultSeminar->attendance_document->delete();
@@ -117,7 +167,11 @@ class ApplicationResultSeminarController extends Controller
         $media = $applicationResultSeminar->form_document->pluck('file_name')->toArray();
         foreach ($request->input('form_document', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('form_document');
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'form_document',
+                    'FORM_PENILAIAN'
+                );
             }
         }
 
@@ -126,7 +180,11 @@ class ApplicationResultSeminarController extends Controller
                 if ($applicationResultSeminar->latest_script) {
                     $applicationResultSeminar->latest_script->delete();
                 }
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('latest_script'))))->toMediaCollection('latest_script');
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
+                    'latest_script',
+                    'NASKAH'
+                );
             }
         } elseif ($applicationResultSeminar->latest_script) {
             $applicationResultSeminar->latest_script->delete();
@@ -142,7 +200,11 @@ class ApplicationResultSeminarController extends Controller
         $media = $applicationResultSeminar->documentation->pluck('file_name')->toArray();
         foreach ($request->input('documentation', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('documentation');
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'documentation',
+                    'DOKUMENTASI'
+                );
             }
         }
 

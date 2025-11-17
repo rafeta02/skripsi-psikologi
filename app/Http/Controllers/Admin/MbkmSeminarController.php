@@ -193,4 +193,86 @@ class MbkmSeminarController extends Controller
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
     }
+
+    public function approve(Request $request, MbkmSeminar $mbkmSeminar)
+    {
+        abort_if(Gate::denies('mbkm_seminar_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        try {
+            $application = $mbkmSeminar->application;
+            
+            if (!$application) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aplikasi tidak ditemukan'
+                ], 404);
+            }
+
+            // Update application status
+            $application->update([
+                'status' => 'approved'
+            ]);
+
+            // Create action history
+            \App\Models\ApplicationAction::create([
+                'application_id' => $application->id,
+                'action_type' => 'approved',
+                'action_by_id' => auth()->id(),
+                'notes' => $request->input('notes'),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Seminar MBKM berhasil disetujui'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function reject(Request $request, MbkmSeminar $mbkmSeminar)
+    {
+        abort_if(Gate::denies('mbkm_seminar_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $request->validate([
+            'reason' => 'required|string|min:10',
+        ]);
+
+        try {
+            $application = $mbkmSeminar->application;
+            
+            if (!$application) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aplikasi tidak ditemukan'
+                ], 404);
+            }
+
+            // Update application status
+            $application->update([
+                'status' => 'rejected'
+            ]);
+
+            // Create action history
+            \App\Models\ApplicationAction::create([
+                'application_id' => $application->id,
+                'action_type' => 'rejected',
+                'action_by_id' => auth()->id(),
+                'notes' => $request->input('reason'),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Seminar MBKM berhasil ditolak'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

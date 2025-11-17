@@ -17,13 +17,17 @@ class UpdateSkripsiDefenseRequest extends FormRequest
     public function rules()
     {
         return [
+            'application_id' => [
+                'required',
+                'exists:applications,id',
+            ],
             'title' => [
+                'required',
                 'string',
-                'nullable',
             ],
             'abstract' => [
+                'required',
                 'string',
-                'nullable',
             ],
             'ethics_statement' => [
                 'array',
@@ -49,6 +53,15 @@ class UpdateSkripsiDefenseRequest extends FormRequest
             'supervision_logbook' => [
                 'array',
             ],
+        ];
+    }
+    
+    public function messages()
+    {
+        return [
+            'application_id.required' => 'Aplikasi harus dipilih',
+            'title.required' => 'Judul skripsi harus diisi',
+            'abstract.required' => 'Abstrak harus diisi',
         ];
     }
 }

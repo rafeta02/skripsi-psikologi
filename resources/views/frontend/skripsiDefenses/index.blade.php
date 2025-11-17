@@ -7,240 +7,101 @@
                 <div style="margin-bottom: 10px;" class="row">
                     <div class="col-lg-12">
                         <a class="btn btn-success" href="{{ route('frontend.skripsi-defenses.create') }}">
-                            {{ trans('global.add') }} {{ trans('cruds.skripsiDefense.title_singular') }}
+                            <i class="fas fa-plus mr-1"></i> {{ trans('global.add') }} {{ trans('cruds.skripsiDefense.title_singular') }}
                         </a>
                     </div>
                 </div>
             @endcan
             <div class="card">
-                <div class="card-header">
-                    {{ trans('cruds.skripsiDefense.title_singular') }} {{ trans('global.list') }}
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap mr-2"></i>{{ trans('cruds.skripsiDefense.title_singular') }} {{ trans('global.list') }}</h5>
                 </div>
 
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class=" table table-bordered table-striped table-hover datatable datatable-SkripsiDefense">
+                        <table class="table table-bordered table-striped table-hover datatable datatable-SkripsiDefense">
                             <thead>
                                 <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.application') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.title') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.abstract') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.defence_document') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.plagiarism_report') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.ethics_statement') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.research_instruments') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.data_collection_letter') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.research_module') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.publication_statement') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.defense_approval_page') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.spp_receipt') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.krs_latest') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.eap_certificate') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.transcript') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.mbkm_report') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.research_poster') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.siakad_supervisor_screenshot') }}
-                                    </th>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.supervision_logbook') }}
-                                    </th>
-                                    <th>
-                                        &nbsp;
-                                    </th>
+                                    <th>{{ trans('cruds.skripsiDefense.fields.title') }}</th>
+                                    <th>{{ trans('cruds.skripsiDefense.fields.application') }}</th>
+                                    <th>Status Validasi</th>
+                                    <th>Catatan Admin</th>
+                                    <th>Tanggal Dibuat</th>
+                                    <th>{{ trans('global.actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($skripsiDefenses as $key => $skripsiDefense)
                                     <tr data-entry-id="{{ $skripsiDefense->id }}">
+                                        <td>{{ $skripsiDefense->title ?? '' }}</td>
                                         <td>
-                                            {{ $skripsiDefense->application->status ?? '' }}
-                                        </td>
-                                        <td>
-                                            {{ $skripsiDefense->title ?? '' }}
-                                        </td>
-                                        <td>
-                                            {{ $skripsiDefense->abstract ?? '' }}
-                                        </td>
-                                        <td>
-                                            @if($skripsiDefense->defence_document)
-                                                <a href="{{ $skripsiDefense->defence_document->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
+                                            @if($skripsiDefense->application)
+                                                <span class="badge badge-info">{{ ucfirst($skripsiDefense->application->type) }}</span>
+                                                <span class="badge badge-secondary">{{ ucfirst($skripsiDefense->application->status) }}</span>
+                                            @else
+                                                N/A
                                             @endif
                                         </td>
                                         <td>
-                                            @if($skripsiDefense->plagiarism_report)
-                                                <a href="{{ $skripsiDefense->plagiarism_report->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
+                                            @if($skripsiDefense->status === 'accepted')
+                                                <span class="badge badge-success badge-lg">
+                                                    <i class="fas fa-check-circle"></i> Diterima
+                                                </span>
+                                            @elseif($skripsiDefense->status === 'rejected')
+                                                <span class="badge badge-danger badge-lg">
+                                                    <i class="fas fa-times-circle"></i> Ditolak
+                                                </span>
+                                            @else
+                                                <span class="badge badge-warning badge-lg">
+                                                    <i class="fas fa-clock"></i> Menunggu Validasi
+                                                </span>
                                             @endif
                                         </td>
                                         <td>
-                                            @foreach($skripsiDefense->ethics_statement as $key => $media)
-                                                <a href="{{ $media->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @foreach($skripsiDefense->research_instruments as $key => $media)
-                                                <a href="{{ $media->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @foreach($skripsiDefense->data_collection_letter as $key => $media)
-                                                <a href="{{ $media->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @foreach($skripsiDefense->research_module as $key => $media)
-                                                <a href="{{ $media->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @if($skripsiDefense->mbkm_recommendation_letter)
-                                                <a href="{{ $skripsiDefense->mbkm_recommendation_letter->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
+                                            @if($skripsiDefense->admin_note)
+                                                <button type="button" class="btn btn-sm btn-info" data-toggle="tooltip" title="{{ $skripsiDefense->admin_note }}">
+                                                    <i class="fas fa-sticky-note"></i> Lihat Catatan
+                                                </button>
+                                            @else
+                                                <span class="text-muted">-</span>
                                             @endif
                                         </td>
-                                        <td>
-                                            @if($skripsiDefense->publication_statement)
-                                                <a href="{{ $skripsiDefense->publication_statement->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @foreach($skripsiDefense->defense_approval_page as $key => $media)
-                                                <a href="{{ $media->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @if($skripsiDefense->spp_receipt)
-                                                <a href="{{ $skripsiDefense->spp_receipt->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($skripsiDefense->krs_latest)
-                                                <a href="{{ $skripsiDefense->krs_latest->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($skripsiDefense->eap_certificate)
-                                                <a href="{{ $skripsiDefense->eap_certificate->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($skripsiDefense->transcript)
-                                                <a href="{{ $skripsiDefense->transcript->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @foreach($skripsiDefense->mbkm_report as $key => $media)
-                                                <a href="{{ $media->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @foreach($skripsiDefense->research_poster as $key => $media)
-                                                <a href="{{ $media->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @if($skripsiDefense->siakad_supervisor_screenshot)
-                                                <a href="{{ $skripsiDefense->siakad_supervisor_screenshot->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @foreach($skripsiDefense->supervision_logbook as $key => $media)
-                                                <a href="{{ $media->getUrl() }}" target="_blank">
-                                                    {{ trans('global.view_file') }}
-                                                </a>
-                                            @endforeach
-                                        </td>
+                                        <td>{{ $skripsiDefense->created_at ? $skripsiDefense->created_at->format('d M Y H:i') : '' }}</td>
                                         <td>
                                             @can('skripsi_defense_show')
                                                 <a class="btn btn-xs btn-primary" href="{{ route('frontend.skripsi-defenses.show', $skripsiDefense->id) }}">
-                                                    {{ trans('global.view') }}
+                                                    <i class="fas fa-eye"></i> {{ trans('global.view') }}
                                                 </a>
                                             @endcan
 
                                             @can('skripsi_defense_edit')
-                                                <a class="btn btn-xs btn-info" href="{{ route('frontend.skripsi-defenses.edit', $skripsiDefense->id) }}">
-                                                    {{ trans('global.edit') }}
-                                                </a>
+                                                @if($skripsiDefense->status === 'pending' || $skripsiDefense->status === 'rejected')
+                                                    <a class="btn btn-xs btn-info" href="{{ route('frontend.skripsi-defenses.edit', $skripsiDefense->id) }}">
+                                                        <i class="fas fa-edit"></i> {{ trans('global.edit') }}
+                                                    </a>
+                                                @else
+                                                    <button class="btn btn-xs btn-secondary" disabled title="Tidak dapat diedit setelah diterima">
+                                                        <i class="fas fa-lock"></i> {{ trans('global.edit') }}
+                                                    </button>
+                                                @endif
                                             @endcan
 
                                             @can('skripsi_defense_delete')
-                                                <form action="{{ route('frontend.skripsi-defenses.destroy', $skripsiDefense->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
-                                                    <input type="hidden" name="_method" value="DELETE">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                                    <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
-                                                </form>
+                                                @if($skripsiDefense->status === 'pending' || $skripsiDefense->status === 'rejected')
+                                                    <form action="{{ route('frontend.skripsi-defenses.destroy', $skripsiDefense->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                                                        <input type="hidden" name="_method" value="DELETE">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-xs btn-danger">
+                                                            <i class="fas fa-trash"></i> {{ trans('global.delete') }}
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <button class="btn btn-xs btn-secondary" disabled title="Tidak dapat dihapus setelah diterima">
+                                                        <i class="fas fa-lock"></i> {{ trans('global.delete') }}
+                                                    </button>
+                                                @endif
                                             @endcan
-
                                         </td>
-
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -248,58 +109,31 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
 @endsection
+
 @section('scripts')
 @parent
 <script>
-    $(function () {
-  let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-@can('skripsi_defense_delete')
-  let deleteButtonTrans = '{{ trans('global.datatables.delete') }}'
-  let deleteButton = {
-    text: deleteButtonTrans,
-    url: "{{ route('frontend.skripsi-defenses.massDestroy') }}",
-    className: 'btn-danger',
-    action: function (e, dt, node, config) {
-      var ids = $.map(dt.rows({ selected: true }).nodes(), function (entry) {
-          return $(entry).data('entry-id')
-      });
-
-      if (ids.length === 0) {
-        alert('{{ trans('global.datatables.zero_selected') }}')
-
-        return
-      }
-
-      if (confirm('{{ trans('global.areYouSure') }}')) {
-        $.ajax({
-          headers: {'x-csrf-token': _token},
-          method: 'POST',
-          url: config.url,
-          data: { ids: ids, _method: 'DELETE' }})
-          .done(function () { location.reload() })
-      }
-    }
-  }
-  dtButtons.push(deleteButton)
-@endcan
-
-  $.extend(true, $.fn.dataTable.defaults, {
-    orderCellsTop: true,
-    order: [[ 1, 'desc' ]],
-    pageLength: 50,
-  });
-  let table = $('.datatable-SkripsiDefense:not(.ajaxTable)').DataTable({ buttons: dtButtons })
-  $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){
-      $($.fn.dataTable.tables(true)).DataTable()
-          .columns.adjust();
-  });
-  
-})
-
+$(document).ready(function() {
+    $('.datatable-SkripsiDefense').DataTable({
+        "pageLength": 25,
+        "order": [[ 4, "desc" ]],
+        "columnDefs": [
+            { "orderable": false, "targets": 5 }
+        ]
+    });
+    
+    $('[data-toggle="tooltip"]').tooltip();
+});
 </script>
+
+<style>
+.badge-lg {
+    font-size: 0.95rem;
+    padding: 6px 12px;
+}
+</style>
 @endsection

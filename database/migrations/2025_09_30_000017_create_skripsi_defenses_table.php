@@ -11,7 +11,7 @@ class CreateSkripsiDefensesTable extends Migration
         Schema::create('skripsi_defenses', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('title')->nullable();
-            $table->string('abstract')->nullable();
+            $table->text('abstract')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

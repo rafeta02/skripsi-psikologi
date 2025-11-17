@@ -1,248 +1,347 @@
 @extends('layouts.frontend')
 @section('content')
-<div class="container">
+<link rel="stylesheet" href="{{ asset('css/modern-form.css') }}">
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-
-            <div class="card">
-                <div class="card-header">
-                    {{ trans('global.create') }} {{ trans('cruds.skripsiDefense.title_singular') }}
+        <div class="col-lg-10">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2>Pendaftaran Sidang Skripsi</h2>
+                    <p>Daftar sidang skripsi reguler Anda</p>
                 </div>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route("frontend.skripsi-defenses.store") }}" enctype="multipart/form-data">
-                        @method('POST')
-                        @csrf
-                        <div class="form-group">
-                            <label for="application_id">{{ trans('cruds.skripsiDefense.fields.application') }}</label>
-                            <select class="form-control select2" name="application_id" id="application_id">
-                                @foreach($applications as $id => $entry)
-                                    <option value="{{ $id }}" {{ old('application_id') == $id ? 'selected' : '' }}>{{ $entry }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('application'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('application') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.application_helper') }}</span>
+                <form method="POST" action="{{ route("frontend.skripsi-defenses.store") }}" enctype="multipart/form-data">
+                    @method('POST')
+                    @csrf
+                    
+                    <div class="form-body">
+                        <div class="info-box info">
+                            <div class="info-box-title">Persyaratan Sidang Skripsi</div>
+                            <div class="info-box-text">
+                                <ul class="mb-0">
+                                    <li>Skripsi sudah disetujui oleh dosen pembimbing</li>
+                                    <li>Telah menyelesaikan seminar proposal dan seminar hasil</li>
+                                    <li>Upload semua dokumen yang diperlukan dalam format PDF</li>
+                                    <li>Pastikan semua dokumen sudah ditandatangani</li>
+                                    <li>Hasil cek plagiarisme maksimal 20%</li>
+                                </ul>
+                            </div>
                         </div>
+
+                        @if($activeApplication)
+                            <input type="hidden" name="application_id" value="{{ $activeApplication->id }}">
+                        @else
+                            <div class="alert alert-warning mb-4">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Anda belum memiliki aplikasi skripsi yang aktif. Silakan buat aplikasi terlebih dahulu.
+                            </div>
+                        @endif
+
+                        <!-- Informasi Dasar -->
+                        <h5 class="section-title">Informasi Dasar Skripsi</h5>
+                        
                         <div class="form-group">
-                            <label for="title">{{ trans('cruds.skripsiDefense.fields.title') }}</label>
-                            <input class="form-control" type="text" name="title" id="title" value="{{ old('title', '') }}">
+                            <label for="title">{{ trans('cruds.skripsiDefense.fields.title') }} <span class="required">*</span></label>
+                            <input class="form-control" type="text" name="title" id="title" value="{{ old('title', '') }}" placeholder="Masukkan judul skripsi" required>
                             @if($errors->has('title'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('title') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('title') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.title_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="abstract">{{ trans('cruds.skripsiDefense.fields.abstract') }}</label>
-                            <input class="form-control" type="text" name="abstract" id="abstract" value="{{ old('abstract', '') }}">
+                            <label for="abstract">{{ trans('cruds.skripsiDefense.fields.abstract') }} <span class="required">*</span></label>
+                            <textarea class="form-control" name="abstract" id="abstract" rows="4" placeholder="Masukkan abstrak skripsi" required>{{ old('abstract', '') }}</textarea>
                             @if($errors->has('abstract'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('abstract') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('abstract') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.abstract_helper') }}</span>
                         </div>
+
+                        <!-- Dokumen Sidang Utama -->
+                        <h5 class="section-title mt-4">Dokumen Sidang Utama</h5>
+                        
                         <div class="form-group">
-                            <label for="defence_document">{{ trans('cruds.skripsiDefense.fields.defence_document') }}</label>
+                            <label for="defence_document">{{ trans('cruds.skripsiDefense.fields.defence_document') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="defence_document-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF dokumen sidang (maksimal 25 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('defence_document'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('defence_document') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('defence_document') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.defence_document_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="plagiarism_report">{{ trans('cruds.skripsiDefense.fields.plagiarism_report') }}</label>
+                            <label for="plagiarism_report">{{ trans('cruds.skripsiDefense.fields.plagiarism_report') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="plagiarism_report-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF laporan plagiarisme (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('plagiarism_report'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('plagiarism_report') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('plagiarism_report') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.plagiarism_report_helper') }}</span>
                         </div>
+
+                        <!-- Dokumen Etika & Penelitian -->
+                        <h5 class="section-title mt-4">Dokumen Etika & Penelitian</h5>
+                        
                         <div class="form-group">
-                            <label for="ethics_statement">{{ trans('cruds.skripsiDefense.fields.ethics_statement') }}</label>
+                            <label for="ethics_statement">{{ trans('cruds.skripsiDefense.fields.ethics_statement') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="ethics_statement-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF pernyataan etika (maksimal 10 MB, multiple files)</small>
+                                </div>
                             </div>
                             @if($errors->has('ethics_statement'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('ethics_statement') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('ethics_statement') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.ethics_statement_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="research_instruments">{{ trans('cruds.skripsiDefense.fields.research_instruments') }}</label>
+                            <label for="research_instruments">{{ trans('cruds.skripsiDefense.fields.research_instruments') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="research_instruments-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF instrumen penelitian (maksimal 10 MB, multiple files)</small>
+                                </div>
                             </div>
                             @if($errors->has('research_instruments'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('research_instruments') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('research_instruments') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.research_instruments_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="data_collection_letter">{{ trans('cruds.skripsiDefense.fields.data_collection_letter') }}</label>
+                            <label for="data_collection_letter">{{ trans('cruds.skripsiDefense.fields.data_collection_letter') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="data_collection_letter-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF surat izin (maksimal 10 MB, multiple files)</small>
+                                </div>
                             </div>
                             @if($errors->has('data_collection_letter'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('data_collection_letter') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('data_collection_letter') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.data_collection_letter_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="research_module">{{ trans('cruds.skripsiDefense.fields.research_module') }}</label>
+                            <label for="research_module">{{ trans('cruds.skripsiDefense.fields.research_module') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="research_module-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF modul penelitian (maksimal 10 MB, multiple files)</small>
+                                </div>
                             </div>
                             @if($errors->has('research_module'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('research_module') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('research_module') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.research_module_helper') }}</span>
                         </div>
+
+                        <!-- Dokumen Akademik -->
+                        <h5 class="section-title mt-4">Dokumen Akademik</h5>
+                        
                         <div class="form-group">
-                            <label for="mbkm_recommendation_letter">{{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter') }}</label>
-                            <div class="needsclick dropzone" id="mbkm_recommendation_letter-dropzone">
-                            </div>
-                            @if($errors->has('mbkm_recommendation_letter'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('mbkm_recommendation_letter') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="publication_statement">{{ trans('cruds.skripsiDefense.fields.publication_statement') }}</label>
-                            <div class="needsclick dropzone" id="publication_statement-dropzone">
-                            </div>
-                            @if($errors->has('publication_statement'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('publication_statement') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.publication_statement_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="defense_approval_page">{{ trans('cruds.skripsiDefense.fields.defense_approval_page') }}</label>
-                            <div class="needsclick dropzone" id="defense_approval_page-dropzone">
-                            </div>
-                            @if($errors->has('defense_approval_page'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('defense_approval_page') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.defense_approval_page_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="spp_receipt">{{ trans('cruds.skripsiDefense.fields.spp_receipt') }}</label>
+                            <label for="spp_receipt">{{ trans('cruds.skripsiDefense.fields.spp_receipt') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="spp_receipt-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF bukti pembayaran SPP (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('spp_receipt'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('spp_receipt') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('spp_receipt') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.spp_receipt_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="krs_latest">{{ trans('cruds.skripsiDefense.fields.krs_latest') }}</label>
+                            <label for="krs_latest">{{ trans('cruds.skripsiDefense.fields.krs_latest') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="krs_latest-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF KRS terbaru (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('krs_latest'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('krs_latest') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('krs_latest') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.krs_latest_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="eap_certificate">{{ trans('cruds.skripsiDefense.fields.eap_certificate') }}</label>
+                            <label for="eap_certificate">{{ trans('cruds.skripsiDefense.fields.eap_certificate') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="eap_certificate-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF sertifikat EAP (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('eap_certificate'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('eap_certificate') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('eap_certificate') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.eap_certificate_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="transcript">{{ trans('cruds.skripsiDefense.fields.transcript') }}</label>
+                            <label for="transcript">{{ trans('cruds.skripsiDefense.fields.transcript') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="transcript-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF transkrip nilai (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('transcript'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('transcript') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('transcript') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.transcript_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="mbkm_report">{{ trans('cruds.skripsiDefense.fields.mbkm_report') }}</label>
-                            <div class="needsclick dropzone" id="mbkm_report-dropzone">
-                            </div>
-                            @if($errors->has('mbkm_report'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('mbkm_report') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.mbkm_report_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="research_poster">{{ trans('cruds.skripsiDefense.fields.research_poster') }}</label>
-                            <div class="needsclick dropzone" id="research_poster-dropzone">
-                            </div>
-                            @if($errors->has('research_poster'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('research_poster') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.research_poster_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="siakad_supervisor_screenshot">{{ trans('cruds.skripsiDefense.fields.siakad_supervisor_screenshot') }}</label>
+                            <label for="siakad_supervisor_screenshot">{{ trans('cruds.skripsiDefense.fields.siakad_supervisor_screenshot') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="siakad_supervisor_screenshot-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF/Image screenshot SIAKAD (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('siakad_supervisor_screenshot'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('siakad_supervisor_screenshot') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('siakad_supervisor_screenshot') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.siakad_supervisor_screenshot_helper') }}</span>
                         </div>
+
+                        <!-- Dokumen Persetujuan -->
+                        <h5 class="section-title mt-4">Dokumen Persetujuan & Pernyataan</h5>
+                        
                         <div class="form-group">
-                            <label for="supervision_logbook">{{ trans('cruds.skripsiDefense.fields.supervision_logbook') }}</label>
+                            <label for="publication_statement">{{ trans('cruds.skripsiDefense.fields.publication_statement') }} <span class="required">*</span></label>
+                            <div class="needsclick dropzone" id="publication_statement-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF pernyataan publikasi (maksimal 10 MB)</small>
+                                </div>
+                            </div>
+                            @if($errors->has('publication_statement'))
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('publication_statement') }}</span>
+                            @endif
+                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.publication_statement_helper') }}</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="defense_approval_page">{{ trans('cruds.skripsiDefense.fields.defense_approval_page') }} <span class="required">*</span></label>
+                            <div class="needsclick dropzone" id="defense_approval_page-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF halaman persetujuan (maksimal 10 MB, multiple files)</small>
+                                </div>
+                            </div>
+                            @if($errors->has('defense_approval_page'))
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('defense_approval_page') }}</span>
+                            @endif
+                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.defense_approval_page_helper') }}</span>
+                        </div>
+
+                        <!-- Dokumen MBKM (Optional) -->
+                        <h5 class="section-title mt-4">Dokumen MBKM <span class="badge badge-secondary ml-2">Opsional</span></h5>
+                        
+                        <div class="form-group">
+                            <label for="mbkm_recommendation_letter">{{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter') }}</label>
+                            <div class="needsclick dropzone" id="mbkm_recommendation_letter-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF surat rekomendasi MBKM (maksimal 10 MB)</small>
+                                </div>
+                            </div>
+                            @if($errors->has('mbkm_recommendation_letter'))
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('mbkm_recommendation_letter') }}</span>
+                            @endif
+                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter_helper') }}</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mbkm_report">{{ trans('cruds.skripsiDefense.fields.mbkm_report') }}</label>
+                            <div class="needsclick dropzone" id="mbkm_report-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF laporan MBKM (maksimal 10 MB, multiple files)</small>
+                                </div>
+                            </div>
+                            @if($errors->has('mbkm_report'))
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('mbkm_report') }}</span>
+                            @endif
+                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.mbkm_report_helper') }}</span>
+                        </div>
+
+                        <!-- Dokumen Pendukung -->
+                        <h5 class="section-title mt-4">Dokumen Pendukung Lainnya</h5>
+                        
+                        <div class="form-group">
+                            <label for="research_poster">{{ trans('cruds.skripsiDefense.fields.research_poster') }} <span class="required">*</span></label>
+                            <div class="needsclick dropzone" id="research_poster-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF/Image poster penelitian (maksimal 10 MB, multiple files)</small>
+                                </div>
+                            </div>
+                            @if($errors->has('research_poster'))
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('research_poster') }}</span>
+                            @endif
+                            <span class="help-block">{{ trans('cruds.skripsiDefense.fields.research_poster_helper') }}</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="supervision_logbook">{{ trans('cruds.skripsiDefense.fields.supervision_logbook') }} <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="supervision_logbook-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF logbook bimbingan (maksimal 10 MB, multiple files)</small>
+                                </div>
                             </div>
                             @if($errors->has('supervision_logbook'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('supervision_logbook') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('supervision_logbook') }}</span>
                             @endif
                             <span class="help-block">{{ trans('cruds.skripsiDefense.fields.supervision_logbook_helper') }}</span>
                         </div>
-                        <div class="form-group">
-                            <button class="btn btn-danger" type="submit">
-                                {{ trans('global.save') }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                    </div>
 
+                    <div class="form-actions">
+                        <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn-back">
+                            <i class="fas fa-arrow-left mr-2"></i> Kembali
+                        </a>
+                        <button type="submit" class="btn-submit" {{ !$activeApplication ? 'disabled' : '' }}>
+                            <i class="fas fa-paper-plane mr-2"></i> Daftar Sidang
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -250,901 +349,117 @@
 
 @section('scripts')
 <script>
-    Dropzone.options.defenceDocumentDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 25, // MB
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 25
-    },
-    success: function (file, response) {
-      $('form').find('input[name="defence_document"]').remove()
-      $('form').append('<input type="hidden" name="defence_document" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="defence_document"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->defence_document)
-      var file = {!! json_encode($skripsiDefense->defence_document) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="defence_document" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
+// Single file dropzones
+var singleFileDropzones = [
+    { id: 'defence_document', name: 'defence_document', maxSize: 25 },
+    { id: 'plagiarism_report', name: 'plagiarism_report', maxSize: 10 },
+    { id: 'mbkm_recommendation_letter', name: 'mbkm_recommendation_letter', maxSize: 10 },
+    { id: 'publication_statement', name: 'publication_statement', maxSize: 10 },
+    { id: 'spp_receipt', name: 'spp_receipt', maxSize: 10 },
+    { id: 'krs_latest', name: 'krs_latest', maxSize: 10 },
+    { id: 'eap_certificate', name: 'eap_certificate', maxSize: 10 },
+    { id: 'transcript', name: 'transcript', maxSize: 10 },
+    { id: 'siakad_supervisor_screenshot', name: 'siakad_supervisor_screenshot', maxSize: 10 }
+];
 
-         return _results
-     }
-}
-</script>
-<script>
-    Dropzone.options.plagiarismReportDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="plagiarism_report"]').remove()
-      $('form').append('<input type="hidden" name="plagiarism_report" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="plagiarism_report"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->plagiarism_report)
-      var file = {!! json_encode($skripsiDefense->plagiarism_report) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="plagiarism_report" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    var uploadedEthicsStatementMap = {}
-Dropzone.options.ethicsStatementDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').append('<input type="hidden" name="ethics_statement[]" value="' + response.name + '">')
-      uploadedEthicsStatementMap[file.name] = response.name
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedEthicsStatementMap[file.name]
-      }
-      $('form').find('input[name="ethics_statement[]"][value="' + name + '"]').remove()
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->ethics_statement)
-          var files =
-            {!! json_encode($skripsiDefense->ethics_statement) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="ethics_statement[]" value="' + file.file_name + '">')
+singleFileDropzones.forEach(function(config) {
+    var camelCaseId = config.id.replace(/_([a-z])/g, function(g) { return g[1].toUpperCase(); });
+    Dropzone.options[camelCaseId + 'Dropzone'] = {
+        url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
+        maxFilesize: config.maxSize,
+        maxFiles: 1,
+        addRemoveLinks: true,
+        headers: {
+            'X-CSRF-TOKEN': "{{ csrf_token() }}"
+        },
+        params: {
+            size: config.maxSize
+        },
+        success: function (file, response) {
+            $('form').find('input[name="' + config.name + '"]').remove()
+            $('form').append('<input type="hidden" name="' + config.name + '" value="' + response.name + '">')
+        },
+        removedfile: function (file) {
+            file.previewElement.remove()
+            if (file.status !== 'error') {
+                $('form').find('input[name="' + config.name + '"]').remove()
+                this.options.maxFiles = this.options.maxFiles + 1
             }
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    var uploadedResearchInstrumentsMap = {}
-Dropzone.options.researchInstrumentsDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').append('<input type="hidden" name="research_instruments[]" value="' + response.name + '">')
-      uploadedResearchInstrumentsMap[file.name] = response.name
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedResearchInstrumentsMap[file.name]
-      }
-      $('form').find('input[name="research_instruments[]"][value="' + name + '"]').remove()
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->research_instruments)
-          var files =
-            {!! json_encode($skripsiDefense->research_instruments) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="research_instruments[]" value="' + file.file_name + '">')
+        },
+        error: function (file, response) {
+            if ($.type(response) === 'string') {
+                var message = response
+            } else {
+                var message = response.errors.file
             }
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    var uploadedDataCollectionLetterMap = {}
-Dropzone.options.dataCollectionLetterDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').append('<input type="hidden" name="data_collection_letter[]" value="' + response.name + '">')
-      uploadedDataCollectionLetterMap[file.name] = response.name
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedDataCollectionLetterMap[file.name]
-      }
-      $('form').find('input[name="data_collection_letter[]"][value="' + name + '"]').remove()
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->data_collection_letter)
-          var files =
-            {!! json_encode($skripsiDefense->data_collection_letter) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="data_collection_letter[]" value="' + file.file_name + '">')
+            file.previewElement.classList.add('dz-error')
+            var _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
+            var _results = []
+            for (var _i = 0, _len = _ref.length; _i < _len; _i++) {
+                var node = _ref[_i]
+                _results.push(node.textContent = message)
             }
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
+            return _results
+        }
+    };
+});
 
-         return _results
-     }
-}
-</script>
-<script>
-    var uploadedResearchModuleMap = {}
-Dropzone.options.researchModuleDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').append('<input type="hidden" name="research_module[]" value="' + response.name + '">')
-      uploadedResearchModuleMap[file.name] = response.name
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedResearchModuleMap[file.name]
-      }
-      $('form').find('input[name="research_module[]"][value="' + name + '"]').remove()
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->research_module)
-          var files =
-            {!! json_encode($skripsiDefense->research_module) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="research_module[]" value="' + file.file_name + '">')
+// Multiple file dropzones
+var multipleFileDropzones = [
+    'ethics_statement',
+    'research_instruments',
+    'data_collection_letter',
+    'research_module',
+    'defense_approval_page',
+    'mbkm_report',
+    'research_poster',
+    'supervision_logbook'
+];
+
+multipleFileDropzones.forEach(function(fieldName) {
+    var uploadedMap = {};
+    var camelCaseId = fieldName.replace(/_([a-z])/g, function(g) { return g[1].toUpperCase(); });
+    
+    Dropzone.options[camelCaseId + 'Dropzone'] = {
+        url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
+        maxFilesize: 10,
+        addRemoveLinks: true,
+        headers: {
+            'X-CSRF-TOKEN': "{{ csrf_token() }}"
+        },
+        params: {
+            size: 10
+        },
+        success: function (file, response) {
+            $('form').append('<input type="hidden" name="' + fieldName + '[]" value="' + response.name + '">')
+            uploadedMap[file.name] = response.name
+        },
+        removedfile: function (file) {
+            file.previewElement.remove()
+            var name = ''
+            if (typeof file.file_name !== 'undefined') {
+                name = file.file_name
+            } else {
+                name = uploadedMap[file.name]
             }
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    Dropzone.options.mbkmRecommendationLetterDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="mbkm_recommendation_letter"]').remove()
-      $('form').append('<input type="hidden" name="mbkm_recommendation_letter" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="mbkm_recommendation_letter"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->mbkm_recommendation_letter)
-      var file = {!! json_encode($skripsiDefense->mbkm_recommendation_letter) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="mbkm_recommendation_letter" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    Dropzone.options.publicationStatementDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="publication_statement"]').remove()
-      $('form').append('<input type="hidden" name="publication_statement" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="publication_statement"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->publication_statement)
-      var file = {!! json_encode($skripsiDefense->publication_statement) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="publication_statement" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    var uploadedDefenseApprovalPageMap = {}
-Dropzone.options.defenseApprovalPageDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').append('<input type="hidden" name="defense_approval_page[]" value="' + response.name + '">')
-      uploadedDefenseApprovalPageMap[file.name] = response.name
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedDefenseApprovalPageMap[file.name]
-      }
-      $('form').find('input[name="defense_approval_page[]"][value="' + name + '"]').remove()
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->defense_approval_page)
-          var files =
-            {!! json_encode($skripsiDefense->defense_approval_page) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="defense_approval_page[]" value="' + file.file_name + '">')
+            $('form').find('input[name="' + fieldName + '[]"][value="' + name + '"]').remove()
+        },
+        error: function (file, response) {
+            if ($.type(response) === 'string') {
+                var message = response
+            } else {
+                var message = response.errors.file
             }
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    Dropzone.options.sppReceiptDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="spp_receipt"]').remove()
-      $('form').append('<input type="hidden" name="spp_receipt" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="spp_receipt"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->spp_receipt)
-      var file = {!! json_encode($skripsiDefense->spp_receipt) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="spp_receipt" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    Dropzone.options.krsLatestDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="krs_latest"]').remove()
-      $('form').append('<input type="hidden" name="krs_latest" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="krs_latest"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->krs_latest)
-      var file = {!! json_encode($skripsiDefense->krs_latest) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="krs_latest" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    Dropzone.options.eapCertificateDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="eap_certificate"]').remove()
-      $('form').append('<input type="hidden" name="eap_certificate" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="eap_certificate"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->eap_certificate)
-      var file = {!! json_encode($skripsiDefense->eap_certificate) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="eap_certificate" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    Dropzone.options.transcriptDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="transcript"]').remove()
-      $('form').append('<input type="hidden" name="transcript" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="transcript"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->transcript)
-      var file = {!! json_encode($skripsiDefense->transcript) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="transcript" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    var uploadedMbkmReportMap = {}
-Dropzone.options.mbkmReportDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').append('<input type="hidden" name="mbkm_report[]" value="' + response.name + '">')
-      uploadedMbkmReportMap[file.name] = response.name
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedMbkmReportMap[file.name]
-      }
-      $('form').find('input[name="mbkm_report[]"][value="' + name + '"]').remove()
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->mbkm_report)
-          var files =
-            {!! json_encode($skripsiDefense->mbkm_report) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="mbkm_report[]" value="' + file.file_name + '">')
+            file.previewElement.classList.add('dz-error')
+            var _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
+            var _results = []
+            for (var _i = 0, _len = _ref.length; _i < _len; _i++) {
+                var node = _ref[_i]
+                _results.push(node.textContent = message)
             }
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    var uploadedResearchPosterMap = {}
-Dropzone.options.researchPosterDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').append('<input type="hidden" name="research_poster[]" value="' + response.name + '">')
-      uploadedResearchPosterMap[file.name] = response.name
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedResearchPosterMap[file.name]
-      }
-      $('form').find('input[name="research_poster[]"][value="' + name + '"]').remove()
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->research_poster)
-          var files =
-            {!! json_encode($skripsiDefense->research_poster) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="research_poster[]" value="' + file.file_name + '">')
-            }
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    Dropzone.options.siakadSupervisorScreenshotDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="siakad_supervisor_screenshot"]').remove()
-      $('form').append('<input type="hidden" name="siakad_supervisor_screenshot" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="siakad_supervisor_screenshot"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->siakad_supervisor_screenshot)
-      var file = {!! json_encode($skripsiDefense->siakad_supervisor_screenshot) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="siakad_supervisor_screenshot" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
-<script>
-    var uploadedSupervisionLogbookMap = {}
-Dropzone.options.supervisionLogbookDropzone = {
-    url: '{{ route('frontend.skripsi-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').append('<input type="hidden" name="supervision_logbook[]" value="' + response.name + '">')
-      uploadedSupervisionLogbookMap[file.name] = response.name
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedSupervisionLogbookMap[file.name]
-      }
-      $('form').find('input[name="supervision_logbook[]"][value="' + name + '"]').remove()
-    },
-    init: function () {
-@if(isset($skripsiDefense) && $skripsiDefense->supervision_logbook)
-          var files =
-            {!! json_encode($skripsiDefense->supervision_logbook) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="supervision_logbook[]" value="' + file.file_name + '">')
-            }
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
+            return _results
+        }
+    };
+});
 </script>
 @endsection

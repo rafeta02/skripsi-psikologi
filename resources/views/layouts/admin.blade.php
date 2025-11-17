@@ -19,11 +19,28 @@
     <link href="https://cdn.datatables.net/select/1.3.0/css/select.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdn.datatables.net/buttons/1.2.4/css/buttons.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.5.1/min/dropzone.min.css" rel="stylesheet" />
+    <link href="{{ asset('css/admin.css') }}" rel="stylesheet" />
     <link href="{{ asset('css/custom.css') }}" rel="stylesheet" />
+    <link href="{{ asset('css/loading.css') }}" rel="stylesheet" />
     @yield('styles')
 </head>
 
+<div class="loading" style="display: none" id="loadingSpinner">
+    <div style="color: blue" class="loading-content la-ball-spin-fade la-3x">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+</div>
+
 <body class="sidebar-mini layout-fixed" style="height: auto;">
+    @include('sweetalert::alert')
+
     <div class="wrapper">
         <nav class="main-header navbar navbar-expand bg-white navbar-light border-bottom">
             <!-- Left navbar links -->

@@ -70,7 +70,19 @@ class ApplicationAssignment extends Model
 
     public function setAssignedAtAttribute($value)
     {
-        $this->attributes['assigned_at'] = $value ? Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s') : null;
+        if (!$value) {
+            $this->attributes['assigned_at'] = null;
+            return;
+        }
+        
+        // If already a Carbon instance, just format it
+        if ($value instanceof Carbon) {
+            $this->attributes['assigned_at'] = $value->format('Y-m-d H:i:s');
+            return;
+        }
+        
+        // Otherwise, parse from string
+        $this->attributes['assigned_at'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
     }
 
     public function getRespondedAtAttribute($value)
@@ -80,6 +92,18 @@ class ApplicationAssignment extends Model
 
     public function setRespondedAtAttribute($value)
     {
-        $this->attributes['responded_at'] = $value ? Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s') : null;
+        if (!$value) {
+            $this->attributes['responded_at'] = null;
+            return;
+        }
+        
+        // If already a Carbon instance, just format it
+        if ($value instanceof Carbon) {
+            $this->attributes['responded_at'] = $value->format('Y-m-d H:i:s');
+            return;
+        }
+        
+        // Otherwise, parse from string
+        $this->attributes['responded_at'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
     }
 }

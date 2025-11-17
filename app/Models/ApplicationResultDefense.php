@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use App\Traits\FileNamingTrait;
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ApplicationResultDefense extends Model implements HasMedia
 {
-    use SoftDeletes, InteractsWithMedia, Auditable, HasFactory;
+    use SoftDeletes, InteractsWithMedia, Auditable, HasFactory, FileNamingTrait;
 
     public $table = 'application_result_defenses';
 
@@ -51,6 +52,10 @@ class ApplicationResultDefense extends Model implements HasMedia
         'approval_page',
         'report_document',
         'revision_approval_sheet',
+        'attendance_document',
+        'form_document',
+        'certificate_document',
+        'publication_document',
     ];
 
     protected function serializeDate(DateTimeInterface $date)
@@ -117,5 +122,25 @@ class ApplicationResultDefense extends Model implements HasMedia
     public function getRevisionApprovalSheetAttribute()
     {
         return $this->getMedia('revision_approval_sheet');
+    }
+
+    public function getAttendanceDocumentAttribute()
+    {
+        return $this->getMedia('attendance_document')->last();
+    }
+
+    public function getFormDocumentAttribute()
+    {
+        return $this->getMedia('form_document')->last();
+    }
+
+    public function getCertificateDocumentAttribute()
+    {
+        return $this->getMedia('certificate_document')->last();
+    }
+
+    public function getPublicationDocumentAttribute()
+    {
+        return $this->getMedia('publication_document')->last();
     }
 }

@@ -10,17 +10,15 @@
         <form method="POST" action="{{ route("admin.application-reports.update", [$applicationReport->id]) }}" enctype="multipart/form-data">
             @method('PUT')
             @csrf
+            <input type="hidden" name="application_id" value="{{ $applicationReport->application_id }}">
+            
             <div class="form-group">
-                <label for="application_id">{{ trans('cruds.applicationReport.fields.application') }}</label>
-                <select class="form-control select2 {{ $errors->has('application') ? 'is-invalid' : '' }}" name="application_id" id="application_id">
-                    @foreach($applications as $id => $entry)
-                        <option value="{{ $id }}" {{ (old('application_id') ? old('application_id') : $applicationReport->application->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
-                    @endforeach
-                </select>
+                <label>{{ trans('cruds.applicationReport.fields.application') }}</label>
+                <input type="text" class="form-control" value="{{ $applicationReport->application->type ?? 'N/A' }}" readonly>
                 @if($errors->has('application'))
                     <span class="text-danger">{{ $errors->first('application') }}</span>
                 @endif
-                <span class="help-block">{{ trans('cruds.applicationReport.fields.application_helper') }}</span>
+                <span class="help-block">Aplikasi tidak dapat diubah setelah laporan dibuat</span>
             </div>
             <div class="form-group">
                 <label for="report_text">{{ trans('cruds.applicationReport.fields.report_text') }}</label>
@@ -47,6 +45,7 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.applicationReport.fields.period_helper') }}</span>
             </div>
+            @if(auth()->user()->hasRole(['Admin']))
             <div class="form-group">
                 <label>{{ trans('cruds.applicationReport.fields.status') }}</label>
                 <select class="form-control {{ $errors->has('status') ? 'is-invalid' : '' }}" name="status" id="status">
@@ -68,6 +67,20 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.applicationReport.fields.note_helper') }}</span>
             </div>
+            @else
+            <div class="form-group">
+                <label>{{ trans('cruds.applicationReport.fields.status') }}</label>
+                <input type="text" class="form-control" value="{{ App\Models\ApplicationReport::STATUS_SELECT[$applicationReport->status] ?? '' }}" readonly>
+                <span class="help-block">Status hanya dapat diubah oleh admin</span>
+            </div>
+            @if($applicationReport->note)
+            <div class="form-group">
+                <label for="note">{{ trans('cruds.applicationReport.fields.note') }}</label>
+                <textarea class="form-control" readonly>{{ $applicationReport->note }}</textarea>
+                <span class="help-block">Catatan dari admin</span>
+            </div>
+            @endif
+            @endif
             <div class="form-group">
                 <button class="btn btn-danger" type="submit">
                     {{ trans('global.save') }}

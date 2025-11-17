@@ -49,10 +49,20 @@
                                             {{ $applicationReport->period ?? '' }}
                                         </td>
                                         <td>
-                                            {{ App\Models\ApplicationReport::STATUS_SELECT[$applicationReport->status] ?? '' }}
+                                            @if($applicationReport->status == 'submitted')
+                                                <span class="badge badge-warning">Submitted</span>
+                                            @else
+                                                <span class="badge badge-success">Reviewed</span>
+                                            @endif
                                         </td>
                                         <td>
-                                            {{ $applicationReport->note ?? '' }}
+                                            @if($applicationReport->note)
+                                                <span class="badge badge-info" data-toggle="tooltip" title="{{ $applicationReport->note }}">
+                                                    <i class="fas fa-comment"></i> Ada Catatan
+                                                </span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
                                         </td>
                                         <td>
                                             @can('application_report_show')
@@ -134,6 +144,9 @@
       $($.fn.dataTable.tables(true)).DataTable()
           .columns.adjust();
   });
+  
+  // Initialize tooltips
+  $('[data-toggle="tooltip"]').tooltip();
   
 })
 

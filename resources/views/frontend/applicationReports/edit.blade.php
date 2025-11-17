@@ -13,20 +13,17 @@
                     <form method="POST" action="{{ route("frontend.application-reports.update", [$applicationReport->id]) }}" enctype="multipart/form-data">
                         @method('PUT')
                         @csrf
-                        <div class="form-group">
-                            <label for="application_id">{{ trans('cruds.applicationReport.fields.application') }}</label>
-                            <select class="form-control select2" name="application_id" id="application_id">
-                                @foreach($applications as $id => $entry)
-                                    <option value="{{ $id }}" {{ (old('application_id') ? old('application_id') : $applicationReport->application->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('application'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('application') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.applicationReport.fields.application_helper') }}</span>
-                        </div>
+                        
+                        @if($applicationReport->application)
+                            <input type="hidden" name="application_id" value="{{ $applicationReport->application->id }}">
+                            
+                            <div class="alert alert-info mb-4">
+                                <h5 class="alert-heading"><i class="fas fa-info-circle mr-2"></i>Aplikasi Skripsi</h5>
+                                <p class="mb-1"><strong>Type:</strong> <span class="badge badge-primary">{{ ucfirst($applicationReport->application->type) }}</span></p>
+                                <p class="mb-1"><strong>Stage:</strong> <span class="badge badge-info">{{ ucfirst($applicationReport->application->stage) }}</span></p>
+                                <p class="mb-0"><strong>Status:</strong> <span class="badge badge-success">{{ ucfirst($applicationReport->application->status) }}</span></p>
+                            </div>
+                        @endif
                         <div class="form-group">
                             <label for="report_text">{{ trans('cruds.applicationReport.fields.report_text') }}</label>
                             <textarea class="form-control ckeditor" name="report_text" id="report_text">{!! old('report_text', $applicationReport->report_text) !!}</textarea>
@@ -58,6 +55,8 @@
                             @endif
                             <span class="help-block">{{ trans('cruds.applicationReport.fields.period_helper') }}</span>
                         </div>
+                        
+                        @if(auth()->user()->hasRole(['Admin']))
                         <div class="form-group">
                             <label>{{ trans('cruds.applicationReport.fields.status') }}</label>
                             <select class="form-control" name="status" id="status">
@@ -83,6 +82,20 @@
                             @endif
                             <span class="help-block">{{ trans('cruds.applicationReport.fields.note_helper') }}</span>
                         </div>
+                        @else
+                        <div class="form-group">
+                            <label>{{ trans('cruds.applicationReport.fields.status') }}</label>
+                            <input type="text" class="form-control" value="{{ App\Models\ApplicationReport::STATUS_SELECT[$applicationReport->status] ?? '' }}" readonly>
+                            <span class="help-block">Status hanya dapat diubah oleh admin</span>
+                        </div>
+                        @if($applicationReport->note)
+                        <div class="form-group">
+                            <label for="note">{{ trans('cruds.applicationReport.fields.note') }}</label>
+                            <textarea class="form-control" readonly>{{ $applicationReport->note }}</textarea>
+                            <span class="help-block">Catatan dari admin</span>
+                        </div>
+                        @endif
+                        @endif
                         <div class="form-group">
                             <button class="btn btn-danger" type="submit">
                                 {{ trans('global.save') }}
@@ -110,7 +123,7 @@
                 // Init request
                 var xhr = new XMLHttpRequest();
                 xhr.open('POST', '{{ route('frontend.application-reports.storeCKEditorImages') }}', true);
-                xhr.setRequestHeader('x-csrf-token', window._token);
+                xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                 xhr.setRequestHeader('Accept', 'application/json');
                 xhr.responseType = 'json';
 
@@ -157,7 +170,12 @@
       allEditors[i], {
         extraPlugins: [SimpleUploadAdapter]
       }
-    );
+    ).catch(error => {
+      console.error('CKEditor initialization error:', error);
+      // Fallback: show the textarea if CKEditor fails to initialize
+      allEditors[i].style.display = 'block';
+      allEditors[i].style.minHeight = '200px';
+    });
   }
 });
 </script>

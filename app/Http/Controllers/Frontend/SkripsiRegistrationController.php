@@ -11,6 +11,7 @@ use App\Models\Application;
 use App\Models\Dosen;
 use App\Models\Keilmuan;
 use App\Models\SkripsiRegistration;
+use App\Services\FormAccessService;
 use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -33,7 +34,14 @@ class SkripsiRegistrationController extends Controller
     {
         abort_if(Gate::denies('skripsi_registration_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
+        // Check if student can access this form
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessSkripsiRegistration(auth()->user()->mahasiswa_id);
+
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.skripsi-registrations.index')
+                ->with('error', $access['message']);
+        }
 
         $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
@@ -41,19 +49,49 @@ class SkripsiRegistrationController extends Controller
 
         $preference_supervisions = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('frontend.skripsiRegistrations.create', compact('applications', 'preference_supervisions', 'themes', 'tps_lecturers'));
+        return view('frontend.skripsiRegistrations.create', compact('preference_supervisions', 'themes', 'tps_lecturers'));
     }
 
     public function store(StoreSkripsiRegistrationRequest $request)
     {
-        $skripsiRegistration = SkripsiRegistration::create($request->all());
+        // Check if student can create new application (ensure only 1 active)
+        $formAccessService = new FormAccessService();
+        $canCreate = $formAccessService->canAccessSkripsiRegistration(auth()->user()->mahasiswa_id);
 
-        foreach ($request->input('khs_all', []) as $file) {
-            $skripsiRegistration->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('khs_all');
+        if (!$canCreate['allowed']) {
+            return redirect()->route('frontend.skripsi-registrations.index')
+                ->with('error', $canCreate['message']);
         }
 
+        // Step 1: Create Application first
+        $application = Application::create([
+            'mahasiswa_id' => auth()->user()->mahasiswa_id,
+            'type' => 'skripsi',
+            'stage' => 'registration',
+            'status' => 'submitted',
+            'submitted_at' => now()->format('d-m-Y H:i:s'),
+        ]);
+
+        // Step 2: Create SkripsiRegistration with the application_id
+        $data = $request->all();
+        $data['application_id'] = $application->id;
+        
+        $skripsiRegistration = SkripsiRegistration::create($data);
+
+        // Upload KHS files with custom naming
+        foreach ($request->input('khs_all', []) as $file) {
+            $skripsiRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)), 
+                'khs_all'
+            );
+        }
+
+        // Upload KRS file with custom naming
         if ($request->input('krs_latest', false)) {
-            $skripsiRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('krs_latest'))))->toMediaCollection('krs_latest');
+            $skripsiRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('krs_latest'))), 
+                'krs_latest'
+            );
         }
 
         if ($media = $request->input('ck-media', false)) {
@@ -67,8 +105,6 @@ class SkripsiRegistrationController extends Controller
     {
         abort_if(Gate::denies('skripsi_registration_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
-
         $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $tps_lecturers = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
@@ -77,12 +113,41 @@ class SkripsiRegistrationController extends Controller
 
         $skripsiRegistration->load('application', 'theme', 'tps_lecturer', 'preference_supervision', 'created_by');
 
-        return view('frontend.skripsiRegistrations.edit', compact('applications', 'preference_supervisions', 'skripsiRegistration', 'themes', 'tps_lecturers'));
+        return view('frontend.skripsiRegistrations.edit', compact('preference_supervisions', 'skripsiRegistration', 'themes', 'tps_lecturers'));
     }
 
     public function update(UpdateSkripsiRegistrationRequest $request, SkripsiRegistration $skripsiRegistration)
     {
         $skripsiRegistration->update($request->all());
+        
+        // If status was revision, change it back to submitted and clear revision_notes
+        if ($skripsiRegistration->application->status == 'revision') {
+            $skripsiRegistration->application->update(['status' => 'submitted']);
+            $skripsiRegistration->update(['revision_notes' => null]);
+        }
+        
+        // If status was approved but supervisor rejected, change back to submitted
+        if ($skripsiRegistration->application->status == 'approved') {
+            // Check if supervisor rejected the assignment
+            $supervisorAssignment = \App\Models\ApplicationAssignment::where('application_id', $skripsiRegistration->application_id)
+                ->where('role', 'supervisor')
+                ->where('status', 'rejected')
+                ->first();
+            
+            if ($supervisorAssignment) {
+                // Delete the rejected assignment
+                $supervisorAssignment->delete();
+                
+                // Change application status back to submitted
+                $skripsiRegistration->application->update(['status' => 'submitted']);
+                
+                // Clear the assigned supervisor
+                $skripsiRegistration->update([
+                    'assigned_supervisor_id' => null,
+                    'approval_date' => null
+                ]);
+            }
+        }
 
         if (count($skripsiRegistration->khs_all) > 0) {
             foreach ($skripsiRegistration->khs_all as $media) {
@@ -94,7 +159,11 @@ class SkripsiRegistrationController extends Controller
         $media = $skripsiRegistration->khs_all->pluck('file_name')->toArray();
         foreach ($request->input('khs_all', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $skripsiRegistration->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('khs_all');
+                // Upload new KHS file with custom naming
+                $skripsiRegistration->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)), 
+                    'khs_all'
+                );
             }
         }
 
@@ -103,7 +172,11 @@ class SkripsiRegistrationController extends Controller
                 if ($skripsiRegistration->krs_latest) {
                     $skripsiRegistration->krs_latest->delete();
                 }
-                $skripsiRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('krs_latest'))))->toMediaCollection('krs_latest');
+                // Upload new KRS file with custom naming
+                $skripsiRegistration->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('krs_latest'))), 
+                    'krs_latest'
+                );
             }
         } elseif ($skripsiRegistration->krs_latest) {
             $skripsiRegistration->krs_latest->delete();

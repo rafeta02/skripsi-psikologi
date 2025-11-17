@@ -1,131 +1,164 @@
 @extends('layouts.frontend')
 @section('content')
-<div class="container">
+<link rel="stylesheet" href="{{ asset('css/modern-form.css') }}">
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-
-            <div class="card">
-                <div class="card-header">
-                    {{ trans('global.create') }} {{ trans('cruds.applicationResultSeminar.title_singular') }}
+        <div class="col-lg-10">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2>Upload Hasil Seminar Proposal</h2>
+                    <p>Upload dokumen hasil seminar proposal skripsi Anda</p>
                 </div>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route("frontend.application-result-seminars.store") }}" enctype="multipart/form-data">
-                        @method('POST')
-                        @csrf
-                        <div class="form-group">
-                            <label for="application_id">{{ trans('cruds.applicationResultSeminar.fields.application') }}</label>
-                            <select class="form-control select2" name="application_id" id="application_id">
-                                @foreach($applications as $id => $entry)
-                                    <option value="{{ $id }}" {{ old('application_id') == $id ? 'selected' : '' }}>{{ $entry }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('application'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('application') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.application_helper') }}</span>
+                <form method="POST" action="{{ route("frontend.application-result-seminars.store") }}" enctype="multipart/form-data">
+                    @method('POST')
+                    @csrf
+                    
+                    <div class="form-body">
+                        @if($activeApplication)
+                            <input type="hidden" name="application_id" value="{{ $activeApplication->id }}">
+                            
+                            <div class="alert alert-success mb-4">
+                                <h5 class="alert-heading"><i class="fas fa-info-circle mr-2"></i>Aplikasi Skripsi Anda</h5>
+                                <p class="mb-1"><strong>Stage:</strong> <span class="badge badge-primary">{{ ucfirst($activeApplication->stage) }}</span></p>
+                                <p class="mb-0"><strong>Status:</strong> <span class="badge badge-success">{{ ucfirst($activeApplication->status) }}</span></p>
+                            </div>
+                        @else
+                            <div class="alert alert-warning mb-4">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Anda belum memiliki aplikasi skripsi yang aktif. Silakan buat aplikasi terlebih dahulu.
+                            </div>
+                        @endif
+
+                        <div class="info-box info">
+                            <div class="info-box-title">Informasi Penting</div>
+                            <div class="info-box-text">
+                                <ul class="mb-0">
+                                    <li>Upload semua dokumen hasil seminar proposal dengan lengkap</li>
+                                    <li>Pastikan dokumen sudah ditandatangani oleh dosen pembimbing dan penguji</li>
+                                    <li>Format file: PDF (maksimal 10 MB per file)</li>
+                                </ul>
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label>{{ trans('cruds.applicationResultSeminar.fields.result') }}</label>
-                            <select class="form-control" name="result" id="result">
-                                <option value disabled {{ old('result', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
+                            <label for="result">Hasil Seminar <span class="required">*</span></label>
+                            <select class="form-control" name="result" id="result" required>
+                                <option value="">-- Pilih Hasil --</option>
                                 @foreach(App\Models\ApplicationResultSeminar::RESULT_SELECT as $key => $label)
                                     <option value="{{ $key }}" {{ old('result', '') === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
                             @if($errors->has('result'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('result') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('result') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.result_helper') }}</span>
+                            <span class="help-block">Hasil keputusan dari seminar proposal</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="note">{{ trans('cruds.applicationResultSeminar.fields.note') }}</label>
-                            <textarea class="form-control" name="note" id="note">{{ old('note') }}</textarea>
+                            <label for="note">Catatan/Saran Perbaikan</label>
+                            <textarea class="form-control" name="note" id="note" rows="4" placeholder="Catatan dan saran perbaikan dari dosen penguji...">{{ old('note') }}</textarea>
                             @if($errors->has('note'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('note') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('note') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.note_helper') }}</span>
+                            <span class="help-block">Catatan dan saran perbaikan dari dosen pembimbing/penguji</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="revision_deadline">{{ trans('cruds.applicationResultSeminar.fields.revision_deadline') }}</label>
-                            <input class="form-control date" type="text" name="revision_deadline" id="revision_deadline" value="{{ old('revision_deadline') }}">
+                            <label for="revision_deadline">Batas Waktu Revisi</label>
+                            <input class="form-control date" type="text" name="revision_deadline" id="revision_deadline" value="{{ old('revision_deadline') }}" placeholder="Pilih tanggal">
                             @if($errors->has('revision_deadline'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('revision_deadline') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('revision_deadline') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.revision_deadline_helper') }}</span>
+                            <span class="help-block">Batas waktu untuk menyelesaikan revisi (jika ada)</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="report_document">{{ trans('cruds.applicationResultSeminar.fields.report_document') }}</label>
+                            <label for="report_document">Berita Acara Seminar <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="report_document-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF berita acara seminar (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('report_document'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('report_document') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('report_document') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.report_document_helper') }}</span>
+                            <span class="help-block">Upload berita acara hasil seminar proposal</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="attendance_document">{{ trans('cruds.applicationResultSeminar.fields.attendance_document') }}</label>
+                            <label for="attendance_document">Daftar Hadir <span class="required">*</span></label>
                             <div class="needsclick dropzone" id="attendance_document-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF daftar hadir (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('attendance_document'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('attendance_document') }}
-                                </div>
+                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('attendance_document') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.attendance_document_helper') }}</span>
+                            <span class="help-block">Upload daftar hadir seminar proposal</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="form_document">{{ trans('cruds.applicationResultSeminar.fields.form_document') }}</label>
+                            <label for="form_document">Form Penilaian</label>
                             <div class="needsclick dropzone" id="form_document-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF form penilaian (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('form_document'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('form_document') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('form_document') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.form_document_helper') }}</span>
+                            <span class="help-block">Upload form penilaian dari dosen penguji</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="latest_script">{{ trans('cruds.applicationResultSeminar.fields.latest_script') }}</label>
+                            <label for="latest_script">Naskah Proposal Terbaru</label>
                             <div class="needsclick dropzone" id="latest_script-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>PDF naskah proposal (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('latest_script'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('latest_script') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('latest_script') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.latest_script_helper') }}</span>
+                            <span class="help-block">Upload naskah proposal terbaru setelah revisi</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="documentation">{{ trans('cruds.applicationResultSeminar.fields.documentation') }}</label>
+                            <label for="documentation">Dokumentasi Seminar</label>
                             <div class="needsclick dropzone" id="documentation-dropzone">
+                                <div class="dz-message">
+                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                    <p>Klik atau seret file ke sini</p>
+                                    <small>Foto dokumentasi seminar (maksimal 10 MB)</small>
+                                </div>
                             </div>
                             @if($errors->has('documentation'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('documentation') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('documentation') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.documentation_helper') }}</span>
+                            <span class="help-block">Upload foto dokumentasi pelaksanaan seminar</span>
                         </div>
-                        <div class="form-group">
-                            <button class="btn btn-danger" type="submit">
-                                {{ trans('global.save') }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                    </div>
 
+                    <div class="form-actions">
+                        <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn-back">
+                            <i class="fas fa-arrow-left mr-2"></i> Kembali
+                        </a>
+                        <button type="submit" class="btn-submit" {{ !$activeApplication ? 'disabled' : '' }}>
+                            <i class="fas fa-save mr-2"></i> Simpan Data
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -136,7 +169,7 @@
     var uploadedReportDocumentMap = {}
 Dropzone.options.reportDocumentDropzone = {
     url: '{{ route('frontend.application-result-seminars.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     addRemoveLinks: true,
     headers: {
       'X-CSRF-TOKEN': "{{ csrf_token() }}"
@@ -160,8 +193,7 @@ Dropzone.options.reportDocumentDropzone = {
     },
     init: function () {
 @if(isset($applicationResultSeminar) && $applicationResultSeminar->report_document)
-          var files =
-            {!! json_encode($applicationResultSeminar->report_document) !!}
+          var files = {!! json_encode($applicationResultSeminar->report_document) !!}
               for (var i in files) {
               var file = files[i]
               this.options.addedfile.call(this, file)
@@ -172,7 +204,7 @@ Dropzone.options.reportDocumentDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -183,15 +215,13 @@ Dropzone.options.reportDocumentDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    Dropzone.options.attendanceDocumentDropzone = {
+
+Dropzone.options.attendanceDocumentDropzone = {
     url: '{{ route('frontend.application-result-seminars.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     maxFiles: 1,
     addRemoveLinks: true,
     headers: {
@@ -222,7 +252,7 @@ Dropzone.options.reportDocumentDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -233,16 +263,14 @@ Dropzone.options.reportDocumentDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    var uploadedFormDocumentMap = {}
+
+var uploadedFormDocumentMap = {}
 Dropzone.options.formDocumentDropzone = {
     url: '{{ route('frontend.application-result-seminars.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     addRemoveLinks: true,
     headers: {
       'X-CSRF-TOKEN': "{{ csrf_token() }}"
@@ -266,8 +294,7 @@ Dropzone.options.formDocumentDropzone = {
     },
     init: function () {
 @if(isset($applicationResultSeminar) && $applicationResultSeminar->form_document)
-          var files =
-            {!! json_encode($applicationResultSeminar->form_document) !!}
+          var files = {!! json_encode($applicationResultSeminar->form_document) !!}
               for (var i in files) {
               var file = files[i]
               this.options.addedfile.call(this, file)
@@ -278,7 +305,7 @@ Dropzone.options.formDocumentDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -289,15 +316,13 @@ Dropzone.options.formDocumentDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    Dropzone.options.latestScriptDropzone = {
+
+Dropzone.options.latestScriptDropzone = {
     url: '{{ route('frontend.application-result-seminars.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     maxFiles: 1,
     addRemoveLinks: true,
     headers: {
@@ -328,7 +353,7 @@ Dropzone.options.formDocumentDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -339,16 +364,14 @@ Dropzone.options.formDocumentDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    var uploadedDocumentationMap = {}
+
+var uploadedDocumentationMap = {}
 Dropzone.options.documentationDropzone = {
     url: '{{ route('frontend.application-result-seminars.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     addRemoveLinks: true,
     headers: {
       'X-CSRF-TOKEN': "{{ csrf_token() }}"
@@ -372,8 +395,7 @@ Dropzone.options.documentationDropzone = {
     },
     init: function () {
 @if(isset($applicationResultSeminar) && $applicationResultSeminar->documentation)
-          var files =
-            {!! json_encode($applicationResultSeminar->documentation) !!}
+          var files = {!! json_encode($applicationResultSeminar->documentation) !!}
               for (var i in files) {
               var file = files[i]
               this.options.addedfile.call(this, file)
@@ -384,7 +406,7 @@ Dropzone.options.documentationDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -395,7 +417,6 @@ Dropzone.options.documentationDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }

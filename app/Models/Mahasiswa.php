@@ -73,6 +73,11 @@ class Mahasiswa extends Model
         return $this->belongsTo(Faculty::class, 'fakultas_id');
     }
 
+    public function user()
+    {
+        return $this->hasOne(User::class, 'mahasiswa_id');
+    }
+
     public function getTanggalLahirAttribute($value)
     {
         return $value ? Carbon::parse($value)->format(config('panel.date_format')) : null;

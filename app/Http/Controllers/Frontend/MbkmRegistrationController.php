@@ -10,8 +10,11 @@ use App\Http\Requests\UpdateMbkmRegistrationRequest;
 use App\Models\Application;
 use App\Models\Dosen;
 use App\Models\Keilmuan;
+use App\Models\Mahasiswa;
+use App\Models\MbkmGroupMember;
 use App\Models\MbkmRegistration;
 use App\Models\ResearchGroup;
+use App\Services\FormAccessService;
 use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -34,39 +37,101 @@ class MbkmRegistrationController extends Controller
     {
         abort_if(Gate::denies('mbkm_registration_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
+        // Check if student can access this form
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessMbkmRegistration(auth()->user()->mahasiswa_id);
+
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.mbkm-registrations.index')
+                ->with('error', $access['message']);
+        }
 
         $research_groups = ResearchGroup::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $preference_supervisions = Dosen::pluck('nip', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $preference_supervisions = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('frontend.mbkmRegistrations.create', compact('applications', 'preference_supervisions', 'research_groups', 'themes'));
+        $mahasiswas = Mahasiswa::all()->mapWithKeys(function ($mahasiswa) {
+            return [$mahasiswa->id => $mahasiswa->nim . ' - ' . $mahasiswa->nama];
+        })->prepend(trans('global.pleaseSelect'), '');
+
+        return view('frontend.mbkmRegistrations.create', compact('preference_supervisions', 'research_groups', 'themes', 'mahasiswas'));
     }
 
     public function store(StoreMbkmRegistrationRequest $request)
     {
-        $mbkmRegistration = MbkmRegistration::create($request->all());
+        // Check if student can create new application (ensure only 1 active)
+        $formAccessService = new FormAccessService();
+        $canCreate = $formAccessService->canAccessMbkmRegistration(auth()->user()->mahasiswa_id);
 
+        if (!$canCreate['allowed']) {
+            return redirect()->route('frontend.mbkm-registrations.index')
+                ->with('error', $canCreate['message']);
+        }
+
+        // Step 1: Create Application first
+        $application = Application::create([
+            'mahasiswa_id' => auth()->user()->mahasiswa_id,
+            'type' => 'mbkm',
+            'stage' => 'registration',
+            'status' => 'submitted',
+            'submitted_at' => now()->format('d-m-Y H:i:s'),
+        ]);
+
+        // Step 2: Create MbkmRegistration with the application_id
+        $data = $request->all();
+        $data['application_id'] = $application->id;
+        
+        $mbkmRegistration = MbkmRegistration::create($data);
+
+        // Step 3: Create Group Members
+        if ($request->has('group_members')) {
+            foreach ($request->input('group_members', []) as $member) {
+                if (!empty($member['mahasiswa_id']) && !empty($member['role'])) {
+                    MbkmGroupMember::create([
+                        'mbkm_registration_id' => $mbkmRegistration->id,
+                        'mahasiswa_id' => $member['mahasiswa_id'],
+                        'role' => $member['role'],
+                    ]);
+                }
+            }
+        }
+
+        // Step 4: Upload files with custom naming using FileNamingTrait
         foreach ($request->input('khs_all', []) as $file) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('khs_all');
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)), 
+                'khs_all'
+            );
         }
 
         if ($request->input('krs_latest', false)) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('krs_latest'))))->toMediaCollection('krs_latest');
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('krs_latest'))), 
+                'krs_latest'
+            );
         }
 
         if ($request->input('spp', false)) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('spp'))))->toMediaCollection('spp');
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('spp'))), 
+                'spp'
+            );
         }
 
         if ($request->input('proposal_mbkm', false)) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('proposal_mbkm'))))->toMediaCollection('proposal_mbkm');
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('proposal_mbkm'))), 
+                'proposal_mbkm'
+            );
         }
 
         if ($request->input('recognition_form', false)) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('recognition_form'))))->toMediaCollection('recognition_form');
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('recognition_form'))), 
+                'recognition_form'
+            );
         }
 
         if ($media = $request->input('ck-media', false)) {
@@ -80,23 +145,70 @@ class MbkmRegistrationController extends Controller
     {
         abort_if(Gate::denies('mbkm_registration_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
-
         $research_groups = ResearchGroup::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $preference_supervisions = Dosen::pluck('nip', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $preference_supervisions = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $mbkmRegistration->load('application', 'research_group', 'preference_supervision', 'theme', 'created_by');
+        $mahasiswas = Mahasiswa::all()->mapWithKeys(function ($mahasiswa) {
+            return [$mahasiswa->id => $mahasiswa->nim . ' - ' . $mahasiswa->nama];
+        })->prepend(trans('global.pleaseSelect'), '');
 
-        return view('frontend.mbkmRegistrations.edit', compact('applications', 'mbkmRegistration', 'preference_supervisions', 'research_groups', 'themes'));
+        $mbkmRegistration->load('application', 'research_group', 'preference_supervision', 'theme', 'created_by', 'groupMembers.mahasiswa');
+
+        return view('frontend.mbkmRegistrations.edit', compact('mbkmRegistration', 'preference_supervisions', 'research_groups', 'themes', 'mahasiswas'));
     }
 
     public function update(UpdateMbkmRegistrationRequest $request, MbkmRegistration $mbkmRegistration)
     {
         $mbkmRegistration->update($request->all());
+        
+        // If status was revision, change it back to submitted and clear revision_notes
+        if ($mbkmRegistration->application->status == 'revision') {
+            $mbkmRegistration->application->update(['status' => 'submitted']);
+            $mbkmRegistration->update(['revision_notes' => null]);
+        }
+        
+        // If status was approved but supervisor rejected, change back to submitted
+        if ($mbkmRegistration->application->status == 'approved') {
+            // Check if supervisor rejected the assignment
+            $supervisorAssignment = \App\Models\ApplicationAssignment::where('application_id', $mbkmRegistration->application_id)
+                ->where('role', 'supervisor')
+                ->where('status', 'rejected')
+                ->first();
+            
+            if ($supervisorAssignment) {
+                // Delete the rejected assignment
+                $supervisorAssignment->delete();
+                
+                // Change application status back to submitted
+                $mbkmRegistration->application->update(['status' => 'submitted']);
+                
+                // Clear approval date (preference_supervision_id stays as it was originally chosen by student)
+                $mbkmRegistration->update([
+                    'approval_date' => null
+                ]);
+            }
+        }
 
+        // Update Group Members
+        // Delete existing members and recreate
+        $mbkmRegistration->groupMembers()->delete();
+        
+        if ($request->has('group_members')) {
+            foreach ($request->input('group_members', []) as $member) {
+                if (!empty($member['mahasiswa_id']) && !empty($member['role'])) {
+                    MbkmGroupMember::create([
+                        'mbkm_registration_id' => $mbkmRegistration->id,
+                        'mahasiswa_id' => $member['mahasiswa_id'],
+                        'role' => $member['role'],
+                    ]);
+                }
+            }
+        }
+
+        // Handle KHS files
         if (count($mbkmRegistration->khs_all) > 0) {
             foreach ($mbkmRegistration->khs_all as $media) {
                 if (! in_array($media->file_name, $request->input('khs_all', []))) {
@@ -107,7 +219,10 @@ class MbkmRegistrationController extends Controller
         $media = $mbkmRegistration->khs_all->pluck('file_name')->toArray();
         foreach ($request->input('khs_all', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('khs_all');
+                $mbkmRegistration->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)), 
+                    'khs_all'
+                );
             }
         }
 
@@ -116,7 +231,10 @@ class MbkmRegistrationController extends Controller
                 if ($mbkmRegistration->krs_latest) {
                     $mbkmRegistration->krs_latest->delete();
                 }
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('krs_latest'))))->toMediaCollection('krs_latest');
+                $mbkmRegistration->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('krs_latest'))), 
+                    'krs_latest'
+                );
             }
         } elseif ($mbkmRegistration->krs_latest) {
             $mbkmRegistration->krs_latest->delete();
@@ -127,7 +245,10 @@ class MbkmRegistrationController extends Controller
                 if ($mbkmRegistration->spp) {
                     $mbkmRegistration->spp->delete();
                 }
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('spp'))))->toMediaCollection('spp');
+                $mbkmRegistration->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('spp'))), 
+                    'spp'
+                );
             }
         } elseif ($mbkmRegistration->spp) {
             $mbkmRegistration->spp->delete();
@@ -138,7 +259,10 @@ class MbkmRegistrationController extends Controller
                 if ($mbkmRegistration->proposal_mbkm) {
                     $mbkmRegistration->proposal_mbkm->delete();
                 }
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('proposal_mbkm'))))->toMediaCollection('proposal_mbkm');
+                $mbkmRegistration->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('proposal_mbkm'))), 
+                    'proposal_mbkm'
+                );
             }
         } elseif ($mbkmRegistration->proposal_mbkm) {
             $mbkmRegistration->proposal_mbkm->delete();
@@ -149,7 +273,10 @@ class MbkmRegistrationController extends Controller
                 if ($mbkmRegistration->recognition_form) {
                     $mbkmRegistration->recognition_form->delete();
                 }
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('recognition_form'))))->toMediaCollection('recognition_form');
+                $mbkmRegistration->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('recognition_form'))), 
+                    'recognition_form'
+                );
             }
         } elseif ($mbkmRegistration->recognition_form) {
             $mbkmRegistration->recognition_form->delete();
@@ -162,7 +289,7 @@ class MbkmRegistrationController extends Controller
     {
         abort_if(Gate::denies('mbkm_registration_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $mbkmRegistration->load('application', 'research_group', 'preference_supervision', 'theme', 'created_by');
+        $mbkmRegistration->load('application', 'research_group', 'preference_supervision', 'theme', 'created_by', 'groupMembers.mahasiswa');
 
         return view('frontend.mbkmRegistrations.show', compact('mbkmRegistration'));
     }

@@ -26,7 +26,23 @@ class UpdateMbkmRegistrationRequest extends FormRequest
                 'nullable',
             ],
             'khs_all' => [
+                'required',
                 'array',
+            ],
+            'khs_all.*' => [
+                'required',
+            ],
+            'krs_latest' => [
+                'required',
+            ],
+            'spp' => [
+                'required',
+            ],
+            'proposal_mbkm' => [
+                'required',
+            ],
+            'recognition_form' => [
+                'required',
             ],
             'total_sks_taken' => [
                 'nullable',
@@ -63,6 +79,19 @@ class UpdateMbkmRegistrationRequest extends FormRequest
                 'integer',
                 'min:-2147483648',
                 'max:2147483647',
+            ],
+            'group_members' => [
+                'array',
+                'nullable',
+            ],
+            'group_members.*.mahasiswa_id' => [
+                'nullable',
+                'integer',
+                'exists:mahasiswas,id',
+            ],
+            'group_members.*.role' => [
+                'nullable',
+                'in:ketua,anggota',
             ],
         ];
     }

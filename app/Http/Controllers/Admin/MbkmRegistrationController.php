@@ -8,6 +8,7 @@ use App\Http\Requests\MassDestroyMbkmRegistrationRequest;
 use App\Http\Requests\StoreMbkmRegistrationRequest;
 use App\Http\Requests\UpdateMbkmRegistrationRequest;
 use App\Models\Application;
+use App\Models\ApplicationAssignment;
 use App\Models\Dosen;
 use App\Models\Keilmuan;
 use App\Models\MbkmRegistration;
@@ -57,7 +58,7 @@ class MbkmRegistrationController extends Controller
             });
 
             $table->addColumn('preference_supervision_nip', function ($row) {
-                return $row->preference_supervision ? $row->preference_supervision->nip : '';
+                return $row->preference_supervision ? $row->preference_supervision->nama : '';
             });
 
             $table->addColumn('theme_name', function ($row) {
@@ -93,7 +94,7 @@ class MbkmRegistrationController extends Controller
 
         $research_groups = ResearchGroup::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $preference_supervisions = Dosen::pluck('nip', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $preference_supervisions = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
@@ -139,7 +140,7 @@ class MbkmRegistrationController extends Controller
 
         $research_groups = ResearchGroup::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $preference_supervisions = Dosen::pluck('nip', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $preference_supervisions = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
@@ -252,5 +253,152 @@ class MbkmRegistrationController extends Controller
         $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
+    }
+
+    /**
+     * Approve MBKM registration
+     */
+    public function approve(Request $request, $id)
+    {
+        $registration = MbkmRegistration::with('application')->findOrFail($id);
+        
+        $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            \DB::transaction(function () use ($registration, $request) {
+                // Update registration
+                $registration->update([
+                    'approval_date' => now(),
+                ]);
+
+                // Update application status
+                $registration->application->update([
+                    'status' => 'approved',
+                ]);
+
+                // Create ApplicationAssignment for the preferred supervisor
+                if ($registration->preference_supervision_id) {
+                    ApplicationAssignment::create([
+                        'application_id' => $registration->application_id,
+                        'lecturer_id' => $registration->preference_supervision_id,
+                        'role' => 'supervisor',
+                        'status' => 'assigned', // Waiting for supervisor to accept/reject
+                        'assigned_at' => now(),
+                        'note' => $request->notes,
+                    ]);
+                }
+
+                // Log action
+                \App\Models\ApplicationAction::create([
+                    'application_id' => $registration->application_id,
+                    'action_type' => \App\Models\ApplicationAction::ACTION_APPROVED,
+                    'action_by' => auth()->id(),
+                    'notes' => $request->notes,
+                    'metadata' => [
+                        'supervisor_id' => $registration->preference_supervision_id,
+                    ],
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pendaftaran MBKM berhasil disetujui dan dosen pembimbing telah ditugaskan. Menunggu persetujuan dari dosen pembimbing.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject MBKM registration with reason
+     */
+    public function reject(Request $request, $id)
+    {
+        $registration = MbkmRegistration::with('application')->findOrFail($id);
+        
+        $request->validate([
+            'reason' => 'required|string|min:10',
+        ]);
+
+        try {
+            \DB::transaction(function () use ($registration, $request) {
+                // Update registration
+                $registration->update([
+                    'rejection_reason' => $request->reason,
+                ]);
+
+                // Update application status
+                $registration->application->update([
+                    'status' => 'rejected',
+                ]);
+
+                // Log action
+                \App\Models\ApplicationAction::create([
+                    'application_id' => $registration->application_id,
+                    'action_type' => \App\Models\ApplicationAction::ACTION_REJECTED,
+                    'action_by' => auth()->id(),
+                    'notes' => $request->reason,
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pendaftaran MBKM ditolak'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Request revision with notes
+     */
+    public function requestRevision(Request $request, $id)
+    {
+        $registration = MbkmRegistration::with('application')->findOrFail($id);
+        
+        $request->validate([
+            'notes' => 'required|string|min:10',
+        ]);
+
+        try {
+            \DB::transaction(function () use ($registration, $request) {
+                // Update registration
+                $registration->update([
+                    'revision_notes' => $request->notes,
+                ]);
+
+                // Update application status
+                $registration->application->update([
+                    'status' => 'revision',
+                ]);
+
+                // Log action
+                \App\Models\ApplicationAction::create([
+                    'application_id' => $registration->application_id,
+                    'action_type' => \App\Models\ApplicationAction::ACTION_REVISION_REQUESTED,
+                    'action_by' => auth()->id(),
+                    'notes' => $request->notes,
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Revisi diminta, mahasiswa akan menerima notifikasi'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

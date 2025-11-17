@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use App\Traits\FileNamingTrait;
 use App\Traits\MultiTenantModelTrait;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MbkmRegistration extends Model implements HasMedia
 {
-    use SoftDeletes, MultiTenantModelTrait, InteractsWithMedia, Auditable, HasFactory;
+    use SoftDeletes, MultiTenantModelTrait, InteractsWithMedia, Auditable, HasFactory, FileNamingTrait;
 
     public $table = 'mbkm_registrations';
 
@@ -48,6 +49,9 @@ class MbkmRegistration extends Model implements HasMedia
         'nilai_mk_tps',
         'sks_mkp_taken',
         'note',
+        'approval_date',
+        'rejection_reason',
+        'revision_notes',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -113,5 +117,10 @@ class MbkmRegistration extends Model implements HasMedia
     public function created_by()
     {
         return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    public function groupMembers()
+    {
+        return $this->hasMany(MbkmGroupMember::class, 'mbkm_registration_id');
     }
 }

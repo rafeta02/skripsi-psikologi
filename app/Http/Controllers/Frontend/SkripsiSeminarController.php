@@ -9,6 +9,7 @@ use App\Http\Requests\StoreSkripsiSeminarRequest;
 use App\Http\Requests\UpdateSkripsiSeminarRequest;
 use App\Models\Application;
 use App\Models\SkripsiSeminar;
+use App\Services\FormAccessService;
 use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -31,29 +32,78 @@ class SkripsiSeminarController extends Controller
     {
         abort_if(Gate::denies('skripsi_seminar_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
+        // Check if student can access this form
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessSkripsiSeminar(auth()->user()->mahasiswa_id);
 
-        return view('frontend.skripsiSeminars.create', compact('applications'));
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.skripsi-seminars.index')
+                ->with('error', $access['message']);
+        }
+
+        $activeApplication = $access['application'];
+
+        return view('frontend.skripsiSeminars.create', compact('activeApplication'));
     }
 
     public function store(StoreSkripsiSeminarRequest $request)
     {
-        $skripsiSeminar = SkripsiSeminar::create($request->all());
+        // Check if student can access this form
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessSkripsiSeminar(auth()->user()->mahasiswa_id);
+
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.skripsi-seminars.index')
+                ->with('error', $access['message']);
+        }
+
+        // Create new Application for seminar stage
+        $seminarApplication = Application::create([
+            'mahasiswa_id' => auth()->user()->mahasiswa_id,
+            'type' => 'skripsi',
+            'stage' => 'seminar',
+            'status' => 'submitted',
+            'submitted_at' => now()->format('d-m-Y H:i:s'),
+        ]);
+
+        // Create Skripsi Seminar with seminar application
+        $data = $request->all();
+        $data['application_id'] = $seminarApplication->id;
+        
+        $skripsiSeminar = SkripsiSeminar::create($data);
 
         if ($request->input('proposal_document', false)) {
-            $skripsiSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('proposal_document'))))->toMediaCollection('proposal_document');
+            $skripsiSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('proposal_document'))),
+                'proposal_document'
+            );
         }
 
         if ($request->input('approval_document', false)) {
-            $skripsiSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('approval_document'))))->toMediaCollection('approval_document');
+            $skripsiSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('approval_document'))),
+                'approval_document'
+            );
         }
 
         if ($request->input('plagiarism_document', false)) {
-            $skripsiSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))))->toMediaCollection('plagiarism_document');
+            $skripsiSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))),
+                'plagiarism_document'
+            );
         }
 
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $skripsiSeminar->id]);
+        }
+
+        // Update the application stage and status
+        if ($request->input('application_id')) {
+            Application::where('id', $request->input('application_id'))->update([
+                'stage' => 'seminar',
+                'status' => 'submitted',
+                'submitted_at' => now(),
+            ]);
         }
 
         return redirect()->route('frontend.skripsi-seminars.index');
@@ -63,11 +113,9 @@ class SkripsiSeminarController extends Controller
     {
         abort_if(Gate::denies('skripsi_seminar_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
-
         $skripsiSeminar->load('application', 'created_by');
 
-        return view('frontend.skripsiSeminars.edit', compact('applications', 'skripsiSeminar'));
+        return view('frontend.skripsiSeminars.edit', compact('skripsiSeminar'));
     }
 
     public function update(UpdateSkripsiSeminarRequest $request, SkripsiSeminar $skripsiSeminar)
@@ -79,7 +127,10 @@ class SkripsiSeminarController extends Controller
                 if ($skripsiSeminar->proposal_document) {
                     $skripsiSeminar->proposal_document->delete();
                 }
-                $skripsiSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('proposal_document'))))->toMediaCollection('proposal_document');
+                $skripsiSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('proposal_document'))),
+                    'proposal_document'
+                );
             }
         } elseif ($skripsiSeminar->proposal_document) {
             $skripsiSeminar->proposal_document->delete();
@@ -90,7 +141,10 @@ class SkripsiSeminarController extends Controller
                 if ($skripsiSeminar->approval_document) {
                     $skripsiSeminar->approval_document->delete();
                 }
-                $skripsiSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('approval_document'))))->toMediaCollection('approval_document');
+                $skripsiSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('approval_document'))),
+                    'approval_document'
+                );
             }
         } elseif ($skripsiSeminar->approval_document) {
             $skripsiSeminar->approval_document->delete();
@@ -101,10 +155,22 @@ class SkripsiSeminarController extends Controller
                 if ($skripsiSeminar->plagiarism_document) {
                     $skripsiSeminar->plagiarism_document->delete();
                 }
-                $skripsiSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))))->toMediaCollection('plagiarism_document');
+                $skripsiSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))),
+                    'plagiarism_document'
+                );
             }
         } elseif ($skripsiSeminar->plagiarism_document) {
             $skripsiSeminar->plagiarism_document->delete();
+        }
+
+        // Update the application stage and status
+        if ($request->input('application_id')) {
+            Application::where('id', $request->input('application_id'))->update([
+                'stage' => 'seminar',
+                'status' => 'submitted',
+                'submitted_at' => now(),
+            ]);
         }
 
         return redirect()->route('frontend.skripsi-seminars.index');

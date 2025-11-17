@@ -4,16 +4,51 @@
     <div class="row justify-content-center">
         <div class="col-md-12">
 
+            <!-- Status Validasi Alert -->
+            @if($skripsiDefense->status === 'accepted')
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <h4 class="alert-heading"><i class="fas fa-check-circle mr-2"></i>Pendaftaran Diterima!</h4>
+                    <p>Selamat! Pendaftaran sidang skripsi Anda telah divalidasi dan diterima oleh admin.</p>
+                    @if($skripsiDefense->admin_note)
+                        <hr>
+                        <p class="mb-0"><strong>Catatan Admin:</strong> {{ $skripsiDefense->admin_note }}</p>
+                    @endif
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @elseif($skripsiDefense->status === 'rejected')
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h4 class="alert-heading"><i class="fas fa-times-circle mr-2"></i>Pendaftaran Ditolak</h4>
+                    <p>Mohon maaf, pendaftaran sidang skripsi Anda ditolak. Silakan perbaiki berdasarkan catatan di bawah ini dan daftar ulang.</p>
+                    @if($skripsiDefense->admin_note)
+                        <hr>
+                        <p class="mb-0"><strong>Alasan Penolakan:</strong> {{ $skripsiDefense->admin_note }}</p>
+                    @endif
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @else
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <h4 class="alert-heading"><i class="fas fa-clock mr-2"></i>Menunggu Validasi</h4>
+                    <p class="mb-0">Pendaftaran sidang skripsi Anda sedang dalam proses validasi oleh admin. Mohon tunggu konfirmasi.</p>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+
             <div class="card">
-                <div class="card-header">
-                    {{ trans('global.show') }} {{ trans('cruds.skripsiDefense.title') }}
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap mr-2"></i>{{ trans('global.show') }} {{ trans('cruds.skripsiDefense.title') }}</h5>
                 </div>
 
                 <div class="card-body">
                     <div class="form-group">
                         <div class="form-group">
                             <a class="btn btn-default" href="{{ route('frontend.skripsi-defenses.index') }}">
-                                {{ trans('global.back_to_list') }}
+                                <i class="fas fa-arrow-left mr-1"></i> {{ trans('global.back_to_list') }}
                             </a>
                         </div>
                         <table class="table table-bordered table-striped">

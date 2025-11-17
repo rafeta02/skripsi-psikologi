@@ -9,6 +9,7 @@ use App\Http\Requests\StoreSkripsiDefenseRequest;
 use App\Http\Requests\UpdateSkripsiDefenseRequest;
 use App\Models\Application;
 use App\Models\SkripsiDefense;
+use App\Services\FormAccessService;
 use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -31,81 +32,131 @@ class SkripsiDefenseController extends Controller
     {
         abort_if(Gate::denies('skripsi_defense_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
+        // Check if student can access this form
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessSkripsiDefense(auth()->user()->mahasiswa_id);
 
-        return view('frontend.skripsiDefenses.create', compact('applications'));
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.skripsi-defenses.index')
+                ->with('error', $access['message']);
+        }
+
+        $activeApplication = $access['application'];
+
+        return view('frontend.skripsiDefenses.create', compact('activeApplication'));
     }
 
     public function store(StoreSkripsiDefenseRequest $request)
     {
-        $skripsiDefense = SkripsiDefense::create($request->all());
+        // Check if student can access this form
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessSkripsiDefense(auth()->user()->mahasiswa_id);
+
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.skripsi-defenses.index')
+                ->with('error', $access['message']);
+        }
+
+        $seminarApplication = $access['application'];
+
+        // Create new Application for defense stage
+        $defenseApplication = Application::create([
+            'mahasiswa_id' => auth()->user()->mahasiswa_id,
+            'type' => $seminarApplication->type, // Inherit type from seminar (skripsi or mbkm)
+            'stage' => 'defense',
+            'status' => 'submitted',
+            'submitted_at' => now()->format('d-m-Y H:i:s'),
+        ]);
+
+        // Create Skripsi Defense with defense application
+        $data = $request->all();
+        $data['application_id'] = $defenseApplication->id;
+        
+        $skripsiDefense = SkripsiDefense::create($data);
 
         if ($request->input('defence_document', false)) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('defence_document'))))->toMediaCollection('defence_document');
+            $filePath = storage_path('tmp/uploads/' . basename($request->input('defence_document')));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'defence_document');
         }
 
         if ($request->input('plagiarism_report', false)) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('plagiarism_report'))))->toMediaCollection('plagiarism_report');
+            $filePath = storage_path('tmp/uploads/' . basename($request->input('plagiarism_report')));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'plagiarism_report');
         }
 
         foreach ($request->input('ethics_statement', []) as $file) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('ethics_statement');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'ethics_statement');
         }
 
         foreach ($request->input('research_instruments', []) as $file) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('research_instruments');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'research_instruments');
         }
 
         foreach ($request->input('data_collection_letter', []) as $file) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('data_collection_letter');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'data_collection_letter');
         }
 
         foreach ($request->input('research_module', []) as $file) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('research_module');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'research_module');
         }
 
         if ($request->input('mbkm_recommendation_letter', false)) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('mbkm_recommendation_letter'))))->toMediaCollection('mbkm_recommendation_letter');
+            $filePath = storage_path('tmp/uploads/' . basename($request->input('mbkm_recommendation_letter')));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'mbkm_recommendation_letter');
         }
 
         if ($request->input('publication_statement', false)) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('publication_statement'))))->toMediaCollection('publication_statement');
+            $filePath = storage_path('tmp/uploads/' . basename($request->input('publication_statement')));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'publication_statement');
         }
 
         foreach ($request->input('defense_approval_page', []) as $file) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('defense_approval_page');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'defense_approval_page');
         }
 
         if ($request->input('spp_receipt', false)) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('spp_receipt'))))->toMediaCollection('spp_receipt');
+            $filePath = storage_path('tmp/uploads/' . basename($request->input('spp_receipt')));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'spp_receipt');
         }
 
         if ($request->input('krs_latest', false)) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('krs_latest'))))->toMediaCollection('krs_latest');
+            $filePath = storage_path('tmp/uploads/' . basename($request->input('krs_latest')));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'krs_latest');
         }
 
         if ($request->input('eap_certificate', false)) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('eap_certificate'))))->toMediaCollection('eap_certificate');
+            $filePath = storage_path('tmp/uploads/' . basename($request->input('eap_certificate')));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'eap_certificate');
         }
 
         if ($request->input('transcript', false)) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('transcript'))))->toMediaCollection('transcript');
+            $filePath = storage_path('tmp/uploads/' . basename($request->input('transcript')));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'transcript');
         }
 
         foreach ($request->input('mbkm_report', []) as $file) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('mbkm_report');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'mbkm_report');
         }
 
         foreach ($request->input('research_poster', []) as $file) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('research_poster');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'research_poster');
         }
 
         if ($request->input('siakad_supervisor_screenshot', false)) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('siakad_supervisor_screenshot'))))->toMediaCollection('siakad_supervisor_screenshot');
+            $filePath = storage_path('tmp/uploads/' . basename($request->input('siakad_supervisor_screenshot')));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'siakad_supervisor_screenshot');
         }
 
         foreach ($request->input('supervision_logbook', []) as $file) {
-            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('supervision_logbook');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $skripsiDefense->addMediaWithCustomName($filePath, 'supervision_logbook');
         }
 
         if ($media = $request->input('ck-media', false)) {
@@ -119,11 +170,9 @@ class SkripsiDefenseController extends Controller
     {
         abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
-
         $skripsiDefense->load('application', 'created_by');
 
-        return view('frontend.skripsiDefenses.edit', compact('applications', 'skripsiDefense'));
+        return view('frontend.skripsiDefenses.edit', compact('skripsiDefense'));
     }
 
     public function update(UpdateSkripsiDefenseRequest $request, SkripsiDefense $skripsiDefense)
@@ -135,7 +184,8 @@ class SkripsiDefenseController extends Controller
                 if ($skripsiDefense->defence_document) {
                     $skripsiDefense->defence_document->delete();
                 }
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('defence_document'))))->toMediaCollection('defence_document');
+                $filePath = storage_path('tmp/uploads/' . basename($request->input('defence_document')));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'defence_document');
             }
         } elseif ($skripsiDefense->defence_document) {
             $skripsiDefense->defence_document->delete();
@@ -146,7 +196,8 @@ class SkripsiDefenseController extends Controller
                 if ($skripsiDefense->plagiarism_report) {
                     $skripsiDefense->plagiarism_report->delete();
                 }
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('plagiarism_report'))))->toMediaCollection('plagiarism_report');
+                $filePath = storage_path('tmp/uploads/' . basename($request->input('plagiarism_report')));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'plagiarism_report');
             }
         } elseif ($skripsiDefense->plagiarism_report) {
             $skripsiDefense->plagiarism_report->delete();
@@ -162,7 +213,8 @@ class SkripsiDefenseController extends Controller
         $media = $skripsiDefense->ethics_statement->pluck('file_name')->toArray();
         foreach ($request->input('ethics_statement', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('ethics_statement');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'ethics_statement');
             }
         }
 
@@ -176,7 +228,8 @@ class SkripsiDefenseController extends Controller
         $media = $skripsiDefense->research_instruments->pluck('file_name')->toArray();
         foreach ($request->input('research_instruments', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('research_instruments');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'research_instruments');
             }
         }
 
@@ -190,7 +243,8 @@ class SkripsiDefenseController extends Controller
         $media = $skripsiDefense->data_collection_letter->pluck('file_name')->toArray();
         foreach ($request->input('data_collection_letter', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('data_collection_letter');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'data_collection_letter');
             }
         }
 
@@ -204,7 +258,8 @@ class SkripsiDefenseController extends Controller
         $media = $skripsiDefense->research_module->pluck('file_name')->toArray();
         foreach ($request->input('research_module', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('research_module');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'research_module');('research_module');
             }
         }
 
@@ -213,7 +268,8 @@ class SkripsiDefenseController extends Controller
                 if ($skripsiDefense->mbkm_recommendation_letter) {
                     $skripsiDefense->mbkm_recommendation_letter->delete();
                 }
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('mbkm_recommendation_letter'))))->toMediaCollection('mbkm_recommendation_letter');
+                $filePath = storage_path('tmp/uploads/' . basename($request->input('mbkm_recommendation_letter')));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'mbkm_recommendation_letter');('mbkm_recommendation_letter');
             }
         } elseif ($skripsiDefense->mbkm_recommendation_letter) {
             $skripsiDefense->mbkm_recommendation_letter->delete();
@@ -224,7 +280,8 @@ class SkripsiDefenseController extends Controller
                 if ($skripsiDefense->publication_statement) {
                     $skripsiDefense->publication_statement->delete();
                 }
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('publication_statement'))))->toMediaCollection('publication_statement');
+                $filePath = storage_path('tmp/uploads/' . basename($request->input('publication_statement')));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'publication_statement');('publication_statement');
             }
         } elseif ($skripsiDefense->publication_statement) {
             $skripsiDefense->publication_statement->delete();
@@ -240,7 +297,8 @@ class SkripsiDefenseController extends Controller
         $media = $skripsiDefense->defense_approval_page->pluck('file_name')->toArray();
         foreach ($request->input('defense_approval_page', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('defense_approval_page');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'defense_approval_page');('defense_approval_page');
             }
         }
 
@@ -249,7 +307,8 @@ class SkripsiDefenseController extends Controller
                 if ($skripsiDefense->spp_receipt) {
                     $skripsiDefense->spp_receipt->delete();
                 }
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('spp_receipt'))))->toMediaCollection('spp_receipt');
+                $filePath = storage_path('tmp/uploads/' . basename($request->input('spp_receipt')));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'spp_receipt');('spp_receipt');
             }
         } elseif ($skripsiDefense->spp_receipt) {
             $skripsiDefense->spp_receipt->delete();
@@ -260,7 +319,8 @@ class SkripsiDefenseController extends Controller
                 if ($skripsiDefense->krs_latest) {
                     $skripsiDefense->krs_latest->delete();
                 }
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('krs_latest'))))->toMediaCollection('krs_latest');
+                $filePath = storage_path('tmp/uploads/' . basename($request->input('krs_latest')));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'krs_latest');('krs_latest');
             }
         } elseif ($skripsiDefense->krs_latest) {
             $skripsiDefense->krs_latest->delete();
@@ -271,7 +331,8 @@ class SkripsiDefenseController extends Controller
                 if ($skripsiDefense->eap_certificate) {
                     $skripsiDefense->eap_certificate->delete();
                 }
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('eap_certificate'))))->toMediaCollection('eap_certificate');
+                $filePath = storage_path('tmp/uploads/' . basename($request->input('eap_certificate')));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'eap_certificate');('eap_certificate');
             }
         } elseif ($skripsiDefense->eap_certificate) {
             $skripsiDefense->eap_certificate->delete();
@@ -282,7 +343,8 @@ class SkripsiDefenseController extends Controller
                 if ($skripsiDefense->transcript) {
                     $skripsiDefense->transcript->delete();
                 }
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('transcript'))))->toMediaCollection('transcript');
+                $filePath = storage_path('tmp/uploads/' . basename($request->input('transcript')));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'transcript');('transcript');
             }
         } elseif ($skripsiDefense->transcript) {
             $skripsiDefense->transcript->delete();
@@ -298,7 +360,8 @@ class SkripsiDefenseController extends Controller
         $media = $skripsiDefense->mbkm_report->pluck('file_name')->toArray();
         foreach ($request->input('mbkm_report', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('mbkm_report');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'mbkm_report');('mbkm_report');
             }
         }
 
@@ -312,7 +375,8 @@ class SkripsiDefenseController extends Controller
         $media = $skripsiDefense->research_poster->pluck('file_name')->toArray();
         foreach ($request->input('research_poster', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('research_poster');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'research_poster');('research_poster');
             }
         }
 
@@ -321,7 +385,8 @@ class SkripsiDefenseController extends Controller
                 if ($skripsiDefense->siakad_supervisor_screenshot) {
                     $skripsiDefense->siakad_supervisor_screenshot->delete();
                 }
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('siakad_supervisor_screenshot'))))->toMediaCollection('siakad_supervisor_screenshot');
+                $filePath = storage_path('tmp/uploads/' . basename($request->input('siakad_supervisor_screenshot')));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'siakad_supervisor_screenshot');('siakad_supervisor_screenshot');
             }
         } elseif ($skripsiDefense->siakad_supervisor_screenshot) {
             $skripsiDefense->siakad_supervisor_screenshot->delete();
@@ -337,7 +402,8 @@ class SkripsiDefenseController extends Controller
         $media = $skripsiDefense->supervision_logbook->pluck('file_name')->toArray();
         foreach ($request->input('supervision_logbook', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('supervision_logbook');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $skripsiDefense->addMediaWithCustomName($filePath, 'supervision_logbook');('supervision_logbook');
             }
         }
 

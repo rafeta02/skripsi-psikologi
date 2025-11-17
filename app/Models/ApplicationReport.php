@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\FileNamingTrait;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ApplicationReport extends Model implements HasMedia
 {
-    use SoftDeletes, InteractsWithMedia, HasFactory;
+    use SoftDeletes, InteractsWithMedia, HasFactory, FileNamingTrait;
 
     public $table = 'application_reports';
 

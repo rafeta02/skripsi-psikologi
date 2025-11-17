@@ -17,6 +17,14 @@ class UpdateApplicationReportRequest extends FormRequest
     public function rules()
     {
         return [
+            'application_id' => [
+                'required',
+                'exists:applications,id',
+            ],
+            'report_text' => [
+                'required',
+                'string',
+            ],
             'report_document' => [
                 'array',
             ],

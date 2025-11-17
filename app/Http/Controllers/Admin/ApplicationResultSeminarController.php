@@ -8,9 +8,11 @@ use App\Http\Requests\MassDestroyApplicationResultSeminarRequest;
 use App\Http\Requests\StoreApplicationResultSeminarRequest;
 use App\Http\Requests\UpdateApplicationResultSeminarRequest;
 use App\Models\Application;
+use App\Models\ApplicationAction;
 use App\Models\ApplicationResultSeminar;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
@@ -24,7 +26,7 @@ class ApplicationResultSeminarController extends Controller
         abort_if(Gate::denies('application_result_seminar_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = ApplicationResultSeminar::with(['application'])->select(sprintf('%s.*', (new ApplicationResultSeminar)->table));
+            $query = ApplicationResultSeminar::with(['application.mahasiswa'])->select(sprintf('%s.*', (new ApplicationResultSeminar)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -45,12 +47,29 @@ class ApplicationResultSeminarController extends Controller
                 ));
             });
 
-            $table->addColumn('application_status', function ($row) {
-                return $row->application ? $row->application->status : '';
+            $table->addColumn('mahasiswa_name', function ($row) {
+                return $row->application && $row->application->mahasiswa ? $row->application->mahasiswa->nama : '';
+            });
+
+            $table->addColumn('mahasiswa_nim', function ($row) {
+                return $row->application && $row->application->mahasiswa ? $row->application->mahasiswa->nim : '';
             });
 
             $table->editColumn('result', function ($row) {
                 return $row->result ? ApplicationResultSeminar::RESULT_SELECT[$row->result] : '';
+            });
+
+            $table->addColumn('application_status', function ($row) {
+                if (!$row->application) return '';
+                
+                $status = $row->application->status;
+                $badges = [
+                    'submitted' => '<span class="badge badge-info">Menunggu</span>',
+                    'approved' => '<span class="badge badge-success">Disetujui</span>',
+                    'rejected' => '<span class="badge badge-danger">Ditolak</span>',
+                ];
+                
+                return $badges[$status] ?? '<span class="badge badge-secondary">Unknown</span>';
             });
 
             $table->editColumn('report_document', function ($row) {
@@ -64,11 +83,8 @@ class ApplicationResultSeminarController extends Controller
 
                 return implode(', ', $links);
             });
-            $table->editColumn('latest_script', function ($row) {
-                return $row->latest_script ? '<a href="' . $row->latest_script->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
-            });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'report_document', 'latest_script']);
+            $table->rawColumns(['actions', 'placeholder', 'application', 'report_document', 'application_status']);
 
             return $table->make(true);
         }
@@ -202,9 +218,93 @@ class ApplicationResultSeminarController extends Controller
     {
         abort_if(Gate::denies('application_result_seminar_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationResultSeminar->load('application');
+        $applicationResultSeminar->load('application.mahasiswa.prodi', 'application.mahasiswa.jenjang', 'application.actions');
 
         return view('admin.applicationResultSeminars.show', compact('applicationResultSeminar'));
+    }
+
+    public function approve(Request $request, $id)
+    {
+        $resultSeminar = ApplicationResultSeminar::with('application')->findOrFail($id);
+
+        $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            DB::transaction(function () use ($resultSeminar, $request) {
+                // Update application status
+                $resultSeminar->application->update([
+                    'status' => 'approved',
+                ]);
+
+                // Log action
+                ApplicationAction::create([
+                    'application_id' => $resultSeminar->application_id,
+                    'action_type' => 'result_seminar_approved',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->notes ?? 'Hasil seminar disetujui',
+                    'metadata' => [
+                        'result_seminar_id' => $resultSeminar->id,
+                        'result' => $resultSeminar->result,
+                    ],
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Hasil seminar berhasil disetujui'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $resultSeminar = ApplicationResultSeminar::with('application')->findOrFail($id);
+
+        $request->validate([
+            'reason' => 'required|string|min:10',
+        ], [
+            'reason.required' => 'Alasan penolakan wajib diisi',
+            'reason.min' => 'Alasan penolakan minimal 10 karakter',
+        ]);
+
+        try {
+            DB::transaction(function () use ($resultSeminar, $request) {
+                // Update application status
+                $resultSeminar->application->update([
+                    'status' => 'rejected',
+                    'notes' => $request->reason,
+                ]);
+
+                // Log action
+                ApplicationAction::create([
+                    'application_id' => $resultSeminar->application_id,
+                    'action_type' => 'result_seminar_rejected',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->reason,
+                    'metadata' => [
+                        'result_seminar_id' => $resultSeminar->id,
+                        'result' => $resultSeminar->result,
+                    ],
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Hasil seminar ditolak'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function destroy(ApplicationResultSeminar $applicationResultSeminar)

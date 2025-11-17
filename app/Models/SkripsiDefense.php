@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use App\Traits\FileNamingTrait;
 use App\Traits\MultiTenantModelTrait;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class SkripsiDefense extends Model implements HasMedia
 {
-    use SoftDeletes, MultiTenantModelTrait, InteractsWithMedia, Auditable, HasFactory;
+    use SoftDeletes, MultiTenantModelTrait, InteractsWithMedia, Auditable, HasFactory, FileNamingTrait;
 
     public $table = 'skripsi_defenses';
 
@@ -28,6 +29,8 @@ class SkripsiDefense extends Model implements HasMedia
         'application_id',
         'title',
         'abstract',
+        'status',
+        'admin_note',
         'created_at',
         'updated_at',
         'deleted_at',

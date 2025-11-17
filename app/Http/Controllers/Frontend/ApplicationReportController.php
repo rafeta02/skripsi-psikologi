@@ -22,7 +22,18 @@ class ApplicationReportController extends Controller
     {
         abort_if(Gate::denies('application_report_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationReports = ApplicationReport::with(['application', 'media'])->get();
+        // Get current mahasiswa's application reports
+        $user = auth()->user();
+        $mahasiswa = $user->mahasiswa;
+        
+        if (!$mahasiswa) {
+            $applicationReports = collect();
+        } else {
+            $applicationIds = Application::where('mahasiswa_id', $mahasiswa->id)->pluck('id');
+            $applicationReports = ApplicationReport::with(['application', 'media'])
+                ->whereIn('application_id', $applicationIds)
+                ->get();
+        }
 
         return view('frontend.applicationReports.index', compact('applicationReports'));
     }
@@ -31,17 +42,39 @@ class ApplicationReportController extends Controller
     {
         abort_if(Gate::denies('application_report_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('type', 'id')->prepend(trans('global.pleaseSelect'), '');
+        // Get current mahasiswa's active application
+        $user = auth()->user();
+        $mahasiswa = $user->mahasiswa;
+        
+        if (!$mahasiswa) {
+            return redirect()->back()->with('error', 'Profil mahasiswa tidak ditemukan');
+        }
 
-        return view('frontend.applicationReports.create', compact('applications'));
+        $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
+            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$activeApplication) {
+            return redirect()->back()->with('error', 'Tidak ada aplikasi aktif. Silakan buat aplikasi terlebih dahulu.');
+        }
+
+        return view('frontend.applicationReports.create', compact('activeApplication'));
     }
 
     public function store(StoreApplicationReportRequest $request)
     {
-        $applicationReport = ApplicationReport::create($request->all());
+        $data = $request->all();
+        // Automatically set status to 'submitted'
+        $data['status'] = 'submitted';
+        
+        $applicationReport = ApplicationReport::create($data);
 
         foreach ($request->input('report_document', []) as $file) {
-            $applicationReport->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $applicationReport->addMedia($filePath)
+                ->usingFileName($applicationReport->generateCustomFileName($filePath, 'report_document'))
+                ->toMediaCollection('report_document');
         }
 
         if ($media = $request->input('ck-media', false)) {
@@ -55,11 +88,9 @@ class ApplicationReportController extends Controller
     {
         abort_if(Gate::denies('application_report_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('type', 'id')->prepend(trans('global.pleaseSelect'), '');
-
         $applicationReport->load('application');
 
-        return view('frontend.applicationReports.edit', compact('applicationReport', 'applications'));
+        return view('frontend.applicationReports.edit', compact('applicationReport'));
     }
 
     public function update(UpdateApplicationReportRequest $request, ApplicationReport $applicationReport)
@@ -76,7 +107,10 @@ class ApplicationReportController extends Controller
         $media = $applicationReport->report_document->pluck('file_name')->toArray();
         foreach ($request->input('report_document', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationReport->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $applicationReport->addMedia($filePath)
+                    ->usingFileName($applicationReport->generateCustomFileName($filePath, 'report_document'))
+                    ->toMediaCollection('report_document');
             }
         }
 

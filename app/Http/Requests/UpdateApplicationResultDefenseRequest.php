@@ -17,30 +17,82 @@ class UpdateApplicationResultDefenseRequest extends FormRequest
     public function rules()
     {
         return [
-            'revision_deadline' => [
-                'date_format:' . config('panel.date_format'),
-                'nullable',
-            ],
-            'final_grade' => [
-                'numeric',
-                'min:0',
-                'max:10',
-            ],
-            'documentation' => [
-                'array',
-            ],
-            'invitation_document' => [
-                'array',
-            ],
-            'feedback_document' => [
-                'array',
+            // Required Fields
+            'result' => [
+                'required',
+                'in:' . implode(',', array_keys(ApplicationResultDefense::RESULT_SELECT)),
             ],
             'report_document' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'report_document.*' => [
+                'required',
+                'string',
+            ],
+            'attendance_document' => [
+                'required',
+                'string',
+            ],
+            
+            // Optional Fields
+            'note' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'revision_deadline' => [
+                'nullable',
+                'date_format:' . config('panel.date_format'),
+            ],
+            'final_grade' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:100',
+            ],
+            
+            // Optional Documents
+            'form_document.*' => [
+                'nullable',
+                'string',
+            ],
+            'latest_script' => [
+                'nullable',
+                'string',
+            ],
+            'documentation' => [
+                'nullable',
                 'array',
             ],
-            'revision_approval_sheet' => [
-                'array',
+            'documentation.*' => [
+                'nullable',
+                'string',
             ],
+            'certificate_document' => [
+                'nullable',
+                'string',
+            ],
+            'publication_document' => [
+                'nullable',
+                'string',
+            ],
+        ];
+    }
+    
+    public function messages()
+    {
+        return [
+            'result.required' => 'Hasil sidang wajib dipilih',
+            'result.in' => 'Hasil sidang tidak valid',
+            'report_document.required' => 'Berita acara sidang wajib diupload',
+            'report_document.min' => 'Minimal upload 1 berita acara sidang',
+            'attendance_document.required' => 'Daftar hadir wajib diupload',
+            'note.max' => 'Catatan maksimal 5000 karakter',
+            'final_grade.numeric' => 'Nilai harus berupa angka',
+            'final_grade.min' => 'Nilai minimal 0',
+            'final_grade.max' => 'Nilai maksimal 100',
         ];
     }
 }

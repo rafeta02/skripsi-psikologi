@@ -23,7 +23,19 @@ class ApplicationScheduleController extends Controller
     {
         abort_if(Gate::denies('application_schedule_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationSchedules = ApplicationSchedule::with(['application', 'ruang', 'media'])->get();
+        // Get only schedules for current mahasiswa
+        $mahasiswa = auth()->user()->mahasiswa;
+        
+        if ($mahasiswa) {
+            $applicationSchedules = ApplicationSchedule::with(['application.mahasiswa.user', 'ruang', 'media'])
+                ->whereHas('application', function($query) use ($mahasiswa) {
+                    $query->where('mahasiswa_id', $mahasiswa->id);
+                })
+                ->orderBy('waktu', 'desc')
+                ->get();
+        } else {
+            $applicationSchedules = collect();
+        }
 
         return view('frontend.applicationSchedules.index', compact('applicationSchedules'));
     }
@@ -32,11 +44,30 @@ class ApplicationScheduleController extends Controller
     {
         abort_if(Gate::denies('application_schedule_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
+        // Get the active application for the current mahasiswa
+        $mahasiswa = auth()->user()->mahasiswa;
+        
+        // Try to find application in seminar or defense stage that is approved
+        $activeApplication = null;
+        if ($mahasiswa) {
+            // First try to find defense stage (priority)
+            $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
+                ->where('stage', 'defense')
+                ->where('status', 'approved')
+                ->first();
+            
+            // If no defense, try seminar
+            if (!$activeApplication) {
+                $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
+                    ->where('stage', 'seminar')
+                    ->where('status', 'approved')
+                    ->first();
+            }
+        }
 
         $ruangs = Ruang::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('frontend.applicationSchedules.create', compact('applications', 'ruangs'));
+        return view('frontend.applicationSchedules.create', compact('activeApplication', 'ruangs'));
     }
 
     public function store(StoreApplicationScheduleRequest $request)
@@ -44,14 +75,17 @@ class ApplicationScheduleController extends Controller
         $applicationSchedule = ApplicationSchedule::create($request->all());
 
         foreach ($request->input('approval_form', []) as $file) {
-            $applicationSchedule->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('approval_form');
+            $applicationSchedule->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'approval_form'
+            );
         }
 
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $applicationSchedule->id]);
         }
 
-        return redirect()->route('frontend.application-schedules.index');
+        return redirect()->route('frontend.application-schedules.index')->with('success', 'Jadwal seminar berhasil dibuat');
     }
 
     public function edit(ApplicationSchedule $applicationSchedule)
@@ -81,11 +115,14 @@ class ApplicationScheduleController extends Controller
         $media = $applicationSchedule->approval_form->pluck('file_name')->toArray();
         foreach ($request->input('approval_form', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationSchedule->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('approval_form');
+                $applicationSchedule->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'approval_form'
+                );
             }
         }
 
-        return redirect()->route('frontend.application-schedules.index');
+        return redirect()->route('frontend.application-schedules.index')->with('success', 'Jadwal seminar berhasil diupdate');
     }
 
     public function show(ApplicationSchedule $applicationSchedule)

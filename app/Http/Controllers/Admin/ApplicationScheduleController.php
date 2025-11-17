@@ -8,10 +8,12 @@ use App\Http\Requests\MassDestroyApplicationScheduleRequest;
 use App\Http\Requests\StoreApplicationScheduleRequest;
 use App\Http\Requests\UpdateApplicationScheduleRequest;
 use App\Models\Application;
+use App\Models\ApplicationAction;
 use App\Models\ApplicationSchedule;
 use App\Models\Ruang;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
@@ -25,11 +27,39 @@ class ApplicationScheduleController extends Controller
         abort_if(Gate::denies('application_schedule_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = ApplicationSchedule::with(['application', 'ruang'])->select(sprintf('%s.*', (new ApplicationSchedule)->table));
+            $query = ApplicationSchedule::with(['application.mahasiswa', 'ruang'])->select(sprintf('%s.*', (new ApplicationSchedule)->table));
+            
+            // Filter by status if provided
+            if ($request->has('status_filter')) {
+                $statusFilter = $request->get('status_filter');
+                
+                if ($statusFilter === 'pending') {
+                    $query->whereHas('application', function($q) {
+                        $q->whereIn('status', ['submitted', 'approved']);
+                    });
+                } elseif ($statusFilter === 'approved') {
+                    $query->whereHas('application', function($q) {
+                        $q->where('status', 'scheduled');
+                    });
+                } elseif ($statusFilter === 'rejected') {
+                    $query->whereHas('application', function($q) {
+                        $q->where('status', 'rejected');
+                    });
+                }
+            }
+            
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
             $table->addColumn('actions', '&nbsp;');
+
+            $table->editColumn('id', function ($row) {
+                return $row->id;
+            });
+
+            $table->addColumn('status', function ($row) {
+                return $row->application ? $row->application->status : '';
+            });
 
             $table->editColumn('actions', function ($row) {
                 $viewGate      = 'application_schedule_show';
@@ -46,23 +76,53 @@ class ApplicationScheduleController extends Controller
                 ));
             });
 
-            $table->addColumn('application_status', function ($row) {
-                return $row->application ? $row->application->status : '';
+            $table->addColumn('mahasiswa_name', function ($row) {
+                return $row->application && $row->application->mahasiswa ? $row->application->mahasiswa->nama : '';
+            });
+
+            $table->addColumn('mahasiswa_nim', function ($row) {
+                return $row->application && $row->application->mahasiswa ? $row->application->mahasiswa->nim : '';
             });
 
             $table->editColumn('schedule_type', function ($row) {
                 return $row->schedule_type ? ApplicationSchedule::SCHEDULE_TYPE_SELECT[$row->schedule_type] : '';
             });
 
+            $table->editColumn('waktu', function ($row) {
+                return $row->waktu ? $row->waktu : '';
+            });
+
             $table->addColumn('ruang_name', function ($row) {
-                return $row->ruang ? $row->ruang->name : '';
+                return $row->ruang ? $row->ruang->name : ($row->custom_place ?: 'Online');
             });
 
-            $table->editColumn('online_meeting', function ($row) {
-                return $row->online_meeting ? $row->online_meeting : '';
+            $table->addColumn('status_badge', function ($row) {
+                if (!$row->application) return '';
+                $status = $row->application->status;
+                $badges = [
+                    'submitted' => '<span class="badge badge-info">Menunggu</span>',
+                    'approved' => '<span class="badge badge-warning">Belum Dijadwalkan</span>',
+                    'scheduled' => '<span class="badge badge-success">Disetujui</span>',
+                    'rejected' => '<span class="badge badge-danger">Ditolak</span>',
+                ];
+                return $badges[$status] ?? '<span class="badge badge-secondary">Unknown</span>';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'ruang']);
+            $table->addColumn('rejection_reason', function ($row) {
+                if (!$row->application || $row->application->status !== 'rejected') return '-';
+                $notes = $row->application->notes;
+                return $notes ? (strlen($notes) > 50 ? substr($notes, 0, 50) . '...' : $notes) : '-';
+            });
+
+            $table->editColumn('created_at', function ($row) {
+                return $row->created_at ? $row->created_at->format('d M Y H:i') : '';
+            });
+
+            $table->editColumn('updated_at', function ($row) {
+                return $row->updated_at ? $row->updated_at->format('d M Y H:i') : '';
+            });
+
+            $table->rawColumns(['actions', 'placeholder', 'application', 'ruang', 'status_badge']);
 
             return $table->make(true);
         }
@@ -134,7 +194,7 @@ class ApplicationScheduleController extends Controller
     {
         abort_if(Gate::denies('application_schedule_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationSchedule->load('application', 'ruang');
+        $applicationSchedule->load('application.mahasiswa.prodi', 'application.mahasiswa.jenjang', 'ruang', 'application.actions');
 
         return view('admin.applicationSchedules.show', compact('applicationSchedule'));
     }
@@ -169,5 +229,89 @@ class ApplicationScheduleController extends Controller
         $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
+    }
+
+    /**
+     * Approve schedule
+     */
+    public function approve(Request $request, $id)
+    {
+        $schedule = ApplicationSchedule::with('application')->findOrFail($id);
+        
+        $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            DB::transaction(function () use ($schedule, $request) {
+                // Update application status to scheduled
+                $schedule->application->update([
+                    'status' => 'scheduled',
+                ]);
+
+                // Log action
+                ApplicationAction::create([
+                    'application_id' => $schedule->application_id,
+                    'action_type' => 'schedule_approved',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->notes ?? 'Jadwal seminar disetujui',
+                    'metadata' => [
+                        'schedule_id' => $schedule->id,
+                        'waktu' => $schedule->waktu,
+                        'ruang_id' => $schedule->ruang_id,
+                        'custom_place' => $schedule->custom_place,
+                    ],
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Jadwal seminar berhasil disetujui'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject schedule with reason
+     */
+    public function reject(Request $request, $id)
+    {
+        $schedule = ApplicationSchedule::with('application')->findOrFail($id);
+        
+        $request->validate([
+            'reason' => 'required|string|min:10',
+        ]);
+
+        try {
+            DB::transaction(function () use ($schedule, $request) {
+                // Update application notes with rejection reason
+                $schedule->application->update([
+                    'notes' => $request->reason,
+                ]);
+
+                // Log action
+                ApplicationAction::create([
+                    'application_id' => $schedule->application_id,
+                    'action_type' => 'schedule_rejected',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->reason,
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Jadwal seminar ditolak'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

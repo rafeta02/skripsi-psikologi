@@ -119,7 +119,7 @@
                 // Init request
                 var xhr = new XMLHttpRequest();
                 xhr.open('POST', '{{ route('frontend.applications.storeCKEditorImages') }}', true);
-                xhr.setRequestHeader('x-csrf-token', window._token);
+                xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                 xhr.setRequestHeader('Accept', 'application/json');
                 xhr.responseType = 'json';
 
@@ -166,7 +166,12 @@
       allEditors[i], {
         extraPlugins: [SimpleUploadAdapter]
       }
-    );
+    ).catch(error => {
+      console.error('CKEditor initialization error:', error);
+      // Fallback: show the textarea if CKEditor fails to initialize
+      allEditors[i].style.display = 'block';
+      allEditors[i].style.minHeight = '200px';
+    });
   }
 });
 </script>

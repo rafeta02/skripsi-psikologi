@@ -260,192 +260,160 @@
                         </ul>
                     </li>
                 @endcan
-                @can('application_access')
-                    <li class="nav-item">
-                        <a href="{{ route("admin.applications.index") }}" class="nav-link {{ request()->is("admin/applications") || request()->is("admin/applications/*") ? "active" : "" }}">
-                            <i class="fa-fw nav-icon fas fa-book">
+                {{-- Skripsi Management - Reorganized Menu --}}
+                <li class="nav-item has-treeview {{ request()->is("admin/skripsi*") || request()->is("admin/mbkm*") || request()->is("admin/application*") ? "menu-open" : "" }}">
+                    <a class="nav-link nav-dropdown-toggle {{ request()->is("admin/skripsi*") || request()->is("admin/mbkm*") || request()->is("admin/application*") ? "active" : "" }}" href="#">
+                        <i class="fa-fw nav-icon fas fa-graduation-cap"></i>
+                        <p>
+                            Skripsi Management
+                            <i class="right fa fa-fw fa-angle-left nav-icon"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        {{-- Dashboard --}}
+                        <li class="nav-item">
+                            <a href="{{ route("admin.skripsi.dashboard") }}" class="nav-link {{ request()->is("admin/skripsi/dashboard") ? "active" : "" }}">
+                                <i class="fa-fw nav-icon fas fa-tachometer-alt"></i>
+                                <p>Dashboard</p>
+                            </a>
+                        </li>
+                        
+                        @can('application_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.applications.index") }}" class="nav-link {{ request()->is("admin/applications") || request()->is("admin/applications/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-list"></i>
+                                    <p>Semua Aplikasi</p>
+                                </a>
+                            </li>
+                        @endcan
 
-                            </i>
-                            <p>
-                                {{ trans('cruds.application.title') }}
-                            </p>
-                        </a>
-                    </li>
-                @endcan
-                @can('form_access')
-                    <li class="nav-item has-treeview {{ request()->is("admin/skripsi-registrations*") ? "menu-open" : "" }} {{ request()->is("admin/skripsi-seminars*") ? "menu-open" : "" }} {{ request()->is("admin/skripsi-defenses*") ? "menu-open" : "" }} {{ request()->is("admin/mbkm-registrations*") ? "menu-open" : "" }} {{ request()->is("admin/mbkm-seminars*") ? "menu-open" : "" }} {{ request()->is("admin/mbkm-group-members*") ? "menu-open" : "" }}">
-                        <a class="nav-link nav-dropdown-toggle {{ request()->is("admin/skripsi-registrations*") ? "active" : "" }} {{ request()->is("admin/skripsi-seminars*") ? "active" : "" }} {{ request()->is("admin/skripsi-defenses*") ? "active" : "" }} {{ request()->is("admin/mbkm-registrations*") ? "active" : "" }} {{ request()->is("admin/mbkm-seminars*") ? "active" : "" }} {{ request()->is("admin/mbkm-group-members*") ? "active" : "" }}" href="#">
-                            <i class="fa-fw nav-icon fas fa-user-tie">
+                        {{-- Jalur Reguler Section --}}
+                        <li class="nav-header" style="padding-left: 1rem; color: #c2c7d0; font-size: 0.75rem;">JALUR REGULER</li>
+                        
+                        @can('skripsi_registration_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.skripsi-registrations.index") }}" class="nav-link {{ request()->is("admin/skripsi-registrations") || request()->is("admin/skripsi-registrations/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-file-signature"></i>
+                                    <p>Pendaftaran Reguler</p>
+                                </a>
+                            </li>
+                        @endcan
+                        
+                        @can('skripsi_seminar_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.skripsi-seminars.index") }}" class="nav-link {{ request()->is("admin/skripsi-seminars") || request()->is("admin/skripsi-seminars/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-chalkboard-teacher"></i>
+                                    <p>Seminar Reguler</p>
+                                </a>
+                            </li>
+                        @endcan
 
-                            </i>
-                            <p>
-                                {{ trans('cruds.form.title') }}
-                                <i class="right fa fa-fw fa-angle-left nav-icon"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            @can('skripsi_registration_access')
-                                <li class="nav-item">
-                                    <a href="{{ route("admin.skripsi-registrations.index") }}" class="nav-link {{ request()->is("admin/skripsi-registrations") || request()->is("admin/skripsi-registrations/*") ? "active" : "" }}">
-                                        <i class="fa-fw nav-icon fas fa-book">
+                        {{-- Jalur MBKM Section --}}
+                        <li class="nav-header" style="padding-left: 1rem; color: #c2c7d0; font-size: 0.75rem;">JALUR MBKM</li>
+                        
+                        @can('mbkm_registration_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.mbkm-registrations.index") }}" class="nav-link {{ request()->is("admin/mbkm-registrations") || request()->is("admin/mbkm-registrations/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-user-graduate"></i>
+                                    <p>Pendaftaran MBKM</p>
+                                </a>
+                            </li>
+                        @endcan
+                        
+                        @can('mbkm_seminar_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.mbkm-seminars.index") }}" class="nav-link {{ request()->is("admin/mbkm-seminars") || request()->is("admin/mbkm-seminars/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-users-class"></i>
+                                    <p>Seminar MBKM</p>
+                                </a>
+                            </li>
+                        @endcan
+                        
+                        @can('mbkm_group_member_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.mbkm-group-members.index") }}" class="nav-link {{ request()->is("admin/mbkm-group-members") || request()->is("admin/mbkm-group-members/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-user-friends"></i>
+                                    <p>Anggota Kelompok MBKM</p>
+                                </a>
+                            </li>
+                        @endcan
 
-                                        </i>
-                                        <p>
-                                            {{ trans('cruds.skripsiRegistration.title') }}
-                                        </p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('skripsi_seminar_access')
-                                <li class="nav-item">
-                                    <a href="{{ route("admin.skripsi-seminars.index") }}" class="nav-link {{ request()->is("admin/skripsi-seminars") || request()->is("admin/skripsi-seminars/*") ? "active" : "" }}">
-                                        <i class="fa-fw nav-icon fas fa-book">
+                        {{-- Sidang Section --}}
+                        <li class="nav-header" style="padding-left: 1rem; color: #c2c7d0; font-size: 0.75rem;">SIDANG SKRIPSI</li>
+                        
+                        @can('skripsi_defense_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.skripsi-defenses.index") }}" class="nav-link {{ request()->is("admin/skripsi-defenses") || request()->is("admin/skripsi-defenses/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-gavel"></i>
+                                    <p>Pendaftaran Sidang</p>
+                                </a>
+                            </li>
+                        @endcan
 
-                                        </i>
-                                        <p>
-                                            {{ trans('cruds.skripsiSeminar.title') }}
-                                        </p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('skripsi_defense_access')
-                                <li class="nav-item">
-                                    <a href="{{ route("admin.skripsi-defenses.index") }}" class="nav-link {{ request()->is("admin/skripsi-defenses") || request()->is("admin/skripsi-defenses/*") ? "active" : "" }}">
-                                        <i class="fa-fw nav-icon fas fa-book">
+                        {{-- Jadwal & Penugasan Section --}}
+                        <li class="nav-header" style="padding-left: 1rem; color: #c2c7d0; font-size: 0.75rem;">JADWAL & PENUGASAN</li>
+                        
+                        @can('application_schedule_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.application-schedules.index") }}" class="nav-link {{ request()->is("admin/application-schedules") || request()->is("admin/application-schedules/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-calendar-alt"></i>
+                                    <p>Jadwal Seminar/Sidang</p>
+                                </a>
+                            </li>
+                        @endcan
+                        
+                        @can('application_assignment_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.application-assignments.index") }}" class="nav-link {{ request()->is("admin/application-assignments") || request()->is("admin/application-assignments/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-user-check"></i>
+                                    <p>Penugasan Dosen</p>
+                                </a>
+                            </li>
+                        @endcan
 
-                                        </i>
-                                        <p>
-                                            {{ trans('cruds.skripsiDefense.title') }}
-                                        </p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('mbkm_registration_access')
-                                <li class="nav-item">
-                                    <a href="{{ route("admin.mbkm-registrations.index") }}" class="nav-link {{ request()->is("admin/mbkm-registrations") || request()->is("admin/mbkm-registrations/*") ? "active" : "" }}">
-                                        <i class="fa-fw nav-icon fas fa-book">
+                        {{-- Hasil & Penilaian Section --}}
+                        <li class="nav-header" style="padding-left: 1rem; color: #c2c7d0; font-size: 0.75rem;">HASIL & PENILAIAN</li>
+                        
+                        @can('application_result_seminar_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.application-result-seminars.index") }}" class="nav-link {{ request()->is("admin/application-result-seminars") || request()->is("admin/application-result-seminars/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-clipboard-check"></i>
+                                    <p>Hasil Seminar</p>
+                                </a>
+                            </li>
+                        @endcan
+                        
+                        @can('application_result_defense_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.application-result-defenses.index") }}" class="nav-link {{ request()->is("admin/application-result-defenses") || request()->is("admin/application-result-defenses/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-award"></i>
+                                    <p>Hasil Sidang</p>
+                                </a>
+                            </li>
+                        @endcan
+                        
+                        @can('application_score_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.application-scores.index") }}" class="nav-link {{ request()->is("admin/application-scores") || request()->is("admin/application-scores/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-star"></i>
+                                    <p>Penilaian Dosen</p>
+                                </a>
+                            </li>
+                        @endcan
 
-                                        </i>
-                                        <p>
-                                            {{ trans('cruds.mbkmRegistration.title') }}
-                                        </p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('mbkm_seminar_access')
-                                <li class="nav-item">
-                                    <a href="{{ route("admin.mbkm-seminars.index") }}" class="nav-link {{ request()->is("admin/mbkm-seminars") || request()->is("admin/mbkm-seminars/*") ? "active" : "" }}">
-                                        <i class="fa-fw nav-icon fas fa-book">
-
-                                        </i>
-                                        <p>
-                                            {{ trans('cruds.mbkmSeminar.title') }}
-                                        </p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('mbkm_group_member_access')
-                                <li class="nav-item">
-                                    <a href="{{ route("admin.mbkm-group-members.index") }}" class="nav-link {{ request()->is("admin/mbkm-group-members") || request()->is("admin/mbkm-group-members/*") ? "active" : "" }}">
-                                        <i class="fa-fw nav-icon fas fa-user">
-
-                                        </i>
-                                        <p>
-                                            {{ trans('cruds.mbkmGroupMember.title') }}
-                                        </p>
-                                    </a>
-                                </li>
-                            @endcan
-                        </ul>
-                    </li>
-                @endcan
-                @can('application_assignment_access')
-                    <li class="nav-item">
-                        <a href="{{ route("admin.application-assignments.index") }}" class="nav-link {{ request()->is("admin/application-assignments") || request()->is("admin/application-assignments/*") ? "active" : "" }}">
-                            <i class="fa-fw nav-icon fas fa-users">
-
-                            </i>
-                            <p>
-                                {{ trans('cruds.applicationAssignment.title') }}
-                            </p>
-                        </a>
-                    </li>
-                @endcan
-                @can('application_schedule_access')
-                    <li class="nav-item">
-                        <a href="{{ route("admin.application-schedules.index") }}" class="nav-link {{ request()->is("admin/application-schedules") || request()->is("admin/application-schedules/*") ? "active" : "" }}">
-                            <i class="fa-fw nav-icon fas fa-calendar">
-
-                            </i>
-                            <p>
-                                {{ trans('cruds.applicationSchedule.title') }}
-                            </p>
-                        </a>
-                    </li>
-                @endcan
-                @can('application_report_access')
-                    <li class="nav-item">
-                        <a href="{{ route("admin.application-reports.index") }}" class="nav-link {{ request()->is("admin/application-reports") || request()->is("admin/application-reports/*") ? "active" : "" }}">
-                            <i class="fa-fw nav-icon fas fa-flag">
-
-                            </i>
-                            <p>
-                                {{ trans('cruds.applicationReport.title') }}
-                            </p>
-                        </a>
-                    </li>
-                @endcan
-                @can('result_access')
-                    <li class="nav-item has-treeview {{ request()->is("admin/application-result-seminars*") ? "menu-open" : "" }} {{ request()->is("admin/application-result-defenses*") ? "menu-open" : "" }} {{ request()->is("admin/application-scores*") ? "menu-open" : "" }}">
-                        <a class="nav-link nav-dropdown-toggle {{ request()->is("admin/application-result-seminars*") ? "active" : "" }} {{ request()->is("admin/application-result-defenses*") ? "active" : "" }} {{ request()->is("admin/application-scores*") ? "active" : "" }}" href="#">
-                            <i class="fa-fw nav-icon fas fa-chart-pie">
-
-                            </i>
-                            <p>
-                                {{ trans('cruds.result.title') }}
-                                <i class="right fa fa-fw fa-angle-left nav-icon"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            @can('application_result_seminar_access')
-                                <li class="nav-item">
-                                    <a href="{{ route("admin.application-result-seminars.index") }}" class="nav-link {{ request()->is("admin/application-result-seminars") || request()->is("admin/application-result-seminars/*") ? "active" : "" }}">
-                                        <i class="fa-fw nav-icon fas fa-chart-pie">
-
-                                        </i>
-                                        <p>
-                                            {{ trans('cruds.applicationResultSeminar.title') }}
-                                        </p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('application_result_defense_access')
-                                <li class="nav-item">
-                                    <a href="{{ route("admin.application-result-defenses.index") }}" class="nav-link {{ request()->is("admin/application-result-defenses") || request()->is("admin/application-result-defenses/*") ? "active" : "" }}">
-                                        <i class="fa-fw nav-icon fas fa-chart-pie">
-
-                                        </i>
-                                        <p>
-                                            {{ trans('cruds.applicationResultDefense.title') }}
-                                        </p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('application_score_access')
-                                <li class="nav-item">
-                                    <a href="{{ route("admin.application-scores.index") }}" class="nav-link {{ request()->is("admin/application-scores") || request()->is("admin/application-scores/*") ? "active" : "" }}">
-                                        <i class="fa-fw nav-icon fas fa-chart-pie">
-
-                                        </i>
-                                        <p>
-                                            {{ trans('cruds.applicationScore.title') }}
-                                        </p>
-                                    </a>
-                                </li>
-                            @endcan
-                        </ul>
-                    </li>
-                @endcan
+                        {{-- Laporan Section --}}
+                        <li class="nav-header" style="padding-left: 1rem; color: #c2c7d0; font-size: 0.75rem;">MONITORING</li>
+                        
+                        @can('application_report_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.application-reports.index") }}" class="nav-link {{ request()->is("admin/application-reports") || request()->is("admin/application-reports/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-flag"></i>
+                                    <p>Laporan Mahasiswa</p>
+                                </a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
                 <li class="nav-item">
                     <a href="{{ route("admin.systemCalendar") }}" class="nav-link {{ request()->is("admin/system-calendar") || request()->is("admin/system-calendar/*") ? "active" : "" }}">
                         <i class="fas fa-fw fa-calendar nav-icon">

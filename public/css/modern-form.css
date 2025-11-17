@@ -1,0 +1,564 @@
+/* Modern Form Styles - Base Color #22004C */
+
+.form-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.form-header {
+    background: linear-gradient(135deg, #22004C 0%, #4A0080 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.form-header h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.form-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.form-body {
+    padding: 2.5rem 3rem;
+}
+
+.info-box {
+    background: #ebf8ff;
+    border-left: 4px solid #4299e1;
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    margin-bottom: 2rem;
+}
+
+.info-box.warning {
+    background: #fff3cd;
+    border-left-color: #ffc107;
+}
+
+.info-box.success {
+    background: #d1fae5;
+    border-left-color: #48bb78;
+}
+
+.info-box-title {
+    font-weight: 600;
+    color: #2c5282;
+    margin-bottom: 0.25rem;
+}
+
+.info-box.warning .info-box-title {
+    color: #856404;
+}
+
+.info-box.success .info-box-title {
+    color: #065f46;
+}
+
+.info-box-text {
+    font-size: 0.9rem;
+    color: #2d3748;
+    margin: 0;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-group label .required {
+    color: #e53e3e;
+    margin-left: 2px;
+}
+
+.form-control, 
+.select2-container--default .select2-selection--single {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    border-color: #22004C;
+    box-shadow: 0 0 0 3px rgba(34, 0, 76, 0.1);
+    outline: none;
+}
+
+.help-block {
+    font-size: 0.85rem;
+    color: #a0aec0;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.dropzone {
+    border: 2px dashed #cbd5e0;
+    border-radius: 8px;
+    background: #f7fafc;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 150px;
+}
+
+.dropzone:hover {
+    border-color: #22004C;
+    background: #edf2f7;
+}
+
+.dropzone .dz-message {
+    font-size: 0.95rem;
+    color: #718096;
+    margin: 0;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 2rem 3rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    justify-content: space-between;
+}
+
+.btn-submit {
+    padding: 0.75rem 2rem;
+    background: linear-gradient(135deg, #22004C 0%, #4A0080 100%);
+    color: white;
+    border-radius: 8px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 0, 76, 0.4);
+}
+
+.btn-back {
+    padding: 0.75rem 2rem;
+    background: #e2e8f0;
+    color: #4a5568;
+    border-radius: 8px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-back:hover {
+    background: #cbd5e0;
+    text-decoration: none;
+    color: #4a5568;
+}
+
+textarea.form-control {
+    min-height: 120px;
+}
+
+/* Wizard Styles */
+.wizard-header {
+    background: linear-gradient(135deg, #22004C 0%, #4A0080 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.wizard-header h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.wizard-header p {
+    margin: 0.5rem 0 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem 3rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.wizard-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.wizard-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #dee2e6;
+    z-index: 0;
+}
+
+.wizard-step.active:not(:last-child)::after {
+    background: #22004C;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #dee2e6;
+    color: #6c757d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+}
+
+.wizard-step.active .step-number {
+    background: #22004C;
+    color: white;
+    transform: scale(1.1);
+}
+
+.wizard-step.completed .step-number {
+    background: #28a745;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.wizard-step.active .step-label {
+    color: #22004C;
+    font-weight: 600;
+}
+
+.wizard-body {
+    padding: 2.5rem 3rem;
+}
+
+.form-section {
+    display: none;
+}
+
+.form-section.active {
+    display: block;
+    animation: fadeIn 0.4s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.section-description {
+    color: #718096;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+}
+
+.wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem 3rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.btn-wizard {
+    padding: 0.65rem 2rem;
+    border-radius: 8px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.btn-prev {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.btn-prev:hover {
+    background: #cbd5e0;
+}
+
+.btn-next, .btn-submit.wizard {
+    background: linear-gradient(135deg, #22004C 0%, #4A0080 100%);
+    color: white;
+}
+
+.btn-next:hover, .btn-submit.wizard:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 0, 76, 0.4);
+}
+
+.btn-wizard:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* List/Index Page Styles */
+.page-header {
+    background: linear-gradient(135deg, #22004C 0%, #4A0080 100%);
+    color: white;
+    padding: 2.5rem 0;
+    margin-bottom: 2rem;
+    border-radius: 12px;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.page-header p {
+    margin: 0.5rem 0 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.list-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.card-header-custom {
+    padding: 1.5rem 2rem;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+}
+
+.btn-add {
+    padding: 0.65rem 1.5rem;
+    background: linear-gradient(135deg, #22004C 0%, #4A0080 100%);
+    color: white;
+    border-radius: 8px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 0, 76, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-add i {
+    margin-right: 0.5rem;
+}
+
+/* Detail/Show Page Styles */
+.detail-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.detail-header {
+    background: linear-gradient(135deg, #22004C 0%, #4A0080 100%);
+    color: white;
+    padding: 2rem;
+}
+
+.detail-header h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.detail-header .subtitle {
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.detail-body {
+    padding: 2.5rem;
+}
+
+.info-section {
+    margin-bottom: 2.5rem;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: #22004C;
+}
+
+.info-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f7fafc;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.95rem;
+}
+
+.info-value {
+    color: #2d3748;
+    font-size: 0.95rem;
+}
+
+.info-value.empty {
+    color: #a0aec0;
+    font-style: italic;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-submitted {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-scheduled {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-done {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.status-reviewed {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.status-assigned {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-accepted {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-body, .wizard-body {
+        padding: 1.5rem;
+    }
+    
+    .form-actions, .wizard-actions {
+        padding: 1.5rem;
+        flex-direction: column;
+    }
+    
+    .wizard-steps {
+        padding: 1.5rem 1rem;
+    }
+    
+    .step-label {
+        font-size: 0.75rem;
+    }
+    
+    .info-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}

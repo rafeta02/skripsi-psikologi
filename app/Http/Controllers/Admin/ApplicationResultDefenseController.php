@@ -129,35 +129,59 @@ class ApplicationResultDefenseController extends Controller
         $applicationResultDefense = ApplicationResultDefense::create($request->all());
 
         foreach ($request->input('documentation', []) as $file) {
-            $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('documentation');
+            $applicationResultDefense->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'documentation'
+            );
         }
 
         foreach ($request->input('invitation_document', []) as $file) {
-            $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('invitation_document');
+            $applicationResultDefense->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'invitation_document'
+            );
         }
 
         foreach ($request->input('feedback_document', []) as $file) {
-            $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('feedback_document');
+            $applicationResultDefense->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'feedback_document'
+            );
         }
 
         if ($request->input('minutes_document', false)) {
-            $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('minutes_document'))))->toMediaCollection('minutes_document');
+            $applicationResultDefense->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('minutes_document'))),
+                'minutes_document'
+            );
         }
 
         if ($request->input('latest_script', false)) {
-            $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('latest_script'))))->toMediaCollection('latest_script');
+            $applicationResultDefense->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
+                'latest_script'
+            );
         }
 
         if ($request->input('approval_page', false)) {
-            $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('approval_page'))))->toMediaCollection('approval_page');
+            $applicationResultDefense->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('approval_page'))),
+                'approval_page'
+            );
         }
 
         foreach ($request->input('report_document', []) as $file) {
-            $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
+            $applicationResultDefense->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'report_document'
+            );
         }
 
         foreach ($request->input('revision_approval_sheet', []) as $file) {
-            $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('revision_approval_sheet');
+            $applicationResultDefense->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'revision_approval_sheet'
+            );
         }
 
         if ($media = $request->input('ck-media', false)) {
@@ -192,7 +216,10 @@ class ApplicationResultDefenseController extends Controller
         $media = $applicationResultDefense->documentation->pluck('file_name')->toArray();
         foreach ($request->input('documentation', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('documentation');
+                $applicationResultDefense->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'documentation'
+                );
             }
         }
 
@@ -206,7 +233,10 @@ class ApplicationResultDefenseController extends Controller
         $media = $applicationResultDefense->invitation_document->pluck('file_name')->toArray();
         foreach ($request->input('invitation_document', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('invitation_document');
+                $applicationResultDefense->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'invitation_document'
+                );
             }
         }
 
@@ -220,7 +250,10 @@ class ApplicationResultDefenseController extends Controller
         $media = $applicationResultDefense->feedback_document->pluck('file_name')->toArray();
         foreach ($request->input('feedback_document', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('feedback_document');
+                $applicationResultDefense->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'feedback_document'
+                );
             }
         }
 
@@ -229,7 +262,10 @@ class ApplicationResultDefenseController extends Controller
                 if ($applicationResultDefense->minutes_document) {
                     $applicationResultDefense->minutes_document->delete();
                 }
-                $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('minutes_document'))))->toMediaCollection('minutes_document');
+                $applicationResultDefense->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('minutes_document'))),
+                    'minutes_document'
+                );
             }
         } elseif ($applicationResultDefense->minutes_document) {
             $applicationResultDefense->minutes_document->delete();
@@ -240,7 +276,10 @@ class ApplicationResultDefenseController extends Controller
                 if ($applicationResultDefense->latest_script) {
                     $applicationResultDefense->latest_script->delete();
                 }
-                $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('latest_script'))))->toMediaCollection('latest_script');
+                $applicationResultDefense->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
+                    'latest_script'
+                );
             }
         } elseif ($applicationResultDefense->latest_script) {
             $applicationResultDefense->latest_script->delete();
@@ -251,7 +290,10 @@ class ApplicationResultDefenseController extends Controller
                 if ($applicationResultDefense->approval_page) {
                     $applicationResultDefense->approval_page->delete();
                 }
-                $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('approval_page'))))->toMediaCollection('approval_page');
+                $applicationResultDefense->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('approval_page'))),
+                    'approval_page'
+                );
             }
         } elseif ($applicationResultDefense->approval_page) {
             $applicationResultDefense->approval_page->delete();
@@ -267,7 +309,10 @@ class ApplicationResultDefenseController extends Controller
         $media = $applicationResultDefense->report_document->pluck('file_name')->toArray();
         foreach ($request->input('report_document', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
+                $applicationResultDefense->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'report_document'
+                );
             }
         }
 
@@ -281,7 +326,10 @@ class ApplicationResultDefenseController extends Controller
         $media = $applicationResultDefense->revision_approval_sheet->pluck('file_name')->toArray();
         foreach ($request->input('revision_approval_sheet', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultDefense->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('revision_approval_sheet');
+                $applicationResultDefense->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'revision_approval_sheet'
+                );
             }
         }
 

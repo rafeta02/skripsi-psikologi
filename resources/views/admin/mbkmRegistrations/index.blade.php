@@ -103,7 +103,7 @@
       { data: 'placeholder', name: 'placeholder' },
 { data: 'application_status', name: 'application.status' },
 { data: 'research_group_name', name: 'research_group.name' },
-{ data: 'preference_supervision_nip', name: 'preference_supervision.nip' },
+{ data: 'preference_supervision_nip', name: 'preference_supervision.nama' },
 { data: 'theme_name', name: 'theme.name' },
 { data: 'title_mbkm', name: 'title_mbkm' },
 { data: 'title', name: 'title' },

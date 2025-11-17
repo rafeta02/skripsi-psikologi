@@ -24,7 +24,7 @@ class ApplicationReportController extends Controller
         abort_if(Gate::denies('application_report_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = ApplicationReport::with(['application'])->select(sprintf('%s.*', (new ApplicationReport)->table));
+            $query = ApplicationReport::with(['application.mahasiswa'])->select(sprintf('%s.*', (new ApplicationReport)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -45,21 +45,52 @@ class ApplicationReportController extends Controller
                 ));
             });
 
+            $table->addColumn('mahasiswa_name', function ($row) {
+                return $row->application && $row->application->mahasiswa ? $row->application->mahasiswa->nama : 'N/A';
+            });
+
+            $table->addColumn('mahasiswa_nim', function ($row) {
+                return $row->application && $row->application->mahasiswa ? $row->application->mahasiswa->nim : 'N/A';
+            });
+
             $table->addColumn('application_type', function ($row) {
                 return $row->application ? $row->application->type : '';
             });
 
             $table->editColumn('period', function ($row) {
-                return $row->period ? $row->period : '';
+                return $row->period ? $row->period : '-';
             });
+            
             $table->editColumn('status', function ($row) {
-                return $row->status ? ApplicationReport::STATUS_SELECT[$row->status] : '';
-            });
-            $table->editColumn('note', function ($row) {
-                return $row->note ? $row->note : '';
+                $statusBadge = '';
+                if ($row->status == 'submitted') {
+                    $statusBadge = '<span class="badge badge-warning">Submitted</span>';
+                } elseif ($row->status == 'reviewed') {
+                    $statusBadge = '<span class="badge badge-success">Reviewed</span>';
+                }
+                return $statusBadge;
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application']);
+            $table->addColumn('review_action', function ($row) {
+                if ($row->status == 'submitted') {
+                    return '<button type="button" class="btn btn-sm btn-primary btn-review" 
+                            data-id="'.$row->id.'" 
+                            data-mahasiswa="'.($row->application && $row->application->mahasiswa ? $row->application->mahasiswa->nama : 'N/A').'"
+                            data-note="'.htmlspecialchars($row->note ?? '').'"
+                            data-toggle="modal" 
+                            data-target="#reviewModal">
+                            <i class="fas fa-check"></i> Mark as Reviewed
+                        </button>';
+                } else {
+                    return '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Reviewed</span>';
+                }
+            });
+
+            $table->editColumn('note', function ($row) {
+                return $row->note ? substr(strip_tags($row->note), 0, 50).'...' : '-';
+            });
+
+            $table->rawColumns(['actions', 'placeholder', 'status', 'review_action']);
 
             return $table->make(true);
         }
@@ -71,17 +102,39 @@ class ApplicationReportController extends Controller
     {
         abort_if(Gate::denies('application_report_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('type', 'id')->prepend(trans('global.pleaseSelect'), '');
+        // Get current mahasiswa's active application
+        $user = auth()->user();
+        $mahasiswa = $user->mahasiswa;
+        
+        if (!$mahasiswa) {
+            return redirect()->back()->with('error', 'Profil mahasiswa tidak ditemukan');
+        }
 
-        return view('admin.applicationReports.create', compact('applications'));
+        $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
+            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$activeApplication) {
+            return redirect()->back()->with('error', 'Tidak ada aplikasi aktif. Silakan buat aplikasi terlebih dahulu.');
+        }
+
+        return view('admin.applicationReports.create', compact('activeApplication'));
     }
 
     public function store(StoreApplicationReportRequest $request)
     {
-        $applicationReport = ApplicationReport::create($request->all());
+        $data = $request->all();
+        // Automatically set status to 'submitted'
+        $data['status'] = 'submitted';
+        
+        $applicationReport = ApplicationReport::create($data);
 
         foreach ($request->input('report_document', []) as $file) {
-            $applicationReport->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
+            $filePath = storage_path('tmp/uploads/' . basename($file));
+            $applicationReport->addMedia($filePath)
+                ->usingFileName($applicationReport->generateCustomFileName($filePath, 'report_document'))
+                ->toMediaCollection('report_document');
         }
 
         if ($media = $request->input('ck-media', false)) {
@@ -95,11 +148,9 @@ class ApplicationReportController extends Controller
     {
         abort_if(Gate::denies('application_report_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('type', 'id')->prepend(trans('global.pleaseSelect'), '');
-
         $applicationReport->load('application');
 
-        return view('admin.applicationReports.edit', compact('applicationReport', 'applications'));
+        return view('admin.applicationReports.edit', compact('applicationReport'));
     }
 
     public function update(UpdateApplicationReportRequest $request, ApplicationReport $applicationReport)
@@ -116,7 +167,10 @@ class ApplicationReportController extends Controller
         $media = $applicationReport->report_document->pluck('file_name')->toArray();
         foreach ($request->input('report_document', []) as $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationReport->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                $applicationReport->addMedia($filePath)
+                    ->usingFileName($applicationReport->generateCustomFileName($filePath, 'report_document'))
+                    ->toMediaCollection('report_document');
             }
         }
 
@@ -162,5 +216,22 @@ class ApplicationReportController extends Controller
         $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
+    }
+
+    public function markAsReviewed(Request $request, ApplicationReport $applicationReport)
+    {
+        abort_if(Gate::denies('application_report_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $data = ['status' => 'reviewed'];
+        
+        // Add note if provided
+        if ($request->filled('note')) {
+            $data['note'] = $request->input('note');
+        }
+
+        $applicationReport->update($data);
+
+        return redirect()->route('admin.application-reports.index')
+            ->with('message', 'Laporan telah ditandai sebagai Reviewed');
     }
 }

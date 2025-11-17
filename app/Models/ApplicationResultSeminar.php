@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use App\Traits\FileNamingTrait;
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ApplicationResultSeminar extends Model implements HasMedia
 {
-    use SoftDeletes, InteractsWithMedia, Auditable, HasFactory;
+    use SoftDeletes, InteractsWithMedia, Auditable, HasFactory, FileNamingTrait;
 
     public $table = 'application_result_seminars';
 

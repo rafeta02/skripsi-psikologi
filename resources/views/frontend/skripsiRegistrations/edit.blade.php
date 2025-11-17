@@ -1,125 +1,420 @@
 @extends('layouts.frontend')
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
+<style>
+    .registration-wizard {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    
+    .wizard-header {
+        background: linear-gradient(135deg, #22004C 0%, #4A0080 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .wizard-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+    
+    .wizard-header p {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+    
+    .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        padding: 2rem 3rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .wizard-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+    }
+    
+    .wizard-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        width: 100%;
+        height: 2px;
+        background: #dee2e6;
+        z-index: 0;
+    }
+    
+    .wizard-step.active:not(:last-child)::after {
+        background: #22004C;
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #dee2e6;
+        color: #6c757d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s;
+    }
+    
+    .wizard-step.active .step-number {
+        background: #22004C;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .wizard-step.completed .step-number {
+        background: #28a745;
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .wizard-step.active .step-label {
+        color: #22004C;
+        font-weight: 600;
+    }
+    
+    .wizard-body {
+        padding: 2.5rem 3rem;
+    }
+    
+    .form-section {
+        display: none;
+    }
+    
+    .form-section.active {
+        display: block;
+        animation: fadeIn 0.4s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+    }
+    
+    .section-description {
+        color: #718096;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-group label .required {
+        color: #e53e3e;
+        margin-left: 2px;
+    }
+    
+    .form-control, .select2-container--default .select2-selection--single {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.65rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    
+    .form-control:focus {
+        border-color: #22004C;
+        box-shadow: 0 0 0 3px rgba(34, 0, 76, 0.1);
+        outline: none;
+    }
+    
+    .help-block {
+        font-size: 0.85rem;
+        color: #a0aec0;
+        margin-top: 0.25rem;
+        display: block;
+    }
+    
+    .dropzone {
+        border: 2px dashed #cbd5e0;
+        border-radius: 8px;
+        background: #f7fafc;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .dropzone:hover {
+        border-color: #22004C;
+        background: #edf2f7;
+    }
+    
+    .dropzone .dz-message {
+        font-size: 0.95rem;
+        color: #718096;
+    }
+    
+    .wizard-actions {
+        display: flex;
+        justify-content: space-between;
+        padding: 2rem 3rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .btn-wizard {
+        padding: 0.65rem 2rem;
+        border-radius: 8px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+    }
+    
+    .btn-prev {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+    
+    .btn-prev:hover {
+        background: #cbd5e0;
+    }
+    
+    .btn-next, .btn-submit {
+        background: linear-gradient(135deg, #22004C 0%, #4A0080 100%);
+        color: white;
+    }
+    
+    .btn-next:hover, .btn-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(34, 0, 76, 0.4);
+    }
+    
+    .btn-wizard:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .info-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem 1.25rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-box-title {
+        font-weight: 600;
+        color: #856404;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-box-text {
+        font-size: 0.9rem;
+        color: #2d3748;
+        margin: 0;
+    }
+</style>
 
-            <div class="card">
-                <div class="card-header">
-                    {{ trans('global.edit') }} {{ trans('cruds.skripsiRegistration.title_singular') }}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="registration-wizard">
+                <!-- Header -->
+                <div class="wizard-header">
+                    <h2>Edit Pendaftaran Topik Skripsi</h2>
+                    <p>Perbarui informasi pendaftaran skripsi Anda</p>
                 </div>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route("frontend.skripsi-registrations.update", [$skripsiRegistration->id]) }}" enctype="multipart/form-data">
+                <!-- Progress Steps -->
+                <div class="wizard-steps">
+                    <div class="wizard-step active" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-label">Informasi & Topik Skripsi</div>
+                    </div>
+                    <div class="wizard-step" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-label">Dokumen Persyaratan</div>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <form method="POST" action="{{ route("frontend.skripsi-registrations.update", [$skripsiRegistration->id]) }}" enctype="multipart/form-data" id="registrationForm">
                         @method('PUT')
                         @csrf
-                        <div class="form-group">
-                            <label for="application_id">{{ trans('cruds.skripsiRegistration.fields.application') }}</label>
-                            <select class="form-control select2" name="application_id" id="application_id">
-                                @foreach($applications as $id => $entry)
-                                    <option value="{{ $id }}" {{ (old('application_id') ? old('application_id') : $skripsiRegistration->application->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('application'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('application') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.application_helper') }}</span>
+                    
+                    <div class="wizard-body">
+                        <!-- Step 1: Information & Topic -->
+                        <div class="form-section active" data-section="1">
+                            <div class="section-title">Informasi & Topik Skripsi</div>
+                            <div class="section-description">Perbarui tema keilmuan, topik skripsi, dan preferensi dosen</div>
+
+                            <div class="info-box">
+                                <div class="info-box-title">Mode Edit</div>
+                                <div class="info-box-text">Anda sedang mengedit pendaftaran yang sudah ada. Pastikan semua perubahan sudah sesuai sebelum menyimpan.</div>
                         </div>
+
                         <div class="form-group">
-                            <label for="theme_id">{{ trans('cruds.skripsiRegistration.fields.theme') }}</label>
-                            <select class="form-control select2" name="theme_id" id="theme_id">
+                                <label for="theme_id">
+                                    Tema Keilmuan <span class="required">*</span>
+                                </label>
+                                <select class="form-control select2" name="theme_id" id="theme_id" required>
+                                    <option value="">-- Pilih Tema Keilmuan --</option>
                                 @foreach($themes as $id => $entry)
                                     <option value="{{ $id }}" {{ (old('theme_id') ? old('theme_id') : $skripsiRegistration->theme->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
                                 @endforeach
                             </select>
                             @if($errors->has('theme'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('theme') }}
+                                    <span class="text-danger small">{{ $errors->first('theme') }}</span>
+                                @endif
+                                <span class="help-block">Pilih bidang keilmuan yang sesuai dengan topik skripsi Anda</span>
                                 </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.theme_helper') }}</span>
-                        </div>
+
                         <div class="form-group">
-                            <label for="title">{{ trans('cruds.skripsiRegistration.fields.title') }}</label>
-                            <input class="form-control" type="text" name="title" id="title" value="{{ old('title', $skripsiRegistration->title) }}">
+                                <label for="title">
+                                    Judul Skripsi <span class="required">*</span>
+                                </label>
+                                <input class="form-control" type="text" name="title" id="title" value="{{ old('title', $skripsiRegistration->title) }}" placeholder="Masukkan judul skripsi Anda" required>
                             @if($errors->has('title'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('title') }}
-                                </div>
+                                    <span class="text-danger small">{{ $errors->first('title') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.title_helper') }}</span>
+                                <span class="help-block">Tulis judul yang jelas dan spesifik</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="abstract">{{ trans('cruds.skripsiRegistration.fields.abstract') }}</label>
-                            <textarea class="form-control" name="abstract" id="abstract">{{ old('abstract', $skripsiRegistration->abstract) }}</textarea>
+                                <label for="abstract">
+                                    Abstrak / Ringkasan
+                                </label>
+                                <textarea class="form-control" name="abstract" id="abstract" rows="5" placeholder="Jelaskan ringkasan penelitian Anda...">{{ old('abstract', $skripsiRegistration->abstract) }}</textarea>
                             @if($errors->has('abstract'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('abstract') }}
-                                </div>
+                                    <span class="text-danger small">{{ $errors->first('abstract') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.abstract_helper') }}</span>
+                                <span class="help-block">Ringkasan singkat tentang latar belakang, tujuan, dan metode penelitian</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="tps_lecturer_id">{{ trans('cruds.skripsiRegistration.fields.tps_lecturer') }}</label>
+                                <label for="tps_lecturer_id">
+                                    Dosen TPS (Tes Potensi Skripsi)
+                                </label>
                             <select class="form-control select2" name="tps_lecturer_id" id="tps_lecturer_id">
+                                    <option value="">-- Pilih Dosen TPS --</option>
                                 @foreach($tps_lecturers as $id => $entry)
                                     <option value="{{ $id }}" {{ (old('tps_lecturer_id') ? old('tps_lecturer_id') : $skripsiRegistration->tps_lecturer->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
                                 @endforeach
                             </select>
                             @if($errors->has('tps_lecturer'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('tps_lecturer') }}
-                                </div>
+                                    <span class="text-danger small">{{ $errors->first('tps_lecturer') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.tps_lecturer_helper') }}</span>
+                                <span class="help-block">Dosen yang menguji TPS Anda</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="preference_supervision_id">{{ trans('cruds.skripsiRegistration.fields.preference_supervision') }}</label>
-                            <select class="form-control select2" name="preference_supervision_id" id="preference_supervision_id">
+                                <label for="preference_supervision_id">
+                                    Preferensi Dosen Pembimbing <span class="required">*</span>
+                                </label>
+                                <select class="form-control select2" name="preference_supervision_id" id="preference_supervision_id" required>
+                                    <option value="">-- Pilih Dosen Pembimbing --</option>
                                 @foreach($preference_supervisions as $id => $entry)
                                     <option value="{{ $id }}" {{ (old('preference_supervision_id') ? old('preference_supervision_id') : $skripsiRegistration->preference_supervision->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
                                 @endforeach
                             </select>
                             @if($errors->has('preference_supervision'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('preference_supervision') }}
+                                    <span class="text-danger small">{{ $errors->first('preference_supervision') }}</span>
+                                @endif
+                                <span class="help-block">Pilih dosen yang Anda inginkan sebagai pembimbing (akan diverifikasi oleh admin)</span>
                                 </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.preference_supervision_helper') }}</span>
                         </div>
-                        <div class="form-group">
-                            <label for="khs_all">{{ trans('cruds.skripsiRegistration.fields.khs_all') }}</label>
-                            <div class="needsclick dropzone" id="khs_all-dropzone">
+
+                        <!-- Step 2: Documents -->
+                        <div class="form-section" data-section="2">
+                            <div class="section-title">Upload Dokumen Persyaratan</div>
+                            <div class="section-description">Perbarui dokumen akademik yang diperlukan</div>
+
+                            <div class="info-box">
+                                <div class="info-box-title">Dokumen Wajib</div>
+                                <div class="info-box-text">Pastikan semua dokumen dalam format PDF dan dapat dibaca dengan jelas. Ukuran maksimal per file: 10 MB</div>
                             </div>
-                            @if($errors->has('khs_all'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('khs_all') }}
+
+                            <div class="form-group">
+                                <label for="khs_all">
+                                    Kartu Hasil Studi (KHS) Semua Semester <span class="required">*</span>
+                                </label>
+                                <div class="needsclick dropzone" id="khs_all-dropzone">
+                                    <div class="dz-message">
+                                        <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                        <p>Klik atau seret file KHS ke sini</p>
+                                        <small>PDF, maksimal 10 MB (bisa multiple file)</small>
+                                    </div>
                                 </div>
+                                @if($errors->has('khs_all'))
+                                    <span class="text-danger small">{{ $errors->first('khs_all') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.khs_all_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="krs_latest">{{ trans('cruds.skripsiRegistration.fields.krs_latest') }}</label>
-                            <div class="needsclick dropzone" id="krs_latest-dropzone">
+                                <span class="help-block">Upload KHS dari semester 1 hingga semester terakhir</span>
                             </div>
-                            @if($errors->has('krs_latest'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('krs_latest') }}
+
+                            <div class="form-group">
+                                <label for="krs_latest">
+                                    Kartu Rencana Studi (KRS) Semester Terakhir <span class="required">*</span>
+                                </label>
+                                <div class="needsclick dropzone" id="krs_latest-dropzone">
+                                    <div class="dz-message">
+                                        <i class="fas fa-file-pdf fa-2x mb-2" style="color: #cbd5e0;"></i>
+                                        <p>Klik atau seret file KRS ke sini</p>
+                                        <small>PDF, maksimal 10 MB (1 file)</small>
+                                    </div>
                                 </div>
+                                @if($errors->has('krs_latest'))
+                                    <span class="text-danger small">{{ $errors->first('krs_latest') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.krs_latest_helper') }}</span>
+                                <span class="help-block">Upload KRS semester yang sedang berjalan</span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <button class="btn btn-danger" type="submit">
-                                {{ trans('global.save') }}
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="wizard-actions">
+                        <button type="button" class="btn-wizard btn-prev" id="prevBtn" style="display: none;">
+                            <i class="fas fa-arrow-left mr-2"></i> Sebelumnya
+                        </button>
+                        <div></div>
+                        <button type="button" class="btn-wizard btn-next" id="nextBtn">
+                            Selanjutnya <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                        <button type="submit" class="btn-wizard btn-submit" id="submitBtn" style="display: none;">
+                            <i class="fas fa-save mr-2"></i> Simpan Perubahan
                             </button>
                         </div>
                     </form>
                 </div>
-            </div>
-
         </div>
     </div>
 </div>
@@ -127,6 +422,158 @@
 
 @section('scripts')
 <script>
+// Wizard Navigation
+let currentStep = 1;
+const totalSteps = 2;
+
+document.getElementById('nextBtn').addEventListener('click', function() {
+    if (validateStep(currentStep)) {
+        if (currentStep < totalSteps) {
+            currentStep++;
+            showStep(currentStep);
+        }
+    }
+});
+
+document.getElementById('prevBtn').addEventListener('click', function() {
+    if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+    }
+});
+
+// Form submission validation
+document.getElementById('registrationForm').addEventListener('submit', function(e) {
+    // Validate all steps before submission
+    let allValid = true;
+    for (let i = 1; i <= totalSteps; i++) {
+        if (!validateStep(i)) {
+            allValid = false;
+            // Go to first invalid step
+            if (currentStep !== i) {
+                currentStep = i;
+                showStep(i);
+            }
+            break;
+        }
+    }
+    
+    if (!allValid) {
+        e.preventDefault();
+        return false;
+    }
+});
+
+function showStep(step) {
+    // Hide all sections
+    document.querySelectorAll('.form-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Show current section
+    document.querySelector(`.form-section[data-section="${step}"]`).classList.add('active');
+    
+    // Update wizard steps
+    document.querySelectorAll('.wizard-step').forEach((wizardStep, index) => {
+        wizardStep.classList.remove('active', 'completed');
+        if (index + 1 < step) {
+            wizardStep.classList.add('completed');
+        } else if (index + 1 === step) {
+            wizardStep.classList.add('active');
+        }
+    });
+    
+    // Update buttons
+    document.getElementById('prevBtn').style.display = step === 1 ? 'none' : 'block';
+    document.getElementById('nextBtn').style.display = step === totalSteps ? 'none' : 'block';
+    document.getElementById('submitBtn').style.display = step === totalSteps ? 'block' : 'none';
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function validateStep(step) {
+    const section = document.querySelector(`.form-section[data-section="${step}"]`);
+    const requiredFields = section.querySelectorAll('[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        if (!field.value || field.value === '') {
+            isValid = false;
+            field.style.borderColor = '#e53e3e';
+            
+            // Add error message if not exists
+            if (!field.nextElementSibling || !field.nextElementSibling.classList.contains('validation-error')) {
+                const errorMsg = document.createElement('span');
+                errorMsg.className = 'text-danger small validation-error';
+                errorMsg.textContent = 'Field ini wajib diisi';
+                field.parentNode.insertBefore(errorMsg, field.nextSibling);
+            }
+        } else {
+            field.style.borderColor = '#e2e8f0';
+            // Remove error message
+            const errorMsg = field.parentNode.querySelector('.validation-error');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+    });
+    
+    // Validate documents on step 2
+    if (step === 2) {
+        // Check KHS files
+        const khsFiles = document.querySelectorAll('input[name="khs_all[]"]');
+        if (khsFiles.length === 0) {
+            isValid = false;
+            const khsDropzone = document.querySelector('#khs_all-dropzone');
+            khsDropzone.style.borderColor = '#e53e3e';
+            
+            // Remove existing error first
+            const existingError = khsDropzone.parentNode.querySelector('.doc-validation-error');
+            if (existingError) existingError.remove();
+            
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'text-danger small doc-validation-error mt-2';
+            errorMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> KHS wajib diupload (minimal 1 file)';
+            khsDropzone.parentNode.insertBefore(errorMsg, khsDropzone.nextSibling);
+        } else {
+            const khsDropzone = document.querySelector('#khs_all-dropzone');
+            khsDropzone.style.borderColor = '#cbd5e0';
+            const existingError = khsDropzone.parentNode.querySelector('.doc-validation-error');
+            if (existingError) existingError.remove();
+        }
+        
+        // Check KRS file
+        const krsFile = document.querySelector('input[name="krs_latest"]');
+        if (!krsFile) {
+            isValid = false;
+            const krsDropzone = document.querySelector('#krs_latest-dropzone');
+            krsDropzone.style.borderColor = '#e53e3e';
+            
+            // Remove existing error first
+            const existingError = krsDropzone.parentNode.querySelector('.doc-validation-error');
+            if (existingError) existingError.remove();
+            
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'text-danger small doc-validation-error mt-2';
+            errorMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> KRS semester terakhir wajib diupload';
+            krsDropzone.parentNode.insertBefore(errorMsg, krsDropzone.nextSibling);
+        } else {
+            const krsDropzone = document.querySelector('#krs_latest-dropzone');
+            krsDropzone.style.borderColor = '#cbd5e0';
+            const existingError = krsDropzone.parentNode.querySelector('.doc-validation-error');
+            if (existingError) existingError.remove();
+        }
+    }
+    
+    if (!isValid) {
+        alert('Mohon lengkapi semua field yang wajib diisi dan upload semua dokumen yang diperlukan');
+    }
+    
+    return isValid;
+}
+
+// Dropzone Configuration
     var uploadedKhsAllMap = {}
 Dropzone.options.khsAllDropzone = {
     url: '{{ route('frontend.skripsi-registrations.storeMedia') }}',

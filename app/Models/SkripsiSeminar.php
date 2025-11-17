@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use App\Traits\FileNamingTrait;
 use App\Traits\MultiTenantModelTrait;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class SkripsiSeminar extends Model implements HasMedia
 {
-    use SoftDeletes, MultiTenantModelTrait, InteractsWithMedia, Auditable, HasFactory;
+    use SoftDeletes, MultiTenantModelTrait, InteractsWithMedia, Auditable, HasFactory, FileNamingTrait;
 
     public $table = 'skripsi_seminars';
 
@@ -32,6 +33,8 @@ class SkripsiSeminar extends Model implements HasMedia
 
     protected $fillable = [
         'application_id',
+        'reviewer_1_id',
+        'reviewer_2_id',
         'title',
         'created_at',
         'updated_at',
@@ -73,5 +76,15 @@ class SkripsiSeminar extends Model implements HasMedia
     public function created_by()
     {
         return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    public function reviewer1()
+    {
+        return $this->belongsTo(Dosen::class, 'reviewer_1_id');
+    }
+
+    public function reviewer2()
+    {
+        return $this->belongsTo(Dosen::class, 'reviewer_2_id');
     }
 }

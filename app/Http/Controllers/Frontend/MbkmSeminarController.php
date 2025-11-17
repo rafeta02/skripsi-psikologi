@@ -9,6 +9,7 @@ use App\Http\Requests\StoreMbkmSeminarRequest;
 use App\Http\Requests\UpdateMbkmSeminarRequest;
 use App\Models\Application;
 use App\Models\MbkmSeminar;
+use App\Services\FormAccessService;
 use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -31,25 +32,67 @@ class MbkmSeminarController extends Controller
     {
         abort_if(Gate::denies('mbkm_seminar_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
+        // Check if student can access this form
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessMbkmSeminar(auth()->user()->mahasiswa_id);
 
-        return view('frontend.mbkmSeminars.create', compact('applications'));
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.mbkm-seminars.index')
+                ->with('error', $access['message']);
+        }
+
+        $activeApplication = $access['application'];
+
+        return view('frontend.mbkmSeminars.create', compact('activeApplication'));
     }
 
     public function store(StoreMbkmSeminarRequest $request)
     {
-        $mbkmSeminar = MbkmSeminar::create($request->all());
+        // Check if student can access this form
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessMbkmSeminar(auth()->user()->mahasiswa_id);
+
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.mbkm-seminars.index')
+                ->with('error', $access['message']);
+        }
+
+        $activeApplication = $access['application'];
+
+        // Create new Application for seminar stage
+        $seminarApplication = Application::create([
+            'mahasiswa_id' => auth()->user()->mahasiswa_id,
+            'type' => 'mbkm',
+            'stage' => 'seminar',
+            'status' => 'submitted',
+            'submitted_at' => now()->format('d-m-Y H:i:s'),
+        ]);
+
+        // Create MBKM Seminar with seminar application
+        $data = $request->all();
+        $data['application_id'] = $seminarApplication->id;
+        
+        $mbkmSeminar = MbkmSeminar::create($data);
 
         if ($request->input('proposal_document', false)) {
-            $mbkmSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('proposal_document'))))->toMediaCollection('proposal_document');
+            $mbkmSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('proposal_document'))), 
+                'proposal_document'
+            );
         }
 
         if ($request->input('approval_document', false)) {
-            $mbkmSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('approval_document'))))->toMediaCollection('approval_document');
+            $mbkmSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('approval_document'))), 
+                'approval_document'
+            );
         }
 
         if ($request->input('plagiarism_document', false)) {
-            $mbkmSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))))->toMediaCollection('plagiarism_document');
+            $mbkmSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))), 
+                'plagiarism_document'
+            );
         }
 
         if ($media = $request->input('ck-media', false)) {
@@ -63,11 +106,9 @@ class MbkmSeminarController extends Controller
     {
         abort_if(Gate::denies('mbkm_seminar_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
-
         $mbkmSeminar->load('application', 'created_by');
 
-        return view('frontend.mbkmSeminars.edit', compact('applications', 'mbkmSeminar'));
+        return view('frontend.mbkmSeminars.edit', compact('mbkmSeminar'));
     }
 
     public function update(UpdateMbkmSeminarRequest $request, MbkmSeminar $mbkmSeminar)
@@ -79,7 +120,10 @@ class MbkmSeminarController extends Controller
                 if ($mbkmSeminar->proposal_document) {
                     $mbkmSeminar->proposal_document->delete();
                 }
-                $mbkmSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('proposal_document'))))->toMediaCollection('proposal_document');
+                $mbkmSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('proposal_document'))), 
+                    'proposal_document'
+                );
             }
         } elseif ($mbkmSeminar->proposal_document) {
             $mbkmSeminar->proposal_document->delete();
@@ -90,7 +134,10 @@ class MbkmSeminarController extends Controller
                 if ($mbkmSeminar->approval_document) {
                     $mbkmSeminar->approval_document->delete();
                 }
-                $mbkmSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('approval_document'))))->toMediaCollection('approval_document');
+                $mbkmSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('approval_document'))), 
+                    'approval_document'
+                );
             }
         } elseif ($mbkmSeminar->approval_document) {
             $mbkmSeminar->approval_document->delete();
@@ -101,7 +148,10 @@ class MbkmSeminarController extends Controller
                 if ($mbkmSeminar->plagiarism_document) {
                     $mbkmSeminar->plagiarism_document->delete();
                 }
-                $mbkmSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))))->toMediaCollection('plagiarism_document');
+                $mbkmSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))), 
+                    'plagiarism_document'
+                );
             }
         } elseif ($mbkmSeminar->plagiarism_document) {
             $mbkmSeminar->plagiarism_document->delete();

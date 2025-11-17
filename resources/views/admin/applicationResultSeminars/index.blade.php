@@ -1,44 +1,22 @@
 @extends('layouts.admin')
 @section('content')
-@can('application_result_seminar_create')
-    <div style="margin-bottom: 10px;" class="row">
-        <div class="col-lg-12">
-            <a class="btn btn-success" href="{{ route('admin.application-result-seminars.create') }}">
-                {{ trans('global.add') }} {{ trans('cruds.applicationResultSeminar.title_singular') }}
-            </a>
-        </div>
-    </div>
-@endcan
 <div class="card">
     <div class="card-header">
-        {{ trans('cruds.applicationResultSeminar.title_singular') }} {{ trans('global.list') }}
+        <i class="fas fa-file-check mr-2"></i> Hasil Seminar Proposal
     </div>
 
     <div class="card-body">
-        <table class=" table table-bordered table-striped table-hover ajaxTable datatable datatable-ApplicationResultSeminar">
+        <table class="table table-bordered table-striped table-hover ajaxTable datatable datatable-ApplicationResultSeminar">
             <thead>
                 <tr>
-                    <th width="10">
-
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultSeminar.fields.application') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultSeminar.fields.result') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultSeminar.fields.revision_deadline') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultSeminar.fields.report_document') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultSeminar.fields.latest_script') }}
-                    </th>
-                    <th>
-                        &nbsp;
-                    </th>
+                    <th width="10"></th>
+                    <th width="80">ID</th>
+                    <th>Mahasiswa</th>
+                    <th width="120">NIM</th>
+                    <th width="120">Hasil</th>
+                    <th width="120">Status</th>
+                    <th width="150">Batas Revisi</th>
+                    <th width="120">Aksi</th>
                 </tr>
             </thead>
         </table>
@@ -92,16 +70,17 @@
     ajax: "{{ route('admin.application-result-seminars.index') }}",
     columns: [
       { data: 'placeholder', name: 'placeholder' },
-{ data: 'application_status', name: 'application.status' },
-{ data: 'result', name: 'result' },
-{ data: 'revision_deadline', name: 'revision_deadline' },
-{ data: 'report_document', name: 'report_document', sortable: false, searchable: false },
-{ data: 'latest_script', name: 'latest_script', sortable: false, searchable: false },
-{ data: 'actions', name: '{{ trans('global.actions') }}' }
+      { data: 'id', name: 'id' },
+      { data: 'mahasiswa_name', name: 'mahasiswa_name', orderable: false, searchable: false },
+      { data: 'mahasiswa_nim', name: 'mahasiswa_nim', orderable: false, searchable: false },
+      { data: 'result', name: 'result' },
+      { data: 'application_status', name: 'application_status', orderable: false, searchable: false },
+      { data: 'revision_deadline', name: 'revision_deadline' },
+      { data: 'actions', name: 'actions', orderable: false, searchable: false }
     ],
     orderCellsTop: true,
     order: [[ 1, 'desc' ]],
-    pageLength: 50,
+    pageLength: 25,
   };
   let table = $('.datatable-ApplicationResultSeminar').DataTable(dtOverrideGlobals);
   $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){

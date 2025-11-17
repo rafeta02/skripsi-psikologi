@@ -1,248 +1,332 @@
 @extends('layouts.frontend')
 @section('content')
-<div class="container">
+<link rel="stylesheet" href="{{ asset('css/modern-form.css') }}">
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-
-            <div class="card">
-                <div class="card-header">
-                    {{ trans('global.edit') }} {{ trans('cruds.mbkmRegistration.title_singular') }}
+        <div class="col-lg-10">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2>Edit Pendaftaran Skripsi MBKM</h2>
+                    <p>Perbarui data pendaftaran skripsi program MBKM Anda</p>
                 </div>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route("frontend.mbkm-registrations.update", [$mbkmRegistration->id]) }}" enctype="multipart/form-data">
-                        @method('PUT')
-                        @csrf
-                        <div class="form-group">
-                            <label for="application_id">{{ trans('cruds.mbkmRegistration.fields.application') }}</label>
-                            <select class="form-control select2" name="application_id" id="application_id">
-                                @foreach($applications as $id => $entry)
-                                    <option value="{{ $id }}" {{ (old('application_id') ? old('application_id') : $mbkmRegistration->application->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('application'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('application') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.application_helper') }}</span>
+                <form method="POST" action="{{ route("frontend.mbkm-registrations.update", [$mbkmRegistration->id]) }}" enctype="multipart/form-data">
+                    @method('PUT')
+                    @csrf
+                    
+                    <div class="form-body">
+                        @if($mbkmRegistration->application->status == 'revision' && $mbkmRegistration->revision_notes)
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Catatan Revisi dari Admin</h5>
+                                <p class="mb-0">{{ $mbkmRegistration->revision_notes }}</p>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        @endif
+
+                        <div class="info-box warning">
+                            <div class="info-box-title">Mode Edit</div>
+                            <div class="info-box-text">
+                                Pastikan semua perubahan data sudah dikonfirmasi dengan dosen pembimbing sebelum menyimpan.
+                            </div>
                         </div>
+
+                        <!-- Informasi Dasar -->
+                        <h3 class="form-section-title">Informasi Dasar</h3>
+
                         <div class="form-group">
-                            <label for="research_group_id">{{ trans('cruds.mbkmRegistration.fields.research_group') }}</label>
+                            <label for="research_group_id">Kelompok Riset</label>
                             <select class="form-control select2" name="research_group_id" id="research_group_id">
+                                <option value="">-- Pilih Kelompok Riset --</option>
                                 @foreach($research_groups as $id => $entry)
                                     <option value="{{ $id }}" {{ (old('research_group_id') ? old('research_group_id') : $mbkmRegistration->research_group->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
                                 @endforeach
                             </select>
                             @if($errors->has('research_group'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('research_group') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('research_group') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.research_group_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="preference_supervision_id">{{ trans('cruds.mbkmRegistration.fields.preference_supervision') }}</label>
+                            <label for="preference_supervision_id">Dosen Pembimbing Pilihan</label>
                             <select class="form-control select2" name="preference_supervision_id" id="preference_supervision_id">
+                                <option value="">-- Pilih Dosen Pembimbing --</option>
                                 @foreach($preference_supervisions as $id => $entry)
                                     <option value="{{ $id }}" {{ (old('preference_supervision_id') ? old('preference_supervision_id') : $mbkmRegistration->preference_supervision->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
                                 @endforeach
                             </select>
                             @if($errors->has('preference_supervision'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('preference_supervision') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('preference_supervision') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.preference_supervision_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="theme_id">{{ trans('cruds.mbkmRegistration.fields.theme') }}</label>
+                            <label for="theme_id">Tema Penelitian</label>
                             <select class="form-control select2" name="theme_id" id="theme_id">
+                                <option value="">-- Pilih Tema --</option>
                                 @foreach($themes as $id => $entry)
                                     <option value="{{ $id }}" {{ (old('theme_id') ? old('theme_id') : $mbkmRegistration->theme->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
                                 @endforeach
                             </select>
                             @if($errors->has('theme'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('theme') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('theme') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.theme_helper') }}</span>
                         </div>
+
+                        <!-- Judul Penelitian -->
+                        <h3 class="form-section-title">Judul Penelitian</h3>
+
                         <div class="form-group">
-                            <label for="title_mbkm">{{ trans('cruds.mbkmRegistration.fields.title_mbkm') }}</label>
+                            <label for="title_mbkm">Judul Kegiatan MBKM</label>
                             <input class="form-control" type="text" name="title_mbkm" id="title_mbkm" value="{{ old('title_mbkm', $mbkmRegistration->title_mbkm) }}">
                             @if($errors->has('title_mbkm'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('title_mbkm') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('title_mbkm') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.title_mbkm_helper') }}</span>
                         </div>
+
                         <div class="form-group">
-                            <label for="title">{{ trans('cruds.mbkmRegistration.fields.title') }}</label>
+                            <label for="title">Judul Skripsi</label>
                             <input class="form-control" type="text" name="title" id="title" value="{{ old('title', $mbkmRegistration->title) }}">
                             @if($errors->has('title'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('title') }}
-                                </div>
+                                <span class="text-danger small">{{ $errors->first('title') }}</span>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.title_helper') }}</span>
                         </div>
-                        <div class="form-group">
-                            <label for="khs_all">{{ trans('cruds.mbkmRegistration.fields.khs_all') }}</label>
-                            <div class="needsclick dropzone" id="khs_all-dropzone">
+
+                        <!-- Anggota Kelompok MBKM -->
+                        <h3 class="form-section-title">Anggota Kelompok MBKM</h3>
+
+                        <div class="info-box info mb-3">
+                            <div class="info-box-text">
+                                Tambahkan anggota kelompok MBKM. Pilih mahasiswa dan tentukan perannya (Ketua/Anggota).
                             </div>
-                            @if($errors->has('khs_all'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('khs_all') }}
+                        </div>
+
+                        <div id="group-members-container">
+                            @if($mbkmRegistration->groupMembers->count() > 0)
+                                @foreach($mbkmRegistration->groupMembers as $index => $member)
+                                    <div class="group-member-item mb-3 p-3" style="border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
+                                        <div class="row">
+                                            <div class="col-md-5">
+                                                <div class="form-group mb-0">
+                                                    <label>Mahasiswa</label>
+                                                    <select class="form-control select2" name="group_members[{{ $index }}][mahasiswa_id]">
+                                                        <option value="">-- Pilih Mahasiswa --</option>
+                                                        @foreach($mahasiswas as $id => $entry)
+                                                            <option value="{{ $id }}" {{ $member->mahasiswa_id == $id ? 'selected' : '' }}>{{ $entry }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group mb-0">
+                                                    <label>Peran</label>
+                                                    <select class="form-control" name="group_members[{{ $index }}][role]">
+                                                        <option value="">-- Pilih Peran --</option>
+                                                        <option value="ketua" {{ $member->role == 'ketua' ? 'selected' : '' }}>Ketua</option>
+                                                        <option value="anggota" {{ $member->role == 'anggota' ? 'selected' : '' }}>Anggota</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 d-flex align-items-end">
+                                                <button type="button" class="btn btn-danger btn-sm remove-member">
+                                                    <i class="fas fa-trash"></i> Hapus
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="group-member-item mb-3 p-3" style="border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div class="form-group mb-0">
+                                                <label>Mahasiswa</label>
+                                                <select class="form-control select2" name="group_members[0][mahasiswa_id]">
+                                                    <option value="">-- Pilih Mahasiswa --</option>
+                                                    @foreach($mahasiswas as $id => $entry)
+                                                        <option value="{{ $id }}">{{ $entry }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-0">
+                                                <label>Peran</label>
+                                                <select class="form-control" name="group_members[0][role]">
+                                                    <option value="">-- Pilih Peran --</option>
+                                                    <option value="ketua">Ketua</option>
+                                                    <option value="anggota">Anggota</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger btn-sm remove-member" style="display: none;">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.khs_all_helper') }}</span>
                         </div>
-                        <div class="form-group">
-                            <label for="krs_latest">{{ trans('cruds.mbkmRegistration.fields.krs_latest') }}</label>
-                            <div class="needsclick dropzone" id="krs_latest-dropzone">
-                            </div>
-                            @if($errors->has('krs_latest'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('krs_latest') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.krs_latest_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="spp">{{ trans('cruds.mbkmRegistration.fields.spp') }}</label>
-                            <div class="needsclick dropzone" id="spp-dropzone">
-                            </div>
-                            @if($errors->has('spp'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('spp') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.spp_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="proposal_mbkm">{{ trans('cruds.mbkmRegistration.fields.proposal_mbkm') }}</label>
-                            <div class="needsclick dropzone" id="proposal_mbkm-dropzone">
-                            </div>
-                            @if($errors->has('proposal_mbkm'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('proposal_mbkm') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.proposal_mbkm_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="recognition_form">{{ trans('cruds.mbkmRegistration.fields.recognition_form') }}</label>
-                            <div class="needsclick dropzone" id="recognition_form-dropzone">
-                            </div>
-                            @if($errors->has('recognition_form'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('recognition_form') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.recognition_form_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="total_sks_taken">{{ trans('cruds.mbkmRegistration.fields.total_sks_taken') }}</label>
-                            <input class="form-control" type="number" name="total_sks_taken" id="total_sks_taken" value="{{ old('total_sks_taken', $mbkmRegistration->total_sks_taken) }}" step="1">
-                            @if($errors->has('total_sks_taken'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('total_sks_taken') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.total_sks_taken_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="nilai_mk_kuantitatif">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_kuantitatif') }}</label>
-                            <input class="form-control" type="text" name="nilai_mk_kuantitatif" id="nilai_mk_kuantitatif" value="{{ old('nilai_mk_kuantitatif', $mbkmRegistration->nilai_mk_kuantitatif) }}">
-                            @if($errors->has('nilai_mk_kuantitatif'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('nilai_mk_kuantitatif') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_kuantitatif_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="nilai_mk_kualitatif">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_kualitatif') }}</label>
-                            <input class="form-control" type="text" name="nilai_mk_kualitatif" id="nilai_mk_kualitatif" value="{{ old('nilai_mk_kualitatif', $mbkmRegistration->nilai_mk_kualitatif) }}">
-                            @if($errors->has('nilai_mk_kualitatif'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('nilai_mk_kualitatif') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_kualitatif_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="nilai_mk_statistika_dasar">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_statistika_dasar') }}</label>
-                            <input class="form-control" type="text" name="nilai_mk_statistika_dasar" id="nilai_mk_statistika_dasar" value="{{ old('nilai_mk_statistika_dasar', $mbkmRegistration->nilai_mk_statistika_dasar) }}">
-                            @if($errors->has('nilai_mk_statistika_dasar'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('nilai_mk_statistika_dasar') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_statistika_dasar_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="nilai_mk_statistika_lanjutan">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_statistika_lanjutan') }}</label>
-                            <input class="form-control" type="text" name="nilai_mk_statistika_lanjutan" id="nilai_mk_statistika_lanjutan" value="{{ old('nilai_mk_statistika_lanjutan', $mbkmRegistration->nilai_mk_statistika_lanjutan) }}">
-                            @if($errors->has('nilai_mk_statistika_lanjutan'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('nilai_mk_statistika_lanjutan') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_statistika_lanjutan_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="nilai_mk_konstruksi_tes">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_konstruksi_tes') }}</label>
-                            <input class="form-control" type="text" name="nilai_mk_konstruksi_tes" id="nilai_mk_konstruksi_tes" value="{{ old('nilai_mk_konstruksi_tes', $mbkmRegistration->nilai_mk_konstruksi_tes) }}">
-                            @if($errors->has('nilai_mk_konstruksi_tes'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('nilai_mk_konstruksi_tes') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_konstruksi_tes_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="nilai_mk_tps">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_tps') }}</label>
-                            <input class="form-control" type="text" name="nilai_mk_tps" id="nilai_mk_tps" value="{{ old('nilai_mk_tps', $mbkmRegistration->nilai_mk_tps) }}">
-                            @if($errors->has('nilai_mk_tps'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('nilai_mk_tps') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.nilai_mk_tps_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="sks_mkp_taken">{{ trans('cruds.mbkmRegistration.fields.sks_mkp_taken') }}</label>
-                            <input class="form-control" type="number" name="sks_mkp_taken" id="sks_mkp_taken" value="{{ old('sks_mkp_taken', $mbkmRegistration->sks_mkp_taken) }}" step="1">
-                            @if($errors->has('sks_mkp_taken'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('sks_mkp_taken') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.sks_mkp_taken_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="note">{{ trans('cruds.mbkmRegistration.fields.note') }}</label>
-                            <textarea class="form-control" name="note" id="note">{{ old('note', $mbkmRegistration->note) }}</textarea>
-                            @if($errors->has('note'))
-                                <div class="invalid-feedback">
-                                    {{ $errors->first('note') }}
-                                </div>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.note_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <button class="btn btn-danger" type="submit">
-                                {{ trans('global.save') }}
+
+                        <div class="mb-4">
+                            <button type="button" id="add-member" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Tambah Anggota
                             </button>
                         </div>
-                    </form>
-                </div>
-            </div>
 
+                        <!-- Dokumen Akademik -->
+                        <h3 class="form-section-title">Dokumen Akademik</h3>
+
+                        <div class="form-group">
+                            <label for="khs_all">KHS Semua Semester</label>
+                            <div class="needsclick dropzone" id="khs_all-dropzone"></div>
+                            @if($errors->has('khs_all'))
+                                <span class="text-danger small">{{ $errors->first('khs_all') }}</span>
+                            @endif
+                        </div>
+
+                        <div class="form-group">
+                            <label for="krs_latest">KRS Semester Terakhir</label>
+                            <div class="needsclick dropzone" id="krs_latest-dropzone"></div>
+                            @if($errors->has('krs_latest'))
+                                <span class="text-danger small">{{ $errors->first('krs_latest') }}</span>
+                            @endif
+                        </div>
+
+                        <div class="form-group">
+                            <label for="spp">Bukti Pembayaran SPP</label>
+                            <div class="needsclick dropzone" id="spp-dropzone"></div>
+                            @if($errors->has('spp'))
+                                <span class="text-danger small">{{ $errors->first('spp') }}</span>
+                            @endif
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="total_sks_taken">Total SKS yang Telah Diambil</label>
+                                    <input class="form-control" type="number" name="total_sks_taken" id="total_sks_taken" value="{{ old('total_sks_taken', $mbkmRegistration->total_sks_taken) }}" step="1">
+                                    @if($errors->has('total_sks_taken'))
+                                        <span class="text-danger small">{{ $errors->first('total_sks_taken') }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="sks_mkp_taken">Jumlah SKS MKP yang Sudah Diambil</label>
+                                    <input class="form-control" type="number" name="sks_mkp_taken" id="sks_mkp_taken" value="{{ old('sks_mkp_taken', $mbkmRegistration->sks_mkp_taken) }}" step="1" placeholder="Contoh: 12">
+                                    @if($errors->has('sks_mkp_taken'))
+                                        <span class="text-danger small">{{ $errors->first('sks_mkp_taken') }}</span>
+                                    @endif
+                                    <span class="help-block">Jumlah SKS Mata Kuliah Prodi (MKP) yang telah diambil</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nilai Mata Kuliah -->
+                        <h3 class="form-section-title">Nilai Mata Kuliah</h3>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nilai_mk_kuantitatif">Nilai MK Kuantitatif</label>
+                                    <input class="form-control" type="text" name="nilai_mk_kuantitatif" id="nilai_mk_kuantitatif" value="{{ old('nilai_mk_kuantitatif', $mbkmRegistration->nilai_mk_kuantitatif) }}" placeholder="Contoh: A">
+                                    @if($errors->has('nilai_mk_kuantitatif'))
+                                        <span class="text-danger small">{{ $errors->first('nilai_mk_kuantitatif') }}</span>
+                                    @endif
+                                    <span class="help-block">Nilai mata kuliah Kuantitatif</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nilai_mk_kualitatif">Nilai MK Kualitatif</label>
+                                    <input class="form-control" type="text" name="nilai_mk_kualitatif" id="nilai_mk_kualitatif" value="{{ old('nilai_mk_kualitatif', $mbkmRegistration->nilai_mk_kualitatif) }}" placeholder="Contoh: A">
+                                    @if($errors->has('nilai_mk_kualitatif'))
+                                        <span class="text-danger small">{{ $errors->first('nilai_mk_kualitatif') }}</span>
+                                    @endif
+                                    <span class="help-block">Nilai mata kuliah Kualitatif</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nilai_mk_statistika_dasar">Nilai MK Statistika Dasar</label>
+                                    <input class="form-control" type="text" name="nilai_mk_statistika_dasar" id="nilai_mk_statistika_dasar" value="{{ old('nilai_mk_statistika_dasar', $mbkmRegistration->nilai_mk_statistika_dasar) }}" placeholder="Contoh: A">
+                                    @if($errors->has('nilai_mk_statistika_dasar'))
+                                        <span class="text-danger small">{{ $errors->first('nilai_mk_statistika_dasar') }}</span>
+                                    @endif
+                                    <span class="help-block">Nilai mata kuliah Statistika Dasar</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nilai_mk_statistika_lanjutan">Nilai MK Statistika Lanjutan</label>
+                                    <input class="form-control" type="text" name="nilai_mk_statistika_lanjutan" id="nilai_mk_statistika_lanjutan" value="{{ old('nilai_mk_statistika_lanjutan', $mbkmRegistration->nilai_mk_statistika_lanjutan) }}" placeholder="Contoh: A">
+                                    @if($errors->has('nilai_mk_statistika_lanjutan'))
+                                        <span class="text-danger small">{{ $errors->first('nilai_mk_statistika_lanjutan') }}</span>
+                                    @endif
+                                    <span class="help-block">Nilai mata kuliah Statistika Lanjutan</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nilai_mk_konstruksi_tes">Nilai MK Konstruksi Tes</label>
+                                    <input class="form-control" type="text" name="nilai_mk_konstruksi_tes" id="nilai_mk_konstruksi_tes" value="{{ old('nilai_mk_konstruksi_tes', $mbkmRegistration->nilai_mk_konstruksi_tes) }}" placeholder="Contoh: A">
+                                    @if($errors->has('nilai_mk_konstruksi_tes'))
+                                        <span class="text-danger small">{{ $errors->first('nilai_mk_konstruksi_tes') }}</span>
+                                    @endif
+                                    <span class="help-block">Nilai mata kuliah Konstruksi Tes</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nilai_mk_tps">Nilai MK TPS</label>
+                                    <input class="form-control" type="text" name="nilai_mk_tps" id="nilai_mk_tps" value="{{ old('nilai_mk_tps', $mbkmRegistration->nilai_mk_tps) }}" placeholder="Contoh: A">
+                                    @if($errors->has('nilai_mk_tps'))
+                                        <span class="text-danger small">{{ $errors->first('nilai_mk_tps') }}</span>
+                                    @endif
+                                    <span class="help-block">Nilai mata kuliah TPS (Tes Psikologi)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dokumen MBKM -->
+                        <h3 class="form-section-title">Dokumen MBKM</h3>
+
+                        <div class="form-group">
+                            <label for="proposal_mbkm">Proposal MBKM</label>
+                            <div class="needsclick dropzone" id="proposal_mbkm-dropzone"></div>
+                            @if($errors->has('proposal_mbkm'))
+                                <span class="text-danger small">{{ $errors->first('proposal_mbkm') }}</span>
+                            @endif
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recognition_form">Form Konversi SKS</label>
+                            <div class="needsclick dropzone" id="recognition_form-dropzone"></div>
+                            @if($errors->has('recognition_form'))
+                                <span class="text-danger small">{{ $errors->first('recognition_form') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{{ route('frontend.mbkm-registrations.index') }}" class="btn-back">
+                            <i class="fas fa-arrow-left mr-2"></i> Kembali
+                        </a>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-save mr-2"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -250,17 +334,14 @@
 
 @section('scripts')
 <script>
-    var uploadedKhsAllMap = {}
+// Dropzone configurations for all file uploads
+var uploadedKhsAllMap = {}
 Dropzone.options.khsAllDropzone = {
     url: '{{ route('frontend.mbkm-registrations.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
+    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+    params: { size: 10 },
     success: function (file, response) {
       $('form').append('<input type="hidden" name="khs_all[]" value="' + response.name + '">')
       uploadedKhsAllMap[file.name] = response.name
@@ -277,8 +358,7 @@ Dropzone.options.khsAllDropzone = {
     },
     init: function () {
 @if(isset($mbkmRegistration) && $mbkmRegistration->khs_all)
-          var files =
-            {!! json_encode($mbkmRegistration->khs_all) !!}
+          var files = {!! json_encode($mbkmRegistration->khs_all) !!}
               for (var i in files) {
               var file = files[i]
               this.options.addedfile.call(this, file)
@@ -289,7 +369,7 @@ Dropzone.options.khsAllDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -300,23 +380,18 @@ Dropzone.options.khsAllDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    Dropzone.options.krsLatestDropzone = {
+
+// KRS Latest (single file)
+Dropzone.options.krsLatestDropzone = {
     url: '{{ route('frontend.mbkm-registrations.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     maxFiles: 1,
     addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
+    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+    params: { size: 10 },
     success: function (file, response) {
       $('form').find('input[name="krs_latest"]').remove()
       $('form').append('<input type="hidden" name="krs_latest" value="' + response.name + '">')
@@ -339,7 +414,7 @@ Dropzone.options.khsAllDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -350,23 +425,18 @@ Dropzone.options.khsAllDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    Dropzone.options.sppDropzone = {
+
+// SPP (single file)
+Dropzone.options.sppDropzone = {
     url: '{{ route('frontend.mbkm-registrations.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     maxFiles: 1,
     addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
+    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+    params: { size: 10 },
     success: function (file, response) {
       $('form').find('input[name="spp"]').remove()
       $('form').append('<input type="hidden" name="spp" value="' + response.name + '">')
@@ -389,7 +459,7 @@ Dropzone.options.khsAllDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -400,23 +470,18 @@ Dropzone.options.khsAllDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    Dropzone.options.proposalMbkmDropzone = {
+
+// Proposal MBKM (single file)
+Dropzone.options.proposalMbkmDropzone = {
     url: '{{ route('frontend.mbkm-registrations.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     maxFiles: 1,
     addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
+    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+    params: { size: 10 },
     success: function (file, response) {
       $('form').find('input[name="proposal_mbkm"]').remove()
       $('form').append('<input type="hidden" name="proposal_mbkm" value="' + response.name + '">')
@@ -439,7 +504,7 @@ Dropzone.options.khsAllDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -450,23 +515,18 @@ Dropzone.options.khsAllDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
-</script>
-<script>
-    Dropzone.options.recognitionFormDropzone = {
+
+// Recognition Form (single file)
+Dropzone.options.recognitionFormDropzone = {
     url: '{{ route('frontend.mbkm-registrations.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
     maxFiles: 1,
     addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
+    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+    params: { size: 10 },
     success: function (file, response) {
       $('form').find('input[name="recognition_form"]').remove()
       $('form').append('<input type="hidden" name="recognition_form" value="' + response.name + '">')
@@ -489,7 +549,7 @@ Dropzone.options.khsAllDropzone = {
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -500,9 +560,73 @@ Dropzone.options.khsAllDropzone = {
              node = _ref[_i]
              _results.push(node.textContent = message)
          }
-
          return _results
      }
 }
+
+// Dynamic Group Members Management
+let memberIndex = {{ $mbkmRegistration->groupMembers->count() > 0 ? $mbkmRegistration->groupMembers->count() : 1 }};
+
+$('#add-member').on('click', function() {
+    const newMember = `
+        <div class="group-member-item mb-3 p-3" style="border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group mb-0">
+                        <label>Mahasiswa</label>
+                        <select class="form-control select2" name="group_members[${memberIndex}][mahasiswa_id]">
+                            <option value="">-- Pilih Mahasiswa --</option>
+                            @foreach($mahasiswas as $id => $entry)
+                                <option value="{{ $id }}">{{ $entry }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-0">
+                        <label>Peran</label>
+                        <select class="form-control" name="group_members[${memberIndex}][role]">
+                            <option value="">-- Pilih Peran --</option>
+                            <option value="ketua">Ketua</option>
+                            <option value="anggota">Anggota</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-sm remove-member">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#group-members-container').append(newMember);
+    
+    // Re-initialize select2 for new element
+    $('#group-members-container').find('.select2').last().select2();
+    
+    memberIndex++;
+    updateRemoveButtons();
+});
+
+$(document).on('click', '.remove-member', function() {
+    $(this).closest('.group-member-item').remove();
+    updateRemoveButtons();
+});
+
+function updateRemoveButtons() {
+    const memberCount = $('.group-member-item').length;
+    if (memberCount > 1) {
+        $('.remove-member').show();
+    } else {
+        $('.remove-member').hide();
+    }
+}
+
+// Initialize on page load
+$(document).ready(function() {
+    updateRemoveButtons();
+});
 </script>
 @endsection
