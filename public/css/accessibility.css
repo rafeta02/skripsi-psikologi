@@ -1,0 +1,530 @@
+/**
+ * Accessibility Enhancements CSS
+ * WCAG 2.1 AA Compliance improvements
+ * Aplikasi Skripsi - Fakultas Psikologi UNS
+ */
+
+/* ========================================
+   1. Focus States - Keyboard Navigation
+   ======================================== */
+
+/* Default focus style for all interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--primary-500);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* Enhanced focus for buttons */
+.btn:focus-visible,
+.btn-modern:focus-visible {
+    outline: 3px solid var(--primary-500);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(34, 0, 76, 0.1);
+}
+
+/* Focus for navigation links */
+.nav-link:focus-visible {
+    outline: 3px solid white;
+    outline-offset: -3px;
+}
+
+/* Focus for form controls */
+.form-control:focus-visible,
+.form-control-modern:focus-visible {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(34, 0, 76, 0.15);
+    outline: none;
+}
+
+/* Focus for cards with links */
+.card-modern:has(a:focus-visible),
+.card:has(a:focus-visible) {
+    box-shadow: 0 0 0 3px var(--primary-500);
+}
+
+/* ========================================
+   2. Skip Links - Jump to Content
+   ======================================== */
+
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary-500);
+    color: white;
+    padding: var(--spacing-3) var(--spacing-5);
+    text-decoration: none;
+    border-radius: 0 0 var(--radius-base) 0;
+    font-weight: var(--font-weight-semibold);
+    z-index: var(--z-tooltip);
+    transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid var(--primary-600);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   3. Screen Reader Only Elements
+   ======================================== */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+}
+
+/* ========================================
+   4. High Contrast Mode Support
+   ======================================== */
+
+@media (prefers-contrast: high) {
+    /* Increase border widths */
+    .btn,
+    .btn-modern,
+    .form-control,
+    .form-control-modern {
+        border-width: 2px;
+    }
+    
+    /* Stronger focus indicators */
+    *:focus-visible {
+        outline-width: 4px;
+        outline-offset: 3px;
+    }
+    
+    /* Higher contrast text */
+    body {
+        color: #000;
+    }
+    
+    .text-muted {
+        color: #333 !important;
+    }
+}
+
+/* ========================================
+   5. Reduced Motion Preferences
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    /* Disable all animations */
+    .animate-fade-in,
+    .animate-slide-in,
+    .animate-pulse,
+    .animate-spin {
+        animation: none !important;
+    }
+    
+    /* Remove hover transforms */
+    .hover-lift:hover,
+    .hover-scale:hover {
+        transform: none !important;
+    }
+}
+
+/* ========================================
+   6. Color Contrast Enhancements
+   ======================================== */
+
+/* Ensure minimum contrast ratio of 4.5:1 for normal text */
+.text-muted {
+    color: #5a6169 !important; /* WCAG AA compliant */
+}
+
+/* Improve contrast for links */
+a {
+    color: #1a0d4a; /* Darker for better contrast */
+    text-decoration-skip-ink: auto;
+}
+
+a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+}
+
+/* Improve contrast for secondary text */
+small,
+.small {
+    color: #4a5568;
+}
+
+/* ========================================
+   7. Touch Target Sizes (Mobile)
+   ======================================== */
+
+@media (pointer: coarse) {
+    /* Minimum 44x44px touch targets per WCAG */
+    .btn,
+    .btn-modern,
+    a.nav-link,
+    .pagination-modern-item {
+        min-height: 44px;
+        min-width: 44px;
+        padding: var(--spacing-3) var(--spacing-4);
+    }
+    
+    /* Larger checkboxes and radios */
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-width: 24px;
+        min-height: 24px;
+    }
+}
+
+/* ========================================
+   8. Keyboard Navigation Indicators
+   ======================================== */
+
+/* Visual indicator for keyboard users */
+body:not(.using-mouse) *:focus {
+    outline: 3px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+/* Remove outline for mouse users */
+body.using-mouse *:focus {
+    outline: none;
+}
+
+/* ========================================
+   9. Form Accessibility
+   ======================================== */
+
+/* Required field indicators */
+.form-group.required label::after,
+label.required::after {
+    content: ' *';
+    color: var(--danger);
+    font-weight: var(--font-weight-bold);
+    aria-label: 'required';
+}
+
+/* Error message association */
+.form-control[aria-invalid="true"],
+.form-control-modern[aria-invalid="true"] {
+    border-color: var(--danger);
+    border-width: 2px;
+}
+
+.form-control[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+}
+
+/* Success state indicators */
+.form-control[aria-invalid="false"],
+.form-control-modern[aria-invalid="false"] {
+    border-color: var(--success);
+}
+
+/* Help text association */
+.form-text {
+    margin-top: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+}
+
+/* ========================================
+   10. Table Accessibility
+   ======================================== */
+
+/* Improve table readability */
+table caption {
+    padding: var(--spacing-3);
+    caption-side: top;
+    font-weight: var(--font-weight-semibold);
+    text-align: left;
+}
+
+th {
+    font-weight: var(--font-weight-semibold);
+    text-align: left;
+}
+
+/* Row hover for better tracking */
+tr:hover {
+    background-color: var(--gray-50);
+}
+
+/* Focus within table cells */
+td:focus-within,
+th:focus-within {
+    outline: 2px solid var(--primary-500);
+    outline-offset: -2px;
+}
+
+/* ========================================
+   11. Modal & Dialog Accessibility
+   ======================================== */
+
+/* Prevent background scroll when modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Focus trap for modals */
+.modal:focus {
+    outline: none;
+}
+
+.modal-content:focus {
+    outline: 3px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   12. Loading States Accessibility
+   ======================================== */
+
+/* Announce loading to screen readers */
+.loading[aria-live="polite"]::after {
+    content: 'Loading, please wait';
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+/* Spinner with accessible label */
+.spinner[role="status"]::after {
+    content: 'Loading...';
+    position: absolute;
+    left: -10000px;
+}
+
+/* ========================================
+   13. Link Styling for Accessibility
+   ======================================== */
+
+/* Distinguish links from surrounding text */
+a:not(.btn):not(.nav-link):not(.dropdown-item) {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+    text-decoration-thickness: 2px;
+}
+
+/* External link indicators */
+a[target="_blank"]::after {
+    content: ' ↗';
+    font-size: 0.85em;
+    vertical-align: super;
+}
+
+a[target="_blank"] .sr-only-external {
+    position: absolute;
+    left: -10000px;
+}
+
+/* ========================================
+   14. Status Messages Accessibility
+   ======================================== */
+
+/* Alert role styling */
+[role="alert"],
+[role="status"] {
+    padding: var(--spacing-4);
+    border-radius: var(--radius-base);
+    border-left: 4px solid;
+}
+
+[role="alert"].alert-danger,
+[role="alert"].alert-modern-danger {
+    border-color: var(--danger);
+    background: var(--danger-light);
+}
+
+[role="alert"].alert-success,
+[role="alert"].alert-modern-success {
+    border-color: var(--success);
+    background: var(--success-light);
+}
+
+[role="alert"].alert-warning,
+[role="alert"].alert-modern-warning {
+    border-color: var(--warning);
+    background: var(--warning-light);
+}
+
+[role="alert"].alert-info,
+[role="alert"].alert-modern-info {
+    border-color: var(--info);
+    background: var(--info-light);
+}
+
+/* ========================================
+   15. Print Accessibility
+   ======================================== */
+
+@media print {
+    /* Ensure black text on white background */
+    * {
+        color: #000 !important;
+        background: #fff !important;
+    }
+    
+    /* Show link URLs */
+    a::after {
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+    }
+    
+    /* Remove unnecessary elements */
+    .navbar,
+    .sidebar,
+    .main-sidebar,
+    footer,
+    .btn,
+    .no-print {
+        display: none !important;
+    }
+    
+    /* Expand content */
+    .content-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+
+/* ========================================
+   16. Dark Mode Considerations
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+    /* Override for users who prefer dark mode */
+    /* This can be expanded based on requirements */
+    
+    :root {
+        --text-primary: #f8f9fa;
+        --bg-primary: #1a1a1a;
+    }
+}
+
+/* ========================================
+   17. Language Direction Support (RTL)
+   ======================================== */
+
+[dir="rtl"] {
+    /* Flip margins and paddings for RTL languages */
+    text-align: right;
+}
+
+[dir="rtl"] .mr-2,
+[dir="rtl"] .mr-3,
+[dir="rtl"] .mr-4 {
+    margin-right: 0 !important;
+    margin-left: var(--spacing-2) !important;
+}
+
+[dir="rtl"] .ml-2,
+[dir="rtl"] .ml-3,
+[dir="rtl"] .ml-4 {
+    margin-left: 0 !important;
+    margin-right: var(--spacing-2) !important;
+}
+
+/* ========================================
+   18. Error Prevention
+   ======================================== */
+
+/* Destructive action confirmation */
+.btn-danger,
+.btn-modern.btn-danger {
+    position: relative;
+}
+
+.btn-danger::before,
+.btn-modern.btn-danger::before {
+    content: '⚠';
+    margin-right: var(--spacing-2);
+}
+
+/* ========================================
+   19. Timing & Session Management
+   ======================================== */
+
+/* Session timeout warning */
+.session-timeout-warning {
+    position: fixed;
+    top: var(--spacing-6);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--warning-light);
+    border: 2px solid var(--warning);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+    z-index: var(--z-tooltip);
+    box-shadow: var(--shadow-xl);
+}
+
+/* ========================================
+   20. Custom Focus Indicators per Component
+   ======================================== */
+
+/* Card focus */
+.card-modern:focus-within {
+    box-shadow: 0 0 0 3px var(--primary-500);
+}
+
+/* Dropdown focus */
+.dropdown-item:focus {
+    background-color: var(--primary-100);
+    color: var(--primary-700);
+    outline: 2px solid var(--primary-500);
+    outline-offset: -2px;
+}
+
+/* Tab focus */
+.tab-modern:focus-visible {
+    outline: 3px solid var(--primary-500);
+    outline-offset: 3px;
+}
+
+/* Pagination focus */
+.pagination-modern-item:focus-visible {
+    outline: 3px solid var(--primary-500);
+    outline-offset: 2px;
+}
+

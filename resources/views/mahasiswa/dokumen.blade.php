@@ -2,10 +2,27 @@
 
 @section('content')
 <div class="container py-4">
+    <!-- Page Header -->
     <div class="mb-4">
-        <h2><i class="fas fa-folder"></i> Dokumen Saya</h2>
-        <p class="text-muted">Kelola dokumen skripsi dan persyaratan</p>
+        <h2 class="mb-1"><i class="fas fa-folder text-primary"></i> Dokumen Saya</h2>
+        <p class="text-muted mb-2">Kelola dan upload dokumen skripsi dan persyaratan</p>
+        <small class="text-muted">
+            <i class="fas fa-info-circle"></i> Total {{ count($applications) }} aplikasi dengan dokumen
+        </small>
     </div>
+
+    <!-- Info Card -->
+    @if(count($applications) > 0)
+    <div class="alert alert-info border-left" style="border-left: 4px solid #17a2b8 !important;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-file-upload fa-2x mr-3"></i>
+            <div>
+                <h5 class="mb-1">Manajemen Dokumen</h5>
+                <p class="mb-0">Pastikan semua dokumen yang diupload sesuai dengan format dan persyaratan yang telah ditentukan. Ukuran maksimal file adalah 5MB.</p>
+            </div>
+        </div>
+    </div>
+    @endif
 
     @if(count($applications) > 0)
         @foreach($applications as $app)

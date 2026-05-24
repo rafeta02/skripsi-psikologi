@@ -2,10 +2,27 @@
 
 @section('content')
 <div class="container py-4">
+    <!-- Page Header -->
     <div class="mb-4">
-        <h2><i class="fas fa-users"></i> Bimbingan Skripsi</h2>
-        <p class="text-muted">Informasi dosen pembimbing dan progress bimbingan</p>
+        <h2 class="mb-1"><i class="fas fa-users text-primary"></i> Bimbingan Skripsi</h2>
+        <p class="text-muted mb-2">Informasi dosen pembimbing dan progress bimbingan Anda</p>
+        <small class="text-muted">
+            <i class="fas fa-info-circle"></i> Total {{ count($bimbinganData) }} data bimbingan
+        </small>
     </div>
+
+    <!-- Info Card -->
+    @if(count($bimbinganData) > 0)
+    <div class="alert alert-success border-left" style="border-left: 4px solid #28a745 !important;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle fa-2x mr-3"></i>
+            <div>
+                <h5 class="mb-1">Status Bimbingan</h5>
+                <p class="mb-0">Anda memiliki {{ count($bimbinganData) }} sesi bimbingan aktif. Pastikan untuk selalu berkomunikasi dengan dosen pembimbing Anda.</p>
+            </div>
+        </div>
+    </div>
+    @endif
 
     @if(count($bimbinganData) > 0)
         @foreach($bimbinganData as $data)

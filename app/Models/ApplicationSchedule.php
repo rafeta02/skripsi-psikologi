@@ -19,10 +19,6 @@ class ApplicationSchedule extends Model implements HasMedia
 
     public $table = 'application_schedules';
 
-    protected $appends = [
-        'approval_form',
-    ];
-
     protected $dates = [
         'waktu',
         'created_at',
@@ -74,16 +70,28 @@ class ApplicationSchedule extends Model implements HasMedia
 
     public function setWaktuAttribute($value)
     {
-        $this->attributes['waktu'] = $value ? Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s') : null;
+        if (!$value) {
+            $this->attributes['waktu'] = null;
+            return;
+        }
+        
+        // If value is already a Carbon instance or DateTime
+        if ($value instanceof \DateTimeInterface) {
+            $this->attributes['waktu'] = $value->format('Y-m-d H:i:s');
+            return;
+        }
+        
+        // If value is a string, try to parse it
+        try {
+            $this->attributes['waktu'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            // If parsing fails, try standard parse
+            $this->attributes['waktu'] = Carbon::parse($value)->format('Y-m-d H:i:s');
+        }
     }
 
     public function ruang()
     {
         return $this->belongsTo(Ruang::class, 'ruang_id');
-    }
-
-    public function getApprovalFormAttribute()
-    {
-        return $this->getMedia('approval_form');
     }
 }

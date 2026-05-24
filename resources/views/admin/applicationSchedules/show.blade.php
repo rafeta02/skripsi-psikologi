@@ -141,51 +141,6 @@
                 </div>
             </div>
 
-            <!-- Documents Card -->
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-file-pdf mr-2"></i>
-                        Dokumen Persetujuan
-                    </h3>
-                </div>
-                <div class="card-body">
-                    @if($applicationSchedule->approval_form && count($applicationSchedule->approval_form) > 0)
-                        <div class="row">
-                            @foreach($applicationSchedule->approval_form as $index => $media)
-                            <div class="col-md-4">
-                                <div class="card border">
-                                    <div class="card-header bg-light">
-                                        <strong>Dokumen {{ $index + 1 }}</strong>
-                                    </div>
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
-                                        <div class="btn-group-vertical w-100">
-                                            <button type="button" class="btn btn-sm btn-primary preview-doc mb-2" 
-                                                    data-url="{{ $media->getUrl() }}">
-                                                <i class="fas fa-eye mr-1"></i> Preview
-                                            </button>
-                                            <a href="{{ $media->getUrl() }}" 
-                                               class="btn btn-sm btn-success" target="_blank" download>
-                                                <i class="fas fa-download mr-1"></i> Download
-                                            </a>
-                                        </div>
-                                        <small class="text-muted d-block mt-2">
-                                            {{ number_format($media->size / 1024 / 1024, 2) }} MB
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            Belum ada dokumen persetujuan yang diupload.
-                        </div>
-                    @endif
-                </div>
-            </div>
 
             <!-- Action History -->
             @if($applicationSchedule->application && $applicationSchedule->application->actions->count() > 0)

@@ -28,6 +28,30 @@
                         {{ trans('cruds.applicationScore.fields.examiner') }}
                     </th>
                     <th>
+                        Penulisan
+                    </th>
+                    <th>
+                        Isi
+                    </th>
+                    <th>
+                        Analisis
+                    </th>
+                    <th>
+                        Teoritis
+                    </th>
+                    <th>
+                        Faktual
+                    </th>
+                    <th>
+                        Pemecahan Masalah
+                    </th>
+                    <th>
+                        Penyampaian
+                    </th>
+                    <th>
+                        Sum
+                    </th>
+                    <th>
                         {{ trans('cruds.applicationScore.fields.score') }}
                     </th>
                     <th>
@@ -91,6 +115,14 @@
       { data: 'placeholder', name: 'placeholder' },
 { data: 'application_result_defence_result', name: 'application_result_defence.result' },
 { data: 'examiner_nama', name: 'examiner.nama' },
+{ data: 'penulisan', name: 'penulisan' },
+{ data: 'isi', name: 'isi' },
+{ data: 'analisis', name: 'analisis' },
+{ data: 'teoritis', name: 'teoritis' },
+{ data: 'faktual', name: 'faktual' },
+{ data: 'pemecahan_masalah', name: 'pemecahan_masalah' },
+{ data: 'penyampaian', name: 'penyampaian' },
+{ data: 'sum', name: 'sum' },
 { data: 'score', name: 'score' },
 { data: 'note', name: 'note' },
 { data: 'actions', name: '{{ trans('global.actions') }}' }

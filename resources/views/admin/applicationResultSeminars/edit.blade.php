@@ -36,12 +36,12 @@
                 <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.result_helper') }}</span>
             </div>
             <div class="form-group">
-                <label for="note">{{ trans('cruds.applicationResultSeminar.fields.note') }}</label>
-                <textarea class="form-control {{ $errors->has('note') ? 'is-invalid' : '' }}" name="note" id="note">{{ old('note', $applicationResultSeminar->note) }}</textarea>
-                @if($errors->has('note'))
-                    <span class="text-danger">{{ $errors->first('note') }}</span>
+                <label for="meeting_recording_link">Tautan Rekaman Meeting</label>
+                <input class="form-control {{ $errors->has('meeting_recording_link') ? 'is-invalid' : '' }}" type="url" name="meeting_recording_link" id="meeting_recording_link" value="{{ old('meeting_recording_link', $applicationResultSeminar->meeting_recording_link) }}" placeholder="https://zoom.us/rec/share/...">
+                @if($errors->has('meeting_recording_link'))
+                    <span class="text-danger">{{ $errors->first('meeting_recording_link') }}</span>
                 @endif
-                <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.note_helper') }}</span>
+                <span class="help-block">Link rekaman meeting seminar (opsional)</span>
             </div>
             <div class="form-group">
                 <label for="revision_deadline">{{ trans('cruds.applicationResultSeminar.fields.revision_deadline') }}</label>

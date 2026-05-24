@@ -3,326 +3,275 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Traits\MediaUploadingTrait;
-use App\Http\Requests\MassDestroyMbkmRegistrationRequest;
-use App\Http\Requests\StoreMbkmRegistrationRequest;
-use App\Http\Requests\UpdateMbkmRegistrationRequest;
 use App\Models\Application;
-use App\Models\Dosen;
-use App\Models\Keilmuan;
-use App\Models\Mahasiswa;
-use App\Models\MbkmGroupMember;
 use App\Models\MbkmRegistration;
+use App\Models\Keilmuan;
+use App\Models\Dosen;
 use App\Models\ResearchGroup;
-use App\Services\FormAccessService;
-use Gate;
+use App\Models\MbkmGroupMember;
 use Illuminate\Http\Request;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MbkmRegistrationController extends Controller
 {
-    use MediaUploadingTrait;
-
     public function index()
     {
-        abort_if(Gate::denies('mbkm_registration_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $mbkmRegistrations = MbkmRegistration::with(['application', 'research_group', 'preference_supervision', 'theme', 'created_by', 'media'])->get();
-
-        return view('frontend.mbkmRegistrations.index', compact('mbkmRegistrations'));
-    }
-
-    public function create()
-    {
-        abort_if(Gate::denies('mbkm_registration_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        // Check if student can access this form
-        $formAccessService = new FormAccessService();
-        $access = $formAccessService->canAccessMbkmRegistration(auth()->user()->mahasiswa_id);
-
-        if (!$access['allowed']) {
-            return redirect()->route('frontend.mbkm-registrations.index')
-                ->with('error', $access['message']);
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        
+        if (!$mahasiswa) {
+            return redirect()->back()->with('error', 'Data mahasiswa tidak ditemukan.');
         }
-
-        $research_groups = ResearchGroup::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $preference_supervisions = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $mahasiswas = Mahasiswa::all()->mapWithKeys(function ($mahasiswa) {
-            return [$mahasiswa->id => $mahasiswa->nim . ' - ' . $mahasiswa->nama];
-        })->prepend(trans('global.pleaseSelect'), '');
-
-        return view('frontend.mbkmRegistrations.create', compact('preference_supervisions', 'research_groups', 'themes', 'mahasiswas'));
+        
+        // Get all MBKM applications for this mahasiswa
+        $applications = Application::where('mahasiswa_id', $mahasiswa->id)
+            ->where('type', 'mbkm')
+            ->with('mbkmRegistration')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('frontend.mbkm.index', compact('applications', 'mahasiswa'));
     }
-
-    public function store(StoreMbkmRegistrationRequest $request)
+    
+    public function create($applicationId)
     {
-        // Check if student can create new application (ensure only 1 active)
-        $formAccessService = new FormAccessService();
-        $canCreate = $formAccessService->canAccessMbkmRegistration(auth()->user()->mahasiswa_id);
-
-        if (!$canCreate['allowed']) {
-            return redirect()->route('frontend.mbkm-registrations.index')
-                ->with('error', $canCreate['message']);
+        $application = Application::findOrFail($applicationId);
+        
+        // Verify ownership
+        $user = Auth::user();
+        if ($application->mahasiswa_id != $user->mahasiswa_id) {
+            abort(403, 'Unauthorized access');
         }
-
-        // Step 1: Create Application first
-        $application = Application::create([
-            'mahasiswa_id' => auth()->user()->mahasiswa_id,
-            'type' => 'mbkm',
-            'stage' => 'registration',
-            'status' => 'submitted',
-            'submitted_at' => now()->format('d-m-Y H:i:s'),
+        
+        // Check if registration already exists
+        if ($application->mbkmRegistration) {
+            return redirect()->route('frontend.mbkm.edit', $application->id)
+                ->with('info', 'Form pendaftaran sudah ada. Silahkan edit jika diperlukan.');
+        }
+        
+        // Get data for dropdowns
+        $keilmuans = Keilmuan::pluck('name', 'id');
+        $dosens = Dosen::pluck('nama', 'id');
+        $researchGroups = ResearchGroup::pluck('name', 'id');
+        
+        return view('frontend.mbkm.create', compact('application', 'keilmuans', 'dosens', 'researchGroups'));
+    }
+    
+    public function store(Request $request, $applicationId)
+    {
+        $application = Application::findOrFail($applicationId);
+        
+        // Verify ownership
+        $user = Auth::user();
+        if ($application->mahasiswa_id != $user->mahasiswa_id) {
+            abort(403, 'Unauthorized access');
+        }
+        
+        $validated = $request->validate([
+            'research_group_id' => 'required|exists:research_groups,id',
+            'preference_supervision_id' => 'required|exists:dosens,id',
+            'theme_id' => 'required|exists:keilmuans,id',
+            'title_mbkm' => 'required|string|max:500',
+            'title' => 'required|string|max:500',
+            'total_sks_taken' => 'required|integer|min:0',
+            'nilai_mk_kuantitatif' => 'required|string|max:10',
+            'nilai_mk_kualitatif' => 'required|string|max:10',
+            'nilai_mk_statistika_dasar' => 'required|string|max:10',
+            'nilai_mk_statistika_lanjutan' => 'required|string|max:10',
+            'nilai_mk_konstruksi_tes' => 'required|string|max:10',
+            'nilai_mk_tps' => 'required|string|max:10',
+            'sks_mkp_taken' => 'required|integer|min:0',
+            'note' => 'nullable|string',
+            'khs_all' => 'required|array',
+            'khs_all.*' => 'required|file|mimes:pdf|max:5120',
+            'krs_latest' => 'required|file|mimes:pdf|max:5120',
+            'spp' => 'required|file|mimes:pdf|max:5120',
+            'proposal_mbkm' => 'required|file|mimes:pdf|max:10240',
+            'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
+            // Group members (optional)
+            'group_members' => 'nullable|array',
+            'group_members.*.mahasiswa_id' => 'nullable|exists:mahasiswas,id',
+            'group_members.*.role' => 'nullable|in:ketua,anggota',
         ]);
-
-        // Step 2: Create MbkmRegistration with the application_id
-        $data = $request->all();
-        $data['application_id'] = $application->id;
         
-        $mbkmRegistration = MbkmRegistration::create($data);
-
-        // Step 3: Create Group Members
-        if ($request->has('group_members')) {
-            foreach ($request->input('group_members', []) as $member) {
-                if (!empty($member['mahasiswa_id']) && !empty($member['role'])) {
-                    MbkmGroupMember::create([
-                        'mbkm_registration_id' => $mbkmRegistration->id,
-                        'mahasiswa_id' => $member['mahasiswa_id'],
-                        'role' => $member['role'],
-                    ]);
-                }
-            }
-        }
-
-        // Step 4: Upload files with custom naming using FileNamingTrait
-        foreach ($request->input('khs_all', []) as $file) {
-            $mbkmRegistration->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($file)), 
-                'khs_all'
-            );
-        }
-
-        if ($request->input('krs_latest', false)) {
-            $mbkmRegistration->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('krs_latest'))), 
-                'krs_latest'
-            );
-        }
-
-        if ($request->input('spp', false)) {
-            $mbkmRegistration->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('spp'))), 
-                'spp'
-            );
-        }
-
-        if ($request->input('proposal_mbkm', false)) {
-            $mbkmRegistration->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('proposal_mbkm'))), 
-                'proposal_mbkm'
-            );
-        }
-
-        if ($request->input('recognition_form', false)) {
-            $mbkmRegistration->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('recognition_form'))), 
-                'recognition_form'
-            );
-        }
-
-        if ($media = $request->input('ck-media', false)) {
-            Media::whereIn('id', $media)->update(['model_id' => $mbkmRegistration->id]);
-        }
-
-        return redirect()->route('frontend.mbkm-registrations.index');
-    }
-
-    public function edit(MbkmRegistration $mbkmRegistration)
-    {
-        abort_if(Gate::denies('mbkm_registration_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $research_groups = ResearchGroup::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $preference_supervisions = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $mahasiswas = Mahasiswa::all()->mapWithKeys(function ($mahasiswa) {
-            return [$mahasiswa->id => $mahasiswa->nim . ' - ' . $mahasiswa->nama];
-        })->prepend(trans('global.pleaseSelect'), '');
-
-        $mbkmRegistration->load('application', 'research_group', 'preference_supervision', 'theme', 'created_by', 'groupMembers.mahasiswa');
-
-        return view('frontend.mbkmRegistrations.edit', compact('mbkmRegistration', 'preference_supervisions', 'research_groups', 'themes', 'mahasiswas'));
-    }
-
-    public function update(UpdateMbkmRegistrationRequest $request, MbkmRegistration $mbkmRegistration)
-    {
-        $mbkmRegistration->update($request->all());
-        
-        // If status was revision, change it back to submitted and clear revision_notes
-        if ($mbkmRegistration->application->status == 'revision') {
-            $mbkmRegistration->application->update(['status' => 'submitted']);
-            $mbkmRegistration->update(['revision_notes' => null]);
-        }
-        
-        // If status was approved but supervisor rejected, change back to submitted
-        if ($mbkmRegistration->application->status == 'approved') {
-            // Check if supervisor rejected the assignment
-            $supervisorAssignment = \App\Models\ApplicationAssignment::where('application_id', $mbkmRegistration->application_id)
-                ->where('role', 'supervisor')
-                ->where('status', 'rejected')
-                ->first();
+        try {
+            DB::beginTransaction();
             
-            if ($supervisorAssignment) {
-                // Delete the rejected assignment
-                $supervisorAssignment->delete();
-                
-                // Change application status back to submitted
-                $mbkmRegistration->application->update(['status' => 'submitted']);
-                
-                // Clear approval date (preference_supervision_id stays as it was originally chosen by student)
-                $mbkmRegistration->update([
-                    'approval_date' => null
-                ]);
+            $validated['application_id'] = $application->id;
+            $validated['created_by_id'] = $user->id;
+            
+            $registration = MbkmRegistration::create($validated);
+            
+            // Handle file uploads
+            if ($request->hasFile('khs_all')) {
+                foreach ($request->file('khs_all') as $file) {
+                    $registration->addMedia($file)->toMediaCollection('khs_all');
+                }
             }
+            
+            if ($request->hasFile('krs_latest')) {
+                $registration->addMedia($request->file('krs_latest'))->toMediaCollection('krs_latest');
+            }
+            
+            if ($request->hasFile('spp')) {
+                $registration->addMedia($request->file('spp'))->toMediaCollection('spp');
+            }
+            
+            if ($request->hasFile('proposal_mbkm')) {
+                $registration->addMedia($request->file('proposal_mbkm'))->toMediaCollection('proposal_mbkm');
+            }
+            
+            if ($request->hasFile('recognition_form')) {
+                $registration->addMedia($request->file('recognition_form'))->toMediaCollection('recognition_form');
+            }
+            
+            // Handle group members
+            if ($request->has('group_members')) {
+                foreach ($request->group_members as $member) {
+                    if (isset($member['mahasiswa_id']) && $member['mahasiswa_id']) {
+                        MbkmGroupMember::create([
+                            'mbkm_registration_id' => $registration->id,
+                            'mahasiswa_id' => $member['mahasiswa_id'],
+                            'role' => $member['role'] ?? 'anggota',
+                        ]);
+                    }
+                }
+            }
+            
+            // Update application status
+            $application->update(['status' => 'submitted']);
+            
+            DB::commit();
+            
+            return redirect()->route('frontend.mbkm.show', $application->id)
+                ->with('success', 'Pendaftaran MBKM berhasil disimpan. Menunggu verifikasi admin.');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        // Update Group Members
-        // Delete existing members and recreate
-        $mbkmRegistration->groupMembers()->delete();
+    }
+    
+    public function show($applicationId)
+    {
+        $application = Application::with(['mbkmRegistration.groupMembers', 'mahasiswa'])->findOrFail($applicationId);
         
-        if ($request->has('group_members')) {
-            foreach ($request->input('group_members', []) as $member) {
-                if (!empty($member['mahasiswa_id']) && !empty($member['role'])) {
-                    MbkmGroupMember::create([
-                        'mbkm_registration_id' => $mbkmRegistration->id,
-                        'mahasiswa_id' => $member['mahasiswa_id'],
-                        'role' => $member['role'],
-                    ]);
-                }
-            }
+        // Verify ownership
+        $user = Auth::user();
+        if ($application->mahasiswa_id != $user->mahasiswa_id) {
+            abort(403, 'Unauthorized access');
         }
-
-        // Handle KHS files
-        if (count($mbkmRegistration->khs_all) > 0) {
-            foreach ($mbkmRegistration->khs_all as $media) {
-                if (! in_array($media->file_name, $request->input('khs_all', []))) {
-                    $media->delete();
-                }
-            }
-        }
-        $media = $mbkmRegistration->khs_all->pluck('file_name')->toArray();
-        foreach ($request->input('khs_all', []) as $file) {
-            if (count($media) === 0 || ! in_array($file, $media)) {
-                $mbkmRegistration->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($file)), 
-                    'khs_all'
-                );
-            }
-        }
-
-        if ($request->input('krs_latest', false)) {
-            if (! $mbkmRegistration->krs_latest || $request->input('krs_latest') !== $mbkmRegistration->krs_latest->file_name) {
-                if ($mbkmRegistration->krs_latest) {
-                    $mbkmRegistration->krs_latest->delete();
-                }
-                $mbkmRegistration->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('krs_latest'))), 
-                    'krs_latest'
-                );
-            }
-        } elseif ($mbkmRegistration->krs_latest) {
-            $mbkmRegistration->krs_latest->delete();
-        }
-
-        if ($request->input('spp', false)) {
-            if (! $mbkmRegistration->spp || $request->input('spp') !== $mbkmRegistration->spp->file_name) {
-                if ($mbkmRegistration->spp) {
-                    $mbkmRegistration->spp->delete();
-                }
-                $mbkmRegistration->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('spp'))), 
-                    'spp'
-                );
-            }
-        } elseif ($mbkmRegistration->spp) {
-            $mbkmRegistration->spp->delete();
-        }
-
-        if ($request->input('proposal_mbkm', false)) {
-            if (! $mbkmRegistration->proposal_mbkm || $request->input('proposal_mbkm') !== $mbkmRegistration->proposal_mbkm->file_name) {
-                if ($mbkmRegistration->proposal_mbkm) {
-                    $mbkmRegistration->proposal_mbkm->delete();
-                }
-                $mbkmRegistration->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('proposal_mbkm'))), 
-                    'proposal_mbkm'
-                );
-            }
-        } elseif ($mbkmRegistration->proposal_mbkm) {
-            $mbkmRegistration->proposal_mbkm->delete();
-        }
-
-        if ($request->input('recognition_form', false)) {
-            if (! $mbkmRegistration->recognition_form || $request->input('recognition_form') !== $mbkmRegistration->recognition_form->file_name) {
-                if ($mbkmRegistration->recognition_form) {
-                    $mbkmRegistration->recognition_form->delete();
-                }
-                $mbkmRegistration->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('recognition_form'))), 
-                    'recognition_form'
-                );
-            }
-        } elseif ($mbkmRegistration->recognition_form) {
-            $mbkmRegistration->recognition_form->delete();
-        }
-
-        return redirect()->route('frontend.mbkm-registrations.index');
+        
+        return view('frontend.mbkm.show', compact('application'));
     }
-
-    public function show(MbkmRegistration $mbkmRegistration)
+    
+    public function edit($applicationId)
     {
-        abort_if(Gate::denies('mbkm_registration_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $mbkmRegistration->load('application', 'research_group', 'preference_supervision', 'theme', 'created_by', 'groupMembers.mahasiswa');
-
-        return view('frontend.mbkmRegistrations.show', compact('mbkmRegistration'));
-    }
-
-    public function destroy(MbkmRegistration $mbkmRegistration)
-    {
-        abort_if(Gate::denies('mbkm_registration_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $mbkmRegistration->delete();
-
-        return back();
-    }
-
-    public function massDestroy(MassDestroyMbkmRegistrationRequest $request)
-    {
-        $mbkmRegistrations = MbkmRegistration::find(request('ids'));
-
-        foreach ($mbkmRegistrations as $mbkmRegistration) {
-            $mbkmRegistration->delete();
+        $application = Application::with('mbkmRegistration')->findOrFail($applicationId);
+        
+        // Verify ownership
+        $user = Auth::user();
+        if ($application->mahasiswa_id != $user->mahasiswa_id) {
+            abort(403, 'Unauthorized access');
         }
-
-        return response(null, Response::HTTP_NO_CONTENT);
+        
+        // Check if can edit
+        if (!in_array($application->status, ['submitted', 'rejected'])) {
+            return redirect()->route('frontend.mbkm.show', $application->id)
+                ->with('error', 'Pendaftaran tidak dapat diedit pada status ini.');
+        }
+        
+        $keilmuans = Keilmuan::pluck('name', 'id');
+        $dosens = Dosen::pluck('nama', 'id');
+        $researchGroups = ResearchGroup::pluck('name', 'id');
+        $registration = $application->mbkmRegistration;
+        
+        return view('frontend.mbkm.edit', compact('application', 'registration', 'keilmuans', 'dosens', 'researchGroups'));
     }
-
-    public function storeCKEditorImages(Request $request)
+    
+    public function update(Request $request, $applicationId)
     {
-        abort_if(Gate::denies('mbkm_registration_create') && Gate::denies('mbkm_registration_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $model         = new MbkmRegistration();
-        $model->id     = $request->input('crud_id', 0);
-        $model->exists = true;
-        $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
-
-        return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
+        $application = Application::with('mbkmRegistration')->findOrFail($applicationId);
+        
+        // Verify ownership
+        $user = Auth::user();
+        if ($application->mahasiswa_id != $user->mahasiswa_id) {
+            abort(403, 'Unauthorized access');
+        }
+        
+        $validated = $request->validate([
+            'research_group_id' => 'required|exists:research_groups,id',
+            'preference_supervision_id' => 'required|exists:dosens,id',
+            'theme_id' => 'required|exists:keilmuans,id',
+            'title_mbkm' => 'required|string|max:500',
+            'title' => 'required|string|max:500',
+            'total_sks_taken' => 'required|integer|min:0',
+            'nilai_mk_kuantitatif' => 'required|string|max:10',
+            'nilai_mk_kualitatif' => 'required|string|max:10',
+            'nilai_mk_statistika_dasar' => 'required|string|max:10',
+            'nilai_mk_statistika_lanjutan' => 'required|string|max:10',
+            'nilai_mk_konstruksi_tes' => 'required|string|max:10',
+            'nilai_mk_tps' => 'required|string|max:10',
+            'sks_mkp_taken' => 'required|integer|min:0',
+            'note' => 'nullable|string',
+            'khs_all' => 'nullable|array',
+            'khs_all.*' => 'nullable|file|mimes:pdf|max:5120',
+            'krs_latest' => 'nullable|file|mimes:pdf|max:5120',
+            'spp' => 'nullable|file|mimes:pdf|max:5120',
+            'proposal_mbkm' => 'nullable|file|mimes:pdf|max:10240',
+            'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
+        ]);
+        
+        try {
+            DB::beginTransaction();
+            
+            $registration = $application->mbkmRegistration;
+            $registration->update($validated);
+            
+            // Handle file uploads
+            if ($request->hasFile('khs_all')) {
+                $registration->clearMediaCollection('khs_all');
+                foreach ($request->file('khs_all') as $file) {
+                    $registration->addMedia($file)->toMediaCollection('khs_all');
+                }
+            }
+            
+            if ($request->hasFile('krs_latest')) {
+                $registration->clearMediaCollection('krs_latest');
+                $registration->addMedia($request->file('krs_latest'))->toMediaCollection('krs_latest');
+            }
+            
+            if ($request->hasFile('spp')) {
+                $registration->clearMediaCollection('spp');
+                $registration->addMedia($request->file('spp'))->toMediaCollection('spp');
+            }
+            
+            if ($request->hasFile('proposal_mbkm')) {
+                $registration->clearMediaCollection('proposal_mbkm');
+                $registration->addMedia($request->file('proposal_mbkm'))->toMediaCollection('proposal_mbkm');
+            }
+            
+            if ($request->hasFile('recognition_form')) {
+                $registration->clearMediaCollection('recognition_form');
+                $registration->addMedia($request->file('recognition_form'))->toMediaCollection('recognition_form');
+            }
+            
+            // Update application status back to submitted
+            $application->update(['status' => 'submitted']);
+            
+            DB::commit();
+            
+            return redirect()->route('frontend.mbkm.show', $application->id)
+                ->with('success', 'Pendaftaran MBKM berhasil diperbarui.');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 }

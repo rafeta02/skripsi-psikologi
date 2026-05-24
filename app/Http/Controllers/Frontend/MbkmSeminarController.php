@@ -74,32 +74,24 @@ class MbkmSeminarController extends Controller
         
         $mbkmSeminar = MbkmSeminar::create($data);
 
-        if ($request->input('proposal_document', false)) {
-            $mbkmSeminar->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('proposal_document'))), 
-                'proposal_document'
-            );
+        // Handle file uploads - Direct upload (not via Dropzone temp)
+        if ($request->hasFile('proposal_document')) {
+            $mbkmSeminar->addMedia($request->file('proposal_document'))
+                ->toMediaCollection('proposal_document');
         }
 
-        if ($request->input('approval_document', false)) {
-            $mbkmSeminar->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('approval_document'))), 
-                'approval_document'
-            );
+        if ($request->hasFile('approval_document')) {
+            $mbkmSeminar->addMedia($request->file('approval_document'))
+                ->toMediaCollection('approval_document');
         }
 
-        if ($request->input('plagiarism_document', false)) {
-            $mbkmSeminar->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))), 
-                'plagiarism_document'
-            );
+        if ($request->hasFile('plagiarism_document')) {
+            $mbkmSeminar->addMedia($request->file('plagiarism_document'))
+                ->toMediaCollection('plagiarism_document');
         }
 
-        if ($media = $request->input('ck-media', false)) {
-            Media::whereIn('id', $media)->update(['model_id' => $mbkmSeminar->id]);
-        }
-
-        return redirect()->route('frontend.mbkm-seminars.index');
+        return redirect()->route('frontend.mbkm-seminars.index')
+            ->with('success', 'Pendaftaran seminar MBKM berhasil dikirim!');
     }
 
     public function edit(MbkmSeminar $mbkmSeminar)
@@ -115,49 +107,29 @@ class MbkmSeminarController extends Controller
     {
         $mbkmSeminar->update($request->all());
 
-        if ($request->input('proposal_document', false)) {
-            if (! $mbkmSeminar->proposal_document || $request->input('proposal_document') !== $mbkmSeminar->proposal_document->file_name) {
-                if ($mbkmSeminar->proposal_document) {
-                    $mbkmSeminar->proposal_document->delete();
-                }
-                $mbkmSeminar->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('proposal_document'))), 
-                    'proposal_document'
-                );
-            }
-        } elseif ($mbkmSeminar->proposal_document) {
-            $mbkmSeminar->proposal_document->delete();
+        // Handle proposal document
+        if ($request->hasFile('proposal_document')) {
+            $mbkmSeminar->clearMediaCollection('proposal_document');
+            $mbkmSeminar->addMedia($request->file('proposal_document'))
+                ->toMediaCollection('proposal_document');
         }
 
-        if ($request->input('approval_document', false)) {
-            if (! $mbkmSeminar->approval_document || $request->input('approval_document') !== $mbkmSeminar->approval_document->file_name) {
-                if ($mbkmSeminar->approval_document) {
-                    $mbkmSeminar->approval_document->delete();
-                }
-                $mbkmSeminar->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('approval_document'))), 
-                    'approval_document'
-                );
-            }
-        } elseif ($mbkmSeminar->approval_document) {
-            $mbkmSeminar->approval_document->delete();
+        // Handle approval document
+        if ($request->hasFile('approval_document')) {
+            $mbkmSeminar->clearMediaCollection('approval_document');
+            $mbkmSeminar->addMedia($request->file('approval_document'))
+                ->toMediaCollection('approval_document');
         }
 
-        if ($request->input('plagiarism_document', false)) {
-            if (! $mbkmSeminar->plagiarism_document || $request->input('plagiarism_document') !== $mbkmSeminar->plagiarism_document->file_name) {
-                if ($mbkmSeminar->plagiarism_document) {
-                    $mbkmSeminar->plagiarism_document->delete();
-                }
-                $mbkmSeminar->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))), 
-                    'plagiarism_document'
-                );
-            }
-        } elseif ($mbkmSeminar->plagiarism_document) {
-            $mbkmSeminar->plagiarism_document->delete();
+        // Handle plagiarism document
+        if ($request->hasFile('plagiarism_document')) {
+            $mbkmSeminar->clearMediaCollection('plagiarism_document');
+            $mbkmSeminar->addMedia($request->file('plagiarism_document'))
+                ->toMediaCollection('plagiarism_document');
         }
 
-        return redirect()->route('frontend.mbkm-seminars.index');
+        return redirect()->route('frontend.mbkm-seminars.index')
+            ->with('success', 'Pendaftaran seminar MBKM berhasil diupdate!');
     }
 
     public function show(MbkmSeminar $mbkmSeminar)

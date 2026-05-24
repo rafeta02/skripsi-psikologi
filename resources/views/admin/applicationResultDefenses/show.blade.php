@@ -12,6 +12,9 @@
                 <a class="btn btn-default" href="{{ route('admin.application-result-defenses.index') }}">
                     {{ trans('global.back_to_list') }}
                 </a>
+                <a class="btn btn-success" href="{{ route('admin.application-result-defenses.print-score', $applicationResultDefense->id) }}" target="_blank">
+                    <i class="fas fa-print"></i> {{ trans('global.print') }} Nilai
+                </a>
             </div>
             <table class="table table-bordered table-striped">
                 <tbody>
@@ -55,6 +58,29 @@
                             {{ $applicationResultDefense->final_grade }}
                         </td>
                     </tr>
+                    @if($applicationResultDefense->scores->isNotEmpty())
+                    <tr>
+                        <th>
+                            Nilai Akhir Sidang
+                        </th>
+                        <td>
+                            <strong style="font-size: 18px;">{{ number_format($applicationResultDefense->final_score, 2) }}</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Nilai Huruf
+                        </th>
+                        <td>
+                            <span style="display: inline-block; background: #667eea; color: white; padding: 5px 15px; border-radius: 5px; font-weight: bold; font-size: 16px;">
+                                {{ $applicationResultDefense->final_grade_letter }}
+                            </span>
+                            <span style="color: #666; margin-left: 10px;">
+                                {{ \App\Models\ApplicationResultDefense::getGradeDescription($applicationResultDefense->final_grade_letter) }}
+                            </span>
+                        </td>
+                    </tr>
+                    @endif
                     <tr>
                         <th>
                             {{ trans('cruds.applicationResultDefense.fields.documentation') }}
@@ -204,6 +230,9 @@
             <div class="form-group">
                 <a class="btn btn-default" href="{{ route('admin.application-result-defenses.index') }}">
                     {{ trans('global.back_to_list') }}
+                </a>
+                <a class="btn btn-success" href="{{ route('admin.application-result-defenses.print-score', $applicationResultDefense->id) }}" target="_blank">
+                    <i class="fas fa-print"></i> {{ trans('global.print') }} Nilai
                 </a>
             </div>
         </div>

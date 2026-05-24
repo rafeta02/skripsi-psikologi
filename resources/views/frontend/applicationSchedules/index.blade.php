@@ -1,193 +1,154 @@
-@extends('layouts.frontend')
+@extends('layouts.mahasiswa')
+
 @section('content')
-<link rel="stylesheet" href="{{ asset('css/modern-form.css') }}">
 <div class="container py-4">
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">Jadwal Seminar & Sidang</h1>
-            <p class="page-subtitle">Kelola jadwal seminar proposal dan sidang skripsi Anda</p>
-        </div>
-        @can('application_schedule_create')
-            <a href="{{ route('frontend.application-schedules.create') }}" class="btn-primary-custom">
-                <i class="fas fa-plus-circle mr-2"></i> Tambah Jadwal
-            </a>
-        @endcan
-    </div>
-
-    @if(session('message'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle mr-2"></i>{{ session('message') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
-
-    <div class="info-box info mb-4">
-        <div class="info-box-title">Informasi Jadwal</div>
-        <div class="info-box-text">
-            <ul class="mb-0">
-                <li>Pastikan jadwal telah dikonfirmasi dengan dosen pembimbing dan penguji</li>
-                <li>Upload form persetujuan jadwal yang telah ditandatangani</li>
-                <li>Jadwal yang sudah disetujui admin tidak dapat diubah tanpa persetujuan</li>
-            </ul>
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card-modern" style="background: linear-gradient(135deg, #8e44ad 0%, #3498db 100%); border: none;">
+                <div class="card-modern-body" style="padding: 2rem;">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-white font-weight-bold">
+                                <i class="fas fa-calendar-alt mr-2"></i> Jadwal Seminar & Sidang
+                            </h2>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.9);">
+                                Kelola jadwal seminar MBKM dan sidang skripsi Anda
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            @can('application_schedule_create')
+                                <a href="{{ route('frontend.application-schedules.create') }}" class="btn btn-light btn-lg shadow">
+                                    <i class="fas fa-plus-circle"></i> Buat Jadwal
+                                </a>
+                            @endcan
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="table-card">
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped table-hover datatable datatable-ApplicationSchedule">
-                <thead>
-                    <tr>
-                        <th width="10"></th>
-                        <th>Aplikasi</th>
-                        <th>Tipe</th>
-                        <th>Waktu</th>
-                        <th>Tempat</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($applicationSchedules as $key => $applicationSchedule)
-                        <tr data-entry-id="{{ $applicationSchedule->id }}">
-                            <td></td>
-                            <td>
-                                <div class="font-weight-bold">{{ $applicationSchedule->application->mahasiswa->nama ?? '' }}</div>
-                                <small class="text-muted">{{ $applicationSchedule->application->mahasiswa->nim ?? '' }}</small>
-                            </td>
-                            <td>
-                                @if($applicationSchedule->schedule_type == 'seminar' || $applicationSchedule->schedule_type == 'skripsi_seminar')
-                                    <span class="badge badge-info">
-                                        <i class="fas fa-presentation mr-1"></i> Seminar
-                                    </span>
-                                @elseif($applicationSchedule->schedule_type == 'defense' || $applicationSchedule->schedule_type == 'skripsi_defense')
-                                    <span class="badge badge-warning">
-                                        <i class="fas fa-gavel mr-1"></i> Sidang
-                                    </span>
-                                @elseif($applicationSchedule->schedule_type == 'mbkm_seminar')
-                                    <span class="badge badge-success">
-                                        <i class="fas fa-users mr-1"></i> MBKM
-                                    </span>
-                                @else
-                                    <span class="badge badge-secondary">
-                                        <i class="fas fa-question mr-1"></i> {{ ucfirst($applicationSchedule->schedule_type) }}
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                <i class="fas fa-calendar-alt mr-1 text-muted"></i>
-                                {{ $applicationSchedule->waktu ? \Carbon\Carbon::parse($applicationSchedule->waktu)->format('d M Y, H:i') : '-' }}
-                            </td>
-                            <td>
-                                @if($applicationSchedule->ruang)
-                                    <i class="fas fa-door-open mr-1 text-muted"></i>
-                                    {{ $applicationSchedule->ruang->nama ?? '' }}
-                                @elseif($applicationSchedule->custom_place)
-                                    <i class="fas fa-map-marker-alt mr-1 text-muted"></i>
-                                    {{ $applicationSchedule->custom_place }}
-                                @elseif($applicationSchedule->online_meeting)
-                                    <i class="fas fa-video mr-1 text-muted"></i>
-                                    Online Meeting
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($applicationSchedule->status == 'pending')
-                                    <span class="status-badge pending">
-                                        <i class="fas fa-clock mr-1"></i> Menunggu
-                                    </span>
-                                @elseif($applicationSchedule->status == 'approved')
-                                    <span class="status-badge approved">
-                                        <i class="fas fa-check-circle mr-1"></i> Disetujui
-                                    </span>
-                                @elseif($applicationSchedule->status == 'rejected')
-                                    <span class="status-badge rejected">
-                                        <i class="fas fa-times-circle mr-1"></i> Ditolak
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    @can('application_schedule_show')
-                                        <a class="btn btn-xs btn-primary" href="{{ route('frontend.application-schedules.show', $applicationSchedule->id) }}" title="Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    @endcan
+    <!-- Schedules List -->
+    <div class="row">
+        <div class="col-lg-12">
+            @if($applicationSchedules->count() > 0)
+                @foreach($applicationSchedules as $schedule)
+                    <div class="card-modern mb-4">
+                        <div class="card-modern-body">
+                            <div class="row align-items-start">
+                                <div class="col-md-8">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #8e44ad, #3498db); border-radius: var(--radius-base); display: flex; align-items: center; justify-content: center; margin-right: var(--spacing-3);">
+                                            @if($schedule->schedule_type === 'mbkm_seminar')
+                                                <i class="fas fa-chalkboard-teacher" style="font-size: 20px; color: white;"></i>
+                                            @else
+                                                <i class="fas fa-graduation-cap" style="font-size: 20px; color: white;"></i>
+                                            @endif
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h4 class="mb-1 font-weight-bold">
+                                                @if($schedule->schedule_type === 'mbkm_seminar')
+                                                    Seminar MBKM
+                                                @elseif($schedule->schedule_type === 'skripsi_defense')
+                                                    Sidang Skripsi
+                                                @else
+                                                    {{ ucfirst(str_replace('_', ' ', $schedule->schedule_type)) }}
+                                                @endif
+                                            </h4>
+                                            <div class="mb-2">
+                                                <p class="mb-1">
+                                                    <i class="far fa-calendar"></i> 
+                                                    <strong>{{ \Carbon\Carbon::parse($schedule->waktu)->translatedFormat('l, d F Y') }}</strong>
+                                                </p>
+                                                <p class="mb-1">
+                                                    <i class="far fa-clock"></i> 
+                                                    {{ \Carbon\Carbon::parse($schedule->waktu)->format('H:i') }} WIB
+                                                </p>
+                                                @if($schedule->ruang)
+                                                    <p class="mb-1">
+                                                        <i class="fas fa-map-marker-alt"></i> 
+                                                        {{ $schedule->ruang->name }}
+                                                    </p>
+                                                @elseif($schedule->online_link)
+                                                    <p class="mb-1">
+                                                        <i class="fas fa-video"></i> 
+                                                        <a href="{{ $schedule->online_link }}" target="_blank">Link Meeting Online</a>
+                                                    </p>
+                                                @endif
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @if($schedule->application)
+                                                    @if($schedule->application->status == 'scheduled')
+                                                        <span class="badge-modern badge-modern-info">
+                                                            <i class="fas fa-calendar-check"></i> Terjadwal
+                                                        </span>
+                                                    @elseif($schedule->application->status == 'done')
+                                                        <span class="badge-modern badge-modern-secondary">
+                                                            <i class="fas fa-flag-checkered"></i> Selesai
+                                                        </span>
+                                                    @elseif($schedule->application->status == 'submitted')
+                                                        <span class="badge-modern badge-modern-warning">
+                                                            <i class="fas fa-clock"></i> Menunggu Verifikasi
+                                                        </span>
+                                                    @endif
+                                                @endif
+                                                
+                                                @if($schedule->schedule_type === 'mbkm_seminar')
+                                                    <span class="badge-modern badge-modern-primary">MBKM</span>
+                                                @else
+                                                    <span class="badge-modern badge-modern-success">Skripsi</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                    @can('application_schedule_edit')
-                                        <a class="btn btn-xs btn-info" href="{{ route('frontend.application-schedules.edit', $applicationSchedule->id) }}" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    @endcan
-
-                                    @can('application_schedule_delete')
-                                        <form action="{{ route('frontend.application-schedules.destroy', $applicationSchedule->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?');" style="display: inline-block;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-xs btn-danger" title="Hapus">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    @endcan
+                                    @if($schedule->notes)
+                                        <div class="mb-3">
+                                            <label class="text-muted mb-1">Catatan:</label>
+                                            <p class="text-muted mb-0">{{ $schedule->notes }}</p>
+                                        </div>
+                                    @endif
                                 </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+
+                                <div class="col-md-4 text-right">
+                                    <div class="d-flex flex-column gap-2">
+                                        @can('application_schedule_show')
+                                            <a href="{{ route('frontend.application-schedules.show', $schedule->id) }}" class="btn-modern btn-modern-primary">
+                                                <i class="fas fa-eye"></i> Lihat Detail
+                                            </a>
+                                        @endcan
+                                        
+                                        @can('application_schedule_edit')
+                                            @if($schedule->application && $schedule->application->status == 'submitted')
+                                                <a href="{{ route('frontend.application-schedules.edit', $schedule->id) }}" class="btn-modern btn-modern-outline">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            @endif
+                                        @endcan
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                <div class="card-modern">
+                    <div class="card-modern-body text-center py-5">
+                        <div style="width: 100px; height: 100px; background: var(--gray-100); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--spacing-4);">
+                            <i class="fas fa-calendar-alt fa-3x text-muted"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">Belum Ada Jadwal</h4>
+                        <p class="text-muted mb-4">Anda belum membuat jadwal seminar atau sidang</p>
+                        @can('application_schedule_create')
+                            <a href="{{ route('frontend.application-schedules.create') }}" class="btn-modern btn-modern-primary btn-modern-lg">
+                                <i class="fas fa-plus-circle"></i> Buat Jadwal Sekarang
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-@parent
-<script>
-    $(function () {
-  let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-@can('application_schedule_delete')
-  let deleteButtonTrans = 'Hapus yang dipilih'
-  let deleteButton = {
-    text: deleteButtonTrans,
-    url: "{{ route('frontend.application-schedules.massDestroy') }}",
-    className: 'btn-danger',
-    action: function (e, dt, node, config) {
-      var ids = $.map(dt.rows({ selected: true }).nodes(), function (entry) {
-          return $(entry).data('entry-id')
-      });
-
-      if (ids.length === 0) {
-        alert('Tidak ada data yang dipilih')
-        return
-      }
-
-      if (confirm('Yakin ingin menghapus ' + ids.length + ' data?')) {
-        $.ajax({
-          headers: {'x-csrf-token': _token},
-          method: 'POST',
-          url: config.url,
-          data: { ids: ids, _method: 'DELETE' }})
-          .done(function () { location.reload() })
-      }
-    }
-  }
-  dtButtons.push(deleteButton)
-@endcan
-
-  $.extend(true, $.fn.dataTable.defaults, {
-    orderCellsTop: true,
-    order: [[ 3, 'desc' ]],
-    pageLength: 25,
-  });
-  let table = $('.datatable-ApplicationSchedule:not(.ajaxTable)').DataTable({ buttons: dtButtons })
-  $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){
-      $($.fn.dataTable.tables(true)).DataTable()
-          .columns.adjust();
-  });
-  
-})
-
-</script>
 @endsection

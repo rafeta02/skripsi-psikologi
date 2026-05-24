@@ -72,15 +72,6 @@
                 <span class="help-block">{{ trans('cruds.applicationSchedule.fields.online_meeting_helper') }}</span>
             </div>
             <div class="form-group">
-                <label for="approval_form">{{ trans('cruds.applicationSchedule.fields.approval_form') }}</label>
-                <div class="needsclick dropzone {{ $errors->has('approval_form') ? 'is-invalid' : '' }}" id="approval_form-dropzone">
-                </div>
-                @if($errors->has('approval_form'))
-                    <span class="text-danger">{{ $errors->first('approval_form') }}</span>
-                @endif
-                <span class="help-block">{{ trans('cruds.applicationSchedule.fields.approval_form_helper') }}</span>
-            </div>
-            <div class="form-group">
                 <label for="note">{{ trans('cruds.applicationSchedule.fields.note') }}</label>
                 <textarea class="form-control {{ $errors->has('note') ? 'is-invalid' : '' }}" name="note" id="note">{{ old('note', $applicationSchedule->note) }}</textarea>
                 @if($errors->has('note'))
@@ -102,60 +93,4 @@
 @endsection
 
 @section('scripts')
-<script>
-    var uploadedApprovalFormMap = {}
-Dropzone.options.approvalFormDropzone = {
-    url: '{{ route('admin.application-schedules.storeMedia') }}',
-    maxFilesize: 10, // MB
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').append('<input type="hidden" name="approval_form[]" value="' + response.name + '">')
-      uploadedApprovalFormMap[file.name] = response.name
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedApprovalFormMap[file.name]
-      }
-      $('form').find('input[name="approval_form[]"][value="' + name + '"]').remove()
-    },
-    init: function () {
-@if(isset($applicationSchedule) && $applicationSchedule->approval_form)
-          var files =
-            {!! json_encode($applicationSchedule->approval_form) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="approval_form[]" value="' + file.file_name + '">')
-            }
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-
-         return _results
-     }
-}
-</script>
 @endsection

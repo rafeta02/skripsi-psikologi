@@ -1,297 +1,243 @@
-@extends('layouts.frontend')
+@extends('layouts.mahasiswa')
+
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-
-            <!-- Status Validasi Alert -->
-            @if($skripsiDefense->status === 'accepted')
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <h4 class="alert-heading"><i class="fas fa-check-circle mr-2"></i>Pendaftaran Diterima!</h4>
-                    <p>Selamat! Pendaftaran sidang skripsi Anda telah divalidasi dan diterima oleh admin.</p>
-                    @if($skripsiDefense->admin_note)
-                        <hr>
-                        <p class="mb-0"><strong>Catatan Admin:</strong> {{ $skripsiDefense->admin_note }}</p>
-                    @endif
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            @elseif($skripsiDefense->status === 'rejected')
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <h4 class="alert-heading"><i class="fas fa-times-circle mr-2"></i>Pendaftaran Ditolak</h4>
-                    <p>Mohon maaf, pendaftaran sidang skripsi Anda ditolak. Silakan perbaiki berdasarkan catatan di bawah ini dan daftar ulang.</p>
-                    @if($skripsiDefense->admin_note)
-                        <hr>
-                        <p class="mb-0"><strong>Alasan Penolakan:</strong> {{ $skripsiDefense->admin_note }}</p>
-                    @endif
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            @else
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <h4 class="alert-heading"><i class="fas fa-clock mr-2"></i>Menunggu Validasi</h4>
-                    <p class="mb-0">Pendaftaran sidang skripsi Anda sedang dalam proses validasi oleh admin. Mohon tunggu konfirmasi.</p>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            @endif
-
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-graduation-cap mr-2"></i>{{ trans('global.show') }} {{ trans('cruds.skripsiDefense.title') }}</h5>
-                </div>
-
-                <div class="card-body">
-                    <div class="form-group">
-                        <div class="form-group">
-                            <a class="btn btn-default" href="{{ route('frontend.skripsi-defenses.index') }}">
-                                <i class="fas fa-arrow-left mr-1"></i> {{ trans('global.back_to_list') }}
-                            </a>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card-modern" style="background: linear-gradient(135deg, #16a085 0%, #27ae60 100%); border: none;">
+                <div class="card-modern-body" style="padding: 2rem;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 text-white font-weight-bold">
+                                <i class="fas fa-graduation-cap mr-2"></i> Detail Sidang Skripsi
+                            </h2>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.9);">
+                                Informasi lengkap pendaftaran sidang
+                            </p>
                         </div>
-                        <table class="table table-bordered table-striped">
-                            <tbody>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.application') }}
-                                    </th>
-                                    <td>
-                                        {{ $skripsiDefense->application->status ?? '' }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.title') }}
-                                    </th>
-                                    <td>
-                                        {{ $skripsiDefense->title }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.abstract') }}
-                                    </th>
-                                    <td>
-                                        {{ $skripsiDefense->abstract }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.defence_document') }}
-                                    </th>
-                                    <td>
-                                        @if($skripsiDefense->defence_document)
-                                            <a href="{{ $skripsiDefense->defence_document->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.plagiarism_report') }}
-                                    </th>
-                                    <td>
-                                        @if($skripsiDefense->plagiarism_report)
-                                            <a href="{{ $skripsiDefense->plagiarism_report->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.ethics_statement') }}
-                                    </th>
-                                    <td>
-                                        @foreach($skripsiDefense->ethics_statement as $key => $media)
-                                            <a href="{{ $media->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.research_instruments') }}
-                                    </th>
-                                    <td>
-                                        @foreach($skripsiDefense->research_instruments as $key => $media)
-                                            <a href="{{ $media->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.data_collection_letter') }}
-                                    </th>
-                                    <td>
-                                        @foreach($skripsiDefense->data_collection_letter as $key => $media)
-                                            <a href="{{ $media->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.research_module') }}
-                                    </th>
-                                    <td>
-                                        @foreach($skripsiDefense->research_module as $key => $media)
-                                            <a href="{{ $media->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter') }}
-                                    </th>
-                                    <td>
-                                        @if($skripsiDefense->mbkm_recommendation_letter)
-                                            <a href="{{ $skripsiDefense->mbkm_recommendation_letter->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.publication_statement') }}
-                                    </th>
-                                    <td>
-                                        @if($skripsiDefense->publication_statement)
-                                            <a href="{{ $skripsiDefense->publication_statement->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.defense_approval_page') }}
-                                    </th>
-                                    <td>
-                                        @foreach($skripsiDefense->defense_approval_page as $key => $media)
-                                            <a href="{{ $media->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.spp_receipt') }}
-                                    </th>
-                                    <td>
-                                        @if($skripsiDefense->spp_receipt)
-                                            <a href="{{ $skripsiDefense->spp_receipt->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.krs_latest') }}
-                                    </th>
-                                    <td>
-                                        @if($skripsiDefense->krs_latest)
-                                            <a href="{{ $skripsiDefense->krs_latest->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.eap_certificate') }}
-                                    </th>
-                                    <td>
-                                        @if($skripsiDefense->eap_certificate)
-                                            <a href="{{ $skripsiDefense->eap_certificate->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.transcript') }}
-                                    </th>
-                                    <td>
-                                        @if($skripsiDefense->transcript)
-                                            <a href="{{ $skripsiDefense->transcript->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.mbkm_report') }}
-                                    </th>
-                                    <td>
-                                        @foreach($skripsiDefense->mbkm_report as $key => $media)
-                                            <a href="{{ $media->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.research_poster') }}
-                                    </th>
-                                    <td>
-                                        @foreach($skripsiDefense->research_poster as $key => $media)
-                                            <a href="{{ $media->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.siakad_supervisor_screenshot') }}
-                                    </th>
-                                    <td>
-                                        @if($skripsiDefense->siakad_supervisor_screenshot)
-                                            <a href="{{ $skripsiDefense->siakad_supervisor_screenshot->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        {{ trans('cruds.skripsiDefense.fields.supervision_logbook') }}
-                                    </th>
-                                    <td>
-                                        @foreach($skripsiDefense->supervision_logbook as $key => $media)
-                                            <a href="{{ $media->getUrl() }}" target="_blank">
-                                                {{ trans('global.view_file') }}
-                                            </a>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div class="form-group">
-                            <a class="btn btn-default" href="{{ route('frontend.skripsi-defenses.index') }}">
-                                {{ trans('global.back_to_list') }}
-                            </a>
+                        <div>
+                            @can('skripsi_defense_edit')
+                                @if($skripsiDefense->application && in_array($skripsiDefense->application->status, ['revision', 'submitted']))
+                                    <a href="{{ route('frontend.skripsi-defenses.edit', $skripsiDefense->id) }}" class="btn btn-light">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                @endif
+                            @endcan
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Content -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card-modern mb-4">
+                <div class="card-modern-body">
+                    <h4 class="font-weight-bold mb-3">Informasi Sidang</h4>
+                    
+                    <div class="mb-4">
+                        <label class="text-muted mb-1">Judul</label>
+                        <h5 class="font-weight-semibold">{{ $skripsiDefense->title ?? '-' }}</h5>
+                    </div>
+
+                    @if($skripsiDefense->abstract)
+                        <div class="mb-4">
+                            <label class="text-muted mb-1">Abstrak</label>
+                            <p class="text-justify">{{ $skripsiDefense->abstract }}</p>
+                        </div>
+                    @endif
+
+                    @if($skripsiDefense->notes)
+                        <div class="mb-4">
+                            <label class="text-muted mb-1">Catatan</label>
+                            <div class="alert alert-light">
+                                {{ $skripsiDefense->notes }}
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">Tanggal Dibuat</label>
+                            <p class="font-weight-semibold">
+                                {{ $skripsiDefense->created_at->format('d M Y H:i') }}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">Terakhir Diupdate</label>
+                            <p class="font-weight-semibold">
+                                {{ $skripsiDefense->updated_at->format('d M Y H:i') }}
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Documents -->
+            <div class="card-modern">
+                <div class="card-modern-body">
+                    <h4 class="font-weight-bold mb-3">Dokumen</h4>
+                    
+                    <div class="row">
+                        @if($skripsiDefense->defence_document)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                                        <h6 class="mb-2">Naskah Skripsi Final</h6>
+                                        <a href="{{ $skripsiDefense->defence_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($skripsiDefense->approval_document)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-pdf fa-3x text-success mb-3"></i>
+                                        <h6 class="mb-2">Persetujuan Pembimbing</h6>
+                                        <a href="{{ $skripsiDefense->approval_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($skripsiDefense->plagiarism_document)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-pdf fa-3x text-info mb-3"></i>
+                                        <h6 class="mb-2">Plagiarism Check Final</h6>
+                                        <a href="{{ $skripsiDefense->plagiarism_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($skripsiDefense->revision_document)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-pdf fa-3x text-warning mb-3"></i>
+                                        <h6 class="mb-2">Bukti Revisi</h6>
+                                        <a href="{{ $skripsiDefense->revision_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if(!$skripsiDefense->defence_document && !$skripsiDefense->approval_document && !$skripsiDefense->plagiarism_document && !$skripsiDefense->revision_document)
+                            <div class="col-12 text-center text-muted py-4">
+                                <i class="fas fa-folder-open fa-3x mb-3"></i>
+                                <p>Tidak ada dokumen terlampir</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Status -->
+            <div class="card-modern mb-4">
+                <div class="card-modern-body">
+                    <h5 class="font-weight-bold mb-3">Status</h5>
+                    
+                    @if($skripsiDefense->application)
+                        @if($skripsiDefense->application->status == 'submitted')
+                            <div class="alert alert-warning">
+                                <i class="fas fa-clock"></i> <strong>Menunggu Review</strong>
+                                <p class="mb-0 mt-2 small">Pendaftaran sedang dalam proses review</p>
+                            </div>
+                        @elseif($skripsiDefense->application->status == 'approved')
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> <strong>Disetujui</strong>
+                                <p class="mb-0 mt-2 small">Pendaftaran disetujui. Lanjutkan ke penjadwalan sidang.</p>
+                            </div>
+                        @elseif($skripsiDefense->application->status == 'scheduled')
+                            <div class="alert alert-info">
+                                <i class="fas fa-calendar-check"></i> <strong>Terjadwal</strong>
+                                <p class="mb-0 mt-2 small">Sidang telah dijadwalkan</p>
+                            </div>
+                        @elseif($skripsiDefense->application->status == 'revision')
+                            <div class="alert alert-warning">
+                                <i class="fas fa-edit"></i> <strong>Revisi</strong>
+                                <p class="mb-0 mt-2 small">Silakan lakukan revisi sesuai catatan</p>
+                            </div>
+                        @elseif($skripsiDefense->application->status == 'rejected')
+                            <div class="alert alert-danger">
+                                <i class="fas fa-times-circle"></i> <strong>Ditolak</strong>
+                                <p class="mb-0 mt-2 small">Pendaftaran tidak dapat disetujui</p>
+                            </div>
+                        @elseif($skripsiDefense->application->status == 'done')
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-flag-checkered"></i> <strong>Selesai</strong>
+                                <p class="mb-0 mt-2 small">Sidang telah selesai dilaksanakan</p>
+                            </div>
+                        @endif
+                    @else
+                        <div class="alert alert-secondary">
+                            <i class="fas fa-info-circle"></i> Status tidak tersedia
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Application Info -->
+            @if($skripsiDefense->application)
+                <div class="card-modern">
+                    <div class="card-modern-body">
+                        <h5 class="font-weight-bold mb-3">Informasi Aplikasi</h5>
+                        
+                        <div class="mb-3">
+                            <label class="text-muted mb-1">Tipe</label>
+                            <p class="font-weight-semibold text-uppercase">
+                                <span class="badge badge-{{ $skripsiDefense->application->type == 'mbkm' ? 'primary' : 'success' }}">
+                                    {{ $skripsiDefense->application->type }}
+                                </span>
+                            </p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-muted mb-1">Tahap</label>
+                            <p class="font-weight-semibold text-capitalize">
+                                <span class="badge badge-info">{{ $skripsiDefense->application->stage }}</span>
+                            </p>
+                        </div>
+
+                        @if($skripsiDefense->application->submitted_at)
+                            <div class="mb-3">
+                                <label class="text-muted mb-1">Tanggal Submit</label>
+                                <p class="font-weight-semibold">
+                                    {{ \Carbon\Carbon::parse($skripsiDefense->application->submitted_at)->format('d M Y H:i') }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="row mt-4">
+        <div class="col-lg-12">
+            <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Kembali ke Daftar
+            </a>
         </div>
     </div>
 </div>

@@ -72,41 +72,24 @@ class SkripsiSeminarController extends Controller
         
         $skripsiSeminar = SkripsiSeminar::create($data);
 
-        if ($request->input('proposal_document', false)) {
-            $skripsiSeminar->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('proposal_document'))),
-                'proposal_document'
-            );
+        // Handle file uploads - Direct upload (not via Dropzone temp)
+        if ($request->hasFile('proposal_document')) {
+            $skripsiSeminar->addMedia($request->file('proposal_document'))
+                ->toMediaCollection('proposal_document');
         }
 
-        if ($request->input('approval_document', false)) {
-            $skripsiSeminar->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('approval_document'))),
-                'approval_document'
-            );
+        if ($request->hasFile('approval_document')) {
+            $skripsiSeminar->addMedia($request->file('approval_document'))
+                ->toMediaCollection('approval_document');
         }
 
-        if ($request->input('plagiarism_document', false)) {
-            $skripsiSeminar->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))),
-                'plagiarism_document'
-            );
+        if ($request->hasFile('plagiarism_document')) {
+            $skripsiSeminar->addMedia($request->file('plagiarism_document'))
+                ->toMediaCollection('plagiarism_document');
         }
 
-        if ($media = $request->input('ck-media', false)) {
-            Media::whereIn('id', $media)->update(['model_id' => $skripsiSeminar->id]);
-        }
-
-        // Update the application stage and status
-        if ($request->input('application_id')) {
-            Application::where('id', $request->input('application_id'))->update([
-                'stage' => 'seminar',
-                'status' => 'submitted',
-                'submitted_at' => now(),
-            ]);
-        }
-
-        return redirect()->route('frontend.skripsi-seminars.index');
+        return redirect()->route('frontend.skripsi-seminars.index')
+            ->with('success', 'Pendaftaran seminar berhasil dikirim!');
     }
 
     public function edit(SkripsiSeminar $skripsiSeminar)
@@ -122,58 +105,31 @@ class SkripsiSeminarController extends Controller
     {
         $skripsiSeminar->update($request->all());
 
-        if ($request->input('proposal_document', false)) {
-            if (! $skripsiSeminar->proposal_document || $request->input('proposal_document') !== $skripsiSeminar->proposal_document->file_name) {
-                if ($skripsiSeminar->proposal_document) {
-                    $skripsiSeminar->proposal_document->delete();
-                }
-                $skripsiSeminar->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('proposal_document'))),
-                    'proposal_document'
-                );
-            }
-        } elseif ($skripsiSeminar->proposal_document) {
-            $skripsiSeminar->proposal_document->delete();
+        // Handle proposal document
+        if ($request->hasFile('proposal_document')) {
+            // Delete old document if exists
+            $skripsiSeminar->clearMediaCollection('proposal_document');
+            // Add new document
+            $skripsiSeminar->addMedia($request->file('proposal_document'))
+                ->toMediaCollection('proposal_document');
         }
 
-        if ($request->input('approval_document', false)) {
-            if (! $skripsiSeminar->approval_document || $request->input('approval_document') !== $skripsiSeminar->approval_document->file_name) {
-                if ($skripsiSeminar->approval_document) {
-                    $skripsiSeminar->approval_document->delete();
-                }
-                $skripsiSeminar->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('approval_document'))),
-                    'approval_document'
-                );
-            }
-        } elseif ($skripsiSeminar->approval_document) {
-            $skripsiSeminar->approval_document->delete();
+        // Handle approval document
+        if ($request->hasFile('approval_document')) {
+            $skripsiSeminar->clearMediaCollection('approval_document');
+            $skripsiSeminar->addMedia($request->file('approval_document'))
+                ->toMediaCollection('approval_document');
         }
 
-        if ($request->input('plagiarism_document', false)) {
-            if (! $skripsiSeminar->plagiarism_document || $request->input('plagiarism_document') !== $skripsiSeminar->plagiarism_document->file_name) {
-                if ($skripsiSeminar->plagiarism_document) {
-                    $skripsiSeminar->plagiarism_document->delete();
-                }
-                $skripsiSeminar->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('plagiarism_document'))),
-                    'plagiarism_document'
-                );
-            }
-        } elseif ($skripsiSeminar->plagiarism_document) {
-            $skripsiSeminar->plagiarism_document->delete();
+        // Handle plagiarism document
+        if ($request->hasFile('plagiarism_document')) {
+            $skripsiSeminar->clearMediaCollection('plagiarism_document');
+            $skripsiSeminar->addMedia($request->file('plagiarism_document'))
+                ->toMediaCollection('plagiarism_document');
         }
 
-        // Update the application stage and status
-        if ($request->input('application_id')) {
-            Application::where('id', $request->input('application_id'))->update([
-                'stage' => 'seminar',
-                'status' => 'submitted',
-                'submitted_at' => now(),
-            ]);
-        }
-
-        return redirect()->route('frontend.skripsi-seminars.index');
+        return redirect()->route('frontend.skripsi-seminars.index')
+            ->with('success', 'Pendaftaran seminar berhasil diupdate!');
     }
 
     public function show(SkripsiSeminar $skripsiSeminar)

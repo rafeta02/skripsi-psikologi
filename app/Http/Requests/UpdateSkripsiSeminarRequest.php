@@ -18,7 +18,7 @@ class UpdateSkripsiSeminarRequest extends FormRequest
     {
         return [
             'application_id' => [
-                'required',
+                'nullable',
                 'exists:applications,id',
             ],
             'title' => [
@@ -26,17 +26,31 @@ class UpdateSkripsiSeminarRequest extends FormRequest
                 'string',
                 'max:255',
             ],
-            'proposal_document' => [
-                'required',
+            'description' => [
+                'nullable',
                 'string',
+            ],
+            'notes' => [
+                'nullable',
+                'string',
+            ],
+            'proposal_document' => [
+                'nullable',
+                'file',
+                'mimes:pdf',
+                'max:10240', // 10MB
             ],
             'approval_document' => [
-                'required',
-                'string',
+                'nullable',
+                'file',
+                'mimes:pdf',
+                'max:10240',
             ],
             'plagiarism_document' => [
-                'required',
-                'string',
+                'nullable',
+                'file',
+                'mimes:pdf',
+                'max:10240',
             ],
         ];
     }
@@ -44,13 +58,18 @@ class UpdateSkripsiSeminarRequest extends FormRequest
     public function messages()
     {
         return [
-            'application_id.required' => 'Aplikasi skripsi wajib dipilih.',
             'application_id.exists' => 'Aplikasi skripsi tidak valid.',
             'title.required' => 'Judul proposal wajib diisi.',
             'title.max' => 'Judul proposal maksimal 255 karakter.',
-            'proposal_document.required' => 'Dokumen proposal wajib diupload.',
-            'approval_document.required' => 'Form persetujuan pembimbing wajib diupload.',
-            'plagiarism_document.required' => 'Hasil cek plagiarisme wajib diupload.',
+            'proposal_document.file' => 'Dokumen proposal harus berupa file.',
+            'proposal_document.mimes' => 'Dokumen proposal harus berformat PDF.',
+            'proposal_document.max' => 'Ukuran dokumen proposal maksimal 10MB.',
+            'approval_document.file' => 'Dokumen persetujuan harus berupa file.',
+            'approval_document.mimes' => 'Dokumen persetujuan harus berformat PDF.',
+            'approval_document.max' => 'Ukuran dokumen persetujuan maksimal 10MB.',
+            'plagiarism_document.file' => 'Dokumen plagiarism check harus berupa file.',
+            'plagiarism_document.mimes' => 'Dokumen plagiarism check harus berformat PDF.',
+            'plagiarism_document.max' => 'Ukuran dokumen plagiarism check maksimal 10MB.',
         ];
     }
 }

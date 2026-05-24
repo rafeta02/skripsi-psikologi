@@ -385,4 +385,26 @@ class ApplicationResultDefenseController extends Controller
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
     }
+
+    public function printScore(ApplicationResultDefense $applicationResultDefense)
+    {
+        // Check if user is authorized - either admin or the student who owns this defense result
+        $user = auth()->user();
+        
+        // Load relationships
+        $applicationResultDefense->load([
+            'application.mahasiswa',
+            'scores.examiner'
+        ]);
+        
+        // Check authorization - must be the student who owns this result or have show permission
+        if (!Gate::allows('application_result_defense_show')) {
+            if (!$user->mahasiswa || 
+                $applicationResultDefense->application->mahasiswa_id !== $user->mahasiswa->id) {
+                abort(Response::HTTP_FORBIDDEN, '403 Forbidden');
+            }
+        }
+        
+        return view('frontend.applicationResultDefenses.print-score', compact('applicationResultDefense'));
+    }
 }

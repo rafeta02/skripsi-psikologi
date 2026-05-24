@@ -1,0 +1,754 @@
+/**
+ * Form Components CSS
+ * Modern form styling with validation states
+ * Aplikasi Skripsi - Fakultas Psikologi UNS
+ */
+
+/* ========================================
+   1. Base Form Styling
+   ======================================== */
+
+.form-modern {
+    width: 100%;
+}
+
+.form-modern .form-group {
+    margin-bottom: var(--spacing-5);
+    position: relative;
+}
+
+.form-modern label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--gray-700);
+    margin-bottom: var(--spacing-2);
+    transition: color var(--transition-fast);
+}
+
+.form-modern label.required::after {
+    content: ' *';
+    color: var(--danger);
+    font-weight: var(--font-weight-bold);
+}
+
+/* ========================================
+   2. Text Inputs
+   ======================================== */
+
+.form-modern .form-control,
+.form-control-modern {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: var(--font-size-base);
+    font-family: var(--font-family-sans);
+    line-height: var(--line-height-normal);
+    color: var(--gray-900);
+    background-color: var(--white);
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    transition: all var(--transition-base);
+    outline: none;
+}
+
+.form-modern .form-control:focus,
+.form-control-modern:focus {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(34, 0, 76, 0.1);
+    background-color: var(--white);
+}
+
+.form-modern .form-control:hover:not(:disabled),
+.form-control-modern:hover:not(:disabled) {
+    border-color: var(--gray-400);
+}
+
+.form-modern .form-control:disabled,
+.form-control-modern:disabled {
+    background-color: var(--gray-100);
+    color: var(--gray-500);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.form-modern .form-control::placeholder,
+.form-control-modern::placeholder {
+    color: var(--gray-400);
+    font-size: var(--font-size-sm);
+}
+
+/* Input Sizes */
+.form-control-modern-sm {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+}
+
+.form-control-modern-lg {
+    padding: var(--spacing-4) var(--spacing-5);
+    font-size: var(--font-size-lg);
+}
+
+/* ========================================
+   3. Floating Label Inputs
+   ======================================== */
+
+.form-floating-modern {
+    position: relative;
+}
+
+.form-floating-modern input,
+.form-floating-modern textarea {
+    padding: var(--spacing-5) var(--spacing-4) var(--spacing-2);
+}
+
+.form-floating-modern label {
+    position: absolute;
+    top: 0;
+    left: var(--spacing-4);
+    height: 100%;
+    padding: var(--spacing-4) 0;
+    pointer-events: none;
+    border: none;
+    transform-origin: 0 0;
+    transition: all var(--transition-base);
+    color: var(--gray-500);
+    font-weight: var(--font-weight-normal);
+}
+
+.form-floating-modern input:focus ~ label,
+.form-floating-modern input:not(:placeholder-shown) ~ label,
+.form-floating-modern textarea:focus ~ label,
+.form-floating-modern textarea:not(:placeholder-shown) ~ label {
+    opacity: 0.65;
+    transform: scale(0.85) translateY(-0.75rem) translateX(0.15rem);
+    font-weight: var(--font-weight-semibold);
+    color: var(--primary-500);
+}
+
+/* ========================================
+   4. Textarea
+   ======================================== */
+
+.form-modern textarea.form-control,
+textarea.form-control-modern {
+    min-height: 120px;
+    resize: vertical;
+    font-family: var(--font-family-sans);
+}
+
+/* Auto-expanding textarea */
+.textarea-auto-expand {
+    overflow: hidden;
+    resize: none;
+}
+
+/* Character counter */
+.char-counter {
+    display: block;
+    text-align: right;
+    font-size: var(--font-size-xs);
+    color: var(--gray-500);
+    margin-top: var(--spacing-1);
+}
+
+.char-counter.near-limit {
+    color: var(--warning);
+    font-weight: var(--font-weight-semibold);
+}
+
+.char-counter.at-limit {
+    color: var(--danger);
+    font-weight: var(--font-weight-bold);
+}
+
+/* ========================================
+   5. Select Dropdowns
+   ======================================== */
+
+.form-modern select.form-control,
+select.form-control-modern {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23495057' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--spacing-4) center;
+    background-size: 12px;
+    padding-right: var(--spacing-10);
+}
+
+/* Select2 Enhancement */
+.select2-container--default .select2-selection--single {
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    height: auto;
+    padding: var(--spacing-3) var(--spacing-4);
+    transition: all var(--transition-base);
+}
+
+.select2-container--default .select2-selection--single:focus,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(34, 0, 76, 0.1);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding: 0;
+    line-height: var(--line-height-normal);
+    color: var(--gray-900);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 100%;
+    right: var(--spacing-2);
+}
+
+.select2-dropdown {
+    border: 2px solid var(--primary-500);
+    border-radius: var(--radius-base);
+    box-shadow: var(--shadow-lg);
+}
+
+.select2-results__option--highlighted {
+    background-color: var(--primary-500) !important;
+}
+
+/* ========================================
+   6. Checkboxes & Radio Buttons
+   ======================================== */
+
+/* Custom Checkbox */
+.form-check-modern {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding-left: 0;
+    margin-bottom: var(--spacing-3);
+}
+
+.form-check-modern input[type="checkbox"],
+.form-check-modern input[type="radio"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    background-color: var(--white);
+    cursor: pointer;
+    position: relative;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.form-check-modern input[type="radio"] {
+    border-radius: var(--radius-full);
+}
+
+.form-check-modern input[type="checkbox"]:hover,
+.form-check-modern input[type="radio"]:hover {
+    border-color: var(--primary-500);
+}
+
+.form-check-modern input[type="checkbox"]:checked,
+.form-check-modern input[type="radio"]:checked {
+    background-color: var(--primary-500);
+    border-color: var(--primary-500);
+}
+
+.form-check-modern input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.form-check-modern input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background-color: white;
+}
+
+.form-check-modern label {
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+    color: var(--gray-700);
+    font-weight: var(--font-weight-normal);
+}
+
+.form-check-modern input:disabled ~ label {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   7. File Upload
+   ======================================== */
+
+.file-upload-modern {
+    position: relative;
+}
+
+.file-upload-wrapper {
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-8);
+    text-align: center;
+    transition: all var(--transition-base);
+    background: var(--gray-50);
+    cursor: pointer;
+}
+
+.file-upload-wrapper:hover {
+    border-color: var(--primary-500);
+    background: var(--primary-50);
+}
+
+.file-upload-wrapper.dragover {
+    border-color: var(--primary-500);
+    background: var(--primary-100);
+    transform: scale(1.02);
+}
+
+.file-upload-wrapper input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.file-upload-icon {
+    font-size: var(--font-size-5xl);
+    color: var(--gray-400);
+    margin-bottom: var(--spacing-3);
+}
+
+.file-upload-text {
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+}
+
+.file-upload-text strong {
+    color: var(--primary-500);
+    font-weight: var(--font-weight-semibold);
+}
+
+.file-upload-hint {
+    font-size: var(--font-size-xs);
+    color: var(--gray-500);
+    margin-top: var(--spacing-2);
+}
+
+/* File Preview */
+.file-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-4);
+}
+
+.file-preview-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: var(--radius-base);
+    overflow: hidden;
+    border: 2px solid var(--gray-200);
+    background: var(--gray-100);
+}
+
+.file-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.file-preview-remove {
+    position: absolute;
+    top: var(--spacing-1);
+    right: var(--spacing-1);
+    width: 24px;
+    height: 24px;
+    background: var(--danger);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+    transition: all var(--transition-fast);
+}
+
+.file-preview-remove:hover {
+    background: var(--danger-dark);
+    transform: scale(1.1);
+}
+
+/* File Progress Bar */
+.file-upload-progress {
+    margin-top: var(--spacing-3);
+}
+
+.progress-modern {
+    height: 8px;
+    background-color: var(--gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progress-modern-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-500), var(--secondary-500));
+    border-radius: var(--radius-full);
+    transition: width var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-modern-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ========================================
+   8. Date Picker Enhancement
+   ======================================== */
+
+.datepicker-modern {
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    box-shadow: var(--shadow-lg);
+}
+
+.datepicker-modern .datepicker-header {
+    background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+    color: var(--white);
+    border-radius: var(--radius-base) var(--radius-base) 0 0;
+}
+
+.datepicker-modern .datepicker-cell.is-selected {
+    background-color: var(--primary-500);
+    color: var(--white);
+}
+
+.datepicker-modern .datepicker-cell:hover {
+    background-color: var(--primary-100);
+}
+
+/* ========================================
+   9. Validation States
+   ======================================== */
+
+/* Success State */
+.form-modern .form-group.is-valid .form-control,
+.form-control-modern.is-valid {
+    border-color: var(--success);
+    padding-right: var(--spacing-10);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2328a745'%3E%3Cpath d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--spacing-3) center;
+    background-size: 20px;
+}
+
+.form-modern .form-group.is-valid label {
+    color: var(--success);
+}
+
+.form-modern .form-group.is-valid .form-control:focus,
+.form-control-modern.is-valid:focus {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.valid-feedback-modern {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--success);
+    font-weight: var(--font-weight-medium);
+}
+
+.valid-feedback-modern::before {
+    content: '✓';
+    font-weight: var(--font-weight-bold);
+}
+
+/* Error State */
+.form-modern .form-group.is-invalid .form-control,
+.form-control-modern.is-invalid {
+    border-color: var(--danger);
+    padding-right: var(--spacing-10);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23dc3545'%3E%3Cpath d='M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zM4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--spacing-3) center;
+    background-size: 20px;
+}
+
+.form-modern .form-group.is-invalid label {
+    color: var(--danger);
+}
+
+.form-modern .form-group.is-invalid .form-control:focus,
+.form-control-modern.is-invalid:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.invalid-feedback-modern {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--danger);
+    font-weight: var(--font-weight-medium);
+}
+
+.invalid-feedback-modern::before {
+    content: '✕';
+    font-weight: var(--font-weight-bold);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Help Text */
+.help-text-modern {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    line-height: var(--line-height-relaxed);
+}
+
+.help-text-modern::before {
+    content: 'ℹ';
+    color: var(--info);
+    font-weight: var(--font-weight-bold);
+    flex-shrink: 0;
+}
+
+/* ========================================
+   10. Input Groups
+   ======================================== */
+
+.input-group-modern {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+}
+
+.input-group-modern .form-control {
+    flex: 1;
+    border-radius: 0;
+}
+
+.input-group-modern .form-control:first-child {
+    border-radius: var(--radius-base) 0 0 var(--radius-base);
+}
+
+.input-group-modern .form-control:last-child {
+    border-radius: 0 var(--radius-base) var(--radius-base) 0;
+}
+
+.input-group-prepend,
+.input-group-append {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-3) var(--spacing-4);
+    background: var(--gray-100);
+    border: 2px solid var(--gray-300);
+    color: var(--gray-700);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+}
+
+.input-group-prepend {
+    border-right: none;
+    border-radius: var(--radius-base) 0 0 var(--radius-base);
+}
+
+.input-group-append {
+    border-left: none;
+    border-radius: 0 var(--radius-base) var(--radius-base) 0;
+}
+
+/* ========================================
+   11. Search Input
+   ======================================== */
+
+.search-input-modern {
+    position: relative;
+}
+
+.search-input-modern input {
+    padding-left: var(--spacing-10);
+}
+
+.search-input-modern::before {
+    content: '🔍';
+    position: absolute;
+    left: var(--spacing-4);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    font-size: var(--font-size-lg);
+    pointer-events: none;
+}
+
+.search-input-modern input:focus ~ .search-icon {
+    color: var(--primary-500);
+}
+
+/* ========================================
+   12. Toggle Switch
+   ======================================== */
+
+.toggle-switch-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    cursor: pointer;
+}
+
+.toggle-switch-modern input[type="checkbox"] {
+    appearance: none;
+    width: 48px;
+    height: 24px;
+    background: var(--gray-300);
+    border-radius: var(--radius-full);
+    position: relative;
+    cursor: pointer;
+    transition: background-color var(--transition-base);
+}
+
+.toggle-switch-modern input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    top: 2px;
+    left: 2px;
+    background: var(--white);
+    transition: transform var(--transition-base);
+    box-shadow: var(--shadow-sm);
+}
+
+.toggle-switch-modern input[type="checkbox"]:checked {
+    background: var(--primary-500);
+}
+
+.toggle-switch-modern input[type="checkbox"]:checked::before {
+    transform: translateX(24px);
+}
+
+.toggle-switch-modern label {
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ========================================
+   13. Range Slider
+   ======================================== */
+
+.range-slider-modern {
+    width: 100%;
+}
+
+.range-slider-modern input[type="range"] {
+    width: 100%;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--gray-200);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.range-slider-modern input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    background: var(--primary-500);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.range-slider-modern input[type="range"]::-webkit-slider-thumb:hover {
+    background: var(--primary-600);
+    transform: scale(1.2);
+}
+
+.range-slider-modern input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    background: var(--primary-500);
+    cursor: pointer;
+    border: none;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.range-slider-modern input[type="range"]::-moz-range-thumb:hover {
+    background: var(--primary-600);
+    transform: scale(1.2);
+}
+
+/* ========================================
+   14. Responsive Design
+   ======================================== */
+
+@media (max-width: 768px) {
+    .form-modern .form-control,
+    .form-control-modern {
+        font-size: var(--font-size-base);
+    }
+    
+    .file-upload-wrapper {
+        padding: var(--spacing-6);
+    }
+    
+    .file-upload-icon {
+        font-size: var(--font-size-3xl);
+    }
+    
+    .file-preview-item {
+        width: 80px;
+        height: 80px;
+    }
+}
+

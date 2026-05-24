@@ -293,15 +293,31 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="font-weight-bold">Berita Acara:</label>
-                                @if($result->report_document)
-                                    <div class="btn-group-vertical d-block">
-                                        <a href="{{ $result->report_document->getUrl() }}" target="_blank" class="btn btn-sm btn-primary mb-1">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        <a href="{{ $result->report_document->getUrl() }}" download class="btn btn-sm btn-success">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
+                                @if($result->report_document && count($result->report_document) > 0)
+                                    @if(is_object($result->report_document) && method_exists($result->report_document, 'getUrl'))
+                                        {{-- Single file --}}
+                                        <div class="btn-group-vertical d-block">
+                                            <a href="{{ $result->report_document->getUrl() }}" target="_blank" class="btn btn-sm btn-primary mb-1">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <a href="{{ $result->report_document->getUrl() }}" download class="btn btn-sm btn-success">
+                                                <i class="fas fa-download"></i> Download
+                                            </a>
+                                        </div>
+                                    @else
+                                        {{-- Multiple files --}}
+                                        @foreach($result->report_document as $index => $media)
+                                            <div class="btn-group-vertical d-block mb-2">
+                                                <small class="font-weight-bold">Dokumen {{ $index + 1 }}</small>
+                                                <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-primary mb-1">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                                <a href="{{ $media->getUrl() }}" download class="btn btn-sm btn-success">
+                                                    <i class="fas fa-download"></i> Download
+                                                </a>
+                                            </div>
+                                        @endforeach
+                                    @endif
                                 @else
                                     <p class="text-muted">Belum ada</p>
                                 @endif

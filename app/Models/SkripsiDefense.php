@@ -162,4 +162,23 @@ class SkripsiDefense extends Model implements HasMedia
     {
         return $this->belongsTo(User::class, 'created_by_id');
     }
+
+    public function examiners()
+    {
+        return $this->hasMany(SkripsiDefenseExaminer::class, 'skripsi_defense_id');
+    }
+
+    public function examiner1()
+    {
+        return $this->hasOne(SkripsiDefenseExaminer::class, 'skripsi_defense_id')
+            ->where('role', 'examiner_1')
+            ->with('dosen');
+    }
+
+    public function examiner2()
+    {
+        return $this->hasOne(SkripsiDefenseExaminer::class, 'skripsi_defense_id')
+            ->where('role', 'examiner_2')
+            ->with('dosen');
+    }
 }

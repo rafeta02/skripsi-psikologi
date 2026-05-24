@@ -81,7 +81,24 @@ class Application extends Model implements HasMedia
 
     public function setSubmittedAtAttribute($value)
     {
-        $this->attributes['submitted_at'] = $value ? Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s') : null;
+        if (!$value) {
+            $this->attributes['submitted_at'] = null;
+            return;
+        }
+        
+        // If value is already a Carbon instance or DateTime
+        if ($value instanceof \DateTimeInterface) {
+            $this->attributes['submitted_at'] = $value->format('Y-m-d H:i:s');
+            return;
+        }
+        
+        // If value is a string, try to parse it
+        try {
+            $this->attributes['submitted_at'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            // If parsing fails, try standard parse
+            $this->attributes['submitted_at'] = Carbon::parse($value)->format('Y-m-d H:i:s');
+        }
     }
 
     public function actions()

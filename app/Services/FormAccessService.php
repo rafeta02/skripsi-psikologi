@@ -213,9 +213,9 @@ class FormAccessService
     {
         // Must have completed and approved seminar
         $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
-            ->whereIn('type', ['skripsi', 'mbkm'])
-            ->where('stage', 'seminar')
-            ->where('status', 'approved')
+            // ->whereIn('type', ['skripsi', 'mbkm'])
+            // ->whereIn('stage', ['seminar', 'review'])
+            // ->where('status', 'approved')
             ->first();
 
         if (!$seminarApp) {
@@ -226,41 +226,41 @@ class FormAccessService
             ];
         }
 
-        // Check if seminar result is approved
-        $seminarResult = ApplicationResultSeminar::where('application_id', $seminarApp->id)
-            ->first();
+        // // Check if seminar result is approved
+        // $seminarResult = ApplicationResultSeminar::where('application_id', $seminarApp->id)
+        //     ->first();
 
-        if (!$seminarResult) {
-            return [
-                'allowed' => false,
-                'message' => 'Hasil seminar proposal Anda belum diinput oleh admin.',
-                'application' => $seminarApp
-            ];
-        }
+        // if (!$seminarResult) {
+        //     return [
+        //         'allowed' => false,
+        //         'message' => 'Hasil seminar proposal Anda belum diinput oleh admin.',
+        //         'application' => $seminarApp
+        //     ];
+        // }
 
-        // If seminar result is "failed", cannot proceed to defense
-        if ($seminarResult->result === 'failed') {
-            return [
-                'allowed' => false,
-                'message' => 'Anda harus mengulang seminar proposal terlebih dahulu.',
-                'application' => $seminarApp
-            ];
-        }
+        // // If seminar result is "failed", cannot proceed to defense
+        // if ($seminarResult->result === 'failed') {
+        //     return [
+        //         'allowed' => false,
+        //         'message' => 'Anda harus mengulang seminar proposal terlebih dahulu.',
+        //         'application' => $seminarApp
+        //     ];
+        // }
 
-        // Check if defense already exists
-        $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
-            ->whereIn('type', ['skripsi', 'mbkm'])
-            ->where('stage', 'defense')
-            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
-            ->first();
+        // // Check if defense already exists
+        // $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
+        //     ->whereIn('type', ['skripsi', 'mbkm'])
+        //     ->where('stage', 'defense')
+        //     ->whereIn('status', ['submitted', 'approved', 'scheduled'])
+        //     ->first();
 
-        if ($defenseApp) {
-            return [
-                'allowed' => false,
-                'message' => 'Anda sudah mendaftar sidang skripsi. Tunggu proses persetujuan.',
-                'application' => $seminarApp
-            ];
-        }
+        // if ($defenseApp) {
+        //     return [
+        //         'allowed' => false,
+        //         'message' => 'Anda sudah mendaftar sidang skripsi. Tunggu proses persetujuan.',
+        //         'application' => $seminarApp
+        //     ];
+        // }
 
         return [
             'allowed' => true,

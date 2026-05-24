@@ -163,7 +163,8 @@ class SkripsiDefenseController extends Controller
             Media::whereIn('id', $media)->update(['model_id' => $skripsiDefense->id]);
         }
 
-        return redirect()->route('frontend.skripsi-defenses.index');
+        return redirect()->route('frontend.skripsi-defenses.index')
+            ->with('success', 'Pendaftaran sidang skripsi berhasil disimpan! Silakan tunggu konfirmasi dari admin.');
     }
 
     public function edit(SkripsiDefense $skripsiDefense)
@@ -407,7 +408,8 @@ class SkripsiDefenseController extends Controller
             }
         }
 
-        return redirect()->route('frontend.skripsi-defenses.index');
+        return redirect()->route('frontend.skripsi-defenses.index')
+            ->with('success', 'Data sidang skripsi berhasil diperbarui!');
     }
 
     public function show(SkripsiDefense $skripsiDefense)
@@ -425,7 +427,7 @@ class SkripsiDefenseController extends Controller
 
         $skripsiDefense->delete();
 
-        return back();
+        return back()->with('success', 'Data sidang skripsi berhasil dihapus!');
     }
 
     public function massDestroy(MassDestroySkripsiDefenseRequest $request)

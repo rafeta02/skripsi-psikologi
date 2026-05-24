@@ -50,6 +50,30 @@ class ApplicationScoreController extends Controller
                 return $row->examiner ? $row->examiner->nama : '';
             });
 
+            $table->editColumn('penulisan', function ($row) {
+                return $row->penulisan ? $row->penulisan : '';
+            });
+            $table->editColumn('isi', function ($row) {
+                return $row->isi ? $row->isi : '';
+            });
+            $table->editColumn('analisis', function ($row) {
+                return $row->analisis ? $row->analisis : '';
+            });
+            $table->editColumn('teoritis', function ($row) {
+                return $row->teoritis ? $row->teoritis : '';
+            });
+            $table->editColumn('faktual', function ($row) {
+                return $row->faktual ? $row->faktual : '';
+            });
+            $table->editColumn('pemecahan_masalah', function ($row) {
+                return $row->pemecahan_masalah ? $row->pemecahan_masalah : '';
+            });
+            $table->editColumn('penyampaian', function ($row) {
+                return $row->penyampaian ? $row->penyampaian : '';
+            });
+            $table->editColumn('sum', function ($row) {
+                return $row->sum ? $row->sum : '';
+            });
             $table->editColumn('score', function ($row) {
                 return $row->score ? $row->score : '';
             });

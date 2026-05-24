@@ -1,25 +1,35 @@
-<aside class="main-sidebar sidebar-dark-primary elevation-4" style="min-height: 917px;">
+<aside class="main-sidebar elevation-4" style="min-height: 100vh;">
     <!-- Brand Logo -->
-    <a href="{{ route('dosen.dashboard') }}" class="brand-link">
-        <span class="brand-text font-weight-light">{{ trans('panel.site_title') }}</span>
+    <a href="{{ route('dosen.dashboard') }}" class="brand-link d-flex align-items-center">
+        <div style="width: 40px; height: 40px; background: white; border-radius: var(--radius-base); padding: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+            <img src="{{ asset('img/logo-uns.png') }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <span class="brand-text">SIMSKRIPSI</span>
     </a>
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <!-- Sidebar user (optional) -->
-        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <!-- Sidebar user panel -->
+        <div class="user-panel d-flex align-items-center">
             <div class="image">
                 <img src="{{ asset('img/user.png') }}" class="img-circle elevation-2" alt="User Image">
             </div>
-            <div class="info">
+            <div class="info flex-grow-1">
                 <a href="{{ route('dosen.profile') }}" class="d-block">{{ Auth::user()->name }}</a>
-                <small class="text-muted">Dosen</small>
+                <small style="color: rgba(255, 255, 255, 0.8); font-size: var(--font-size-xs);">
+                    <i class="fas fa-chalkboard-teacher mr-1"></i> Dosen
+                </small>
             </div>
         </div>
 
         <!-- Sidebar Menu -->
-        <nav class="mt-2">
+        <nav style="margin-top: var(--spacing-6); padding-bottom: var(--spacing-6);">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                
+                <!-- Main Section -->
+                <li class="nav-header" style="color: rgba(255, 255, 255, 0.5); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 1px; padding: var(--spacing-4) var(--spacing-4) var(--spacing-2);">
+                    Main Menu
+                </li>
                 
                 <!-- Dashboard -->
                 <li class="nav-item">
@@ -27,6 +37,11 @@
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>Dashboard</p>
                     </a>
+                </li>
+
+                <!-- Management Section -->
+                <li class="nav-header" style="color: rgba(255, 255, 255, 0.5); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 1px; padding: var(--spacing-4) var(--spacing-4) var(--spacing-2); margin-top: var(--spacing-3);">
+                    Management
                 </li>
 
                 <!-- Mahasiswa Bimbingan -->
@@ -51,6 +66,11 @@
                         <i class="nav-icon fas fa-star"></i>
                         <p>Application Scores</p>
                     </a>
+                </li>
+
+                <!-- Account Section -->
+                <li class="nav-header" style="color: rgba(255, 255, 255, 0.5); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 1px; padding: var(--spacing-4) var(--spacing-4) var(--spacing-2); margin-top: var(--spacing-3);">
+                    Account
                 </li>
 
                 <!-- Profile -->

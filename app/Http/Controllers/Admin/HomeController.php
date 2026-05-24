@@ -2,46 +2,91 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Application;
+use App\Models\ApplicationAssignment;
+use App\Models\SkripsiRegistration;
+use App\Models\MbkmRegistration;
+use App\Models\SkripsiSeminar;
+use App\Models\MbkmSeminar;
+use App\Models\SkripsiDefense;
+use App\Models\Mahasiswa;
+use App\Models\Dosen;
 use LaravelDaily\LaravelCharts\Classes\LaravelChart;
 
 class HomeController
 {
     public function index()
     {
-        $settings1 = [
-            'chart_title'           => 'Postingan Terakhir',
-            'chart_type'            => 'latest_entries',
-            'report_type'           => 'group_by_date',
-            'model'                 => 'App\Models\Post',
-            'group_by_field'        => 'created_at',
-            'group_by_period'       => 'day',
-            'aggregate_function'    => 'count',
-            'filter_field'          => 'created_at',
-            'group_by_field_format' => 'd-m-Y H:i:s',
-            'column_class'          => 'col-md-12',
-            'entries_number'        => '5',
-            'fields'                => [
-                'title'    => '',
-                'excerpt'  => '',
-                'category' => 'name',
-                'tag'      => 'name',
-                'status'   => '',
-                'author'   => 'name',
-            ],
-            'translation_key' => 'post',
+        // Thesis System Statistics
+        $stats = [
+            'total_applications' => Application::count(),
+            'pending_verifications' => Application::where('status', 'submitted')->count(),
+            'approved_applications' => Application::where('status', 'approved')->count(),
+            'ongoing_defenses' => Application::where('stage', 'defense')->whereIn('status', ['submitted', 'approved', 'scheduled'])->count(),
+            'total_mahasiswa' => Mahasiswa::count(),
+            'total_dosen' => Dosen::count(),
+            'pending_assignments' => ApplicationAssignment::where('status', 'assigned')->count(),
         ];
 
-        $settings1['data'] = [];
-        if (class_exists($settings1['model'])) {
-            $settings1['data'] = $settings1['model']::latest()
-                ->take($settings1['entries_number'])
-                ->get();
-        }
+        // Applications by Type
+        $applicationsByType = [
+            'skripsi' => Application::where('type', 'skripsi')->count(),
+            'mbkm' => Application::where('type', 'mbkm')->count(),
+        ];
 
-        if (! array_key_exists('fields', $settings1)) {
-            $settings1['fields'] = [];
-        }
+        // Applications by Stage
+        $applicationsByStage = [
+            'registration' => Application::where('stage', 'registration')->count(),
+            'seminar' => Application::where('stage', 'seminar')->count(),
+            'defense' => Application::where('stage', 'defense')->count(),
+        ];
 
-        return view('home', compact('settings1'));
+        // Recent Applications
+        $recentApplications = Application::with(['mahasiswa.user', 'skripsiRegistration', 'mbkmRegistration'])
+            ->latest()
+            ->take(10)
+            ->get();
+
+        // Pending Verifications
+        $pendingRegistrations = SkripsiRegistration::whereHas('application', function($q) {
+            $q->where('status', 'submitted');
+        })->count() + MbkmRegistration::whereHas('application', function($q) {
+            $q->where('status', 'submitted');
+        })->count();
+
+        $pendingSeminars = SkripsiSeminar::whereHas('application', function($q) {
+            $q->where('status', 'submitted');
+        })->count() + MbkmSeminar::whereHas('application', function($q) {
+            $q->where('status', 'submitted');
+        })->count();
+
+        $pendingDefenses = SkripsiDefense::whereHas('application', function($q) {
+            $q->where('status', 'submitted');
+        })->count();
+
+        return view('home', compact(
+            'stats',
+            'applicationsByType',
+            'applicationsByStage',
+            'recentApplications',
+            'pendingRegistrations',
+            'pendingSeminars',
+            'pendingDefenses'
+        ));
+    }
+
+    public function monitoring()
+    {
+        $applications = Application::with([
+            'mahasiswa.user',
+            'mahasiswa.prodi',
+            'skripsiRegistration',
+            'mbkmRegistration',
+            'assignments.dosen'
+        ])
+        ->latest()
+        ->paginate(20);
+
+        return view('admin.monitoring', compact('applications'));
     }
 }

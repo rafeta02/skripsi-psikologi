@@ -37,15 +37,6 @@ class UpdateApplicationScheduleRequest extends FormRequest
                 'string',
                 'nullable',
             ],
-            'approval_form' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'approval_form.*' => [
-                'required',
-                'string',
-            ],
         ];
     }
 
@@ -58,8 +49,6 @@ class UpdateApplicationScheduleRequest extends FormRequest
             'schedule_type.in' => 'Tipe jadwal tidak valid. Pilih salah satu: Seminar atau Sidang.',
             'waktu.required' => 'Waktu pelaksanaan wajib diisi.',
             'waktu.date_format' => 'Format waktu tidak valid.',
-            'approval_form.required' => 'Form persetujuan wajib diupload.',
-            'approval_form.min' => 'Minimal 1 form persetujuan harus diupload.',
         ];
     }
 }

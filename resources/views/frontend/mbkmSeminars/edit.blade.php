@@ -1,250 +1,148 @@
-@extends('layouts.frontend')
+@extends('layouts.mahasiswa')
+
 @section('content')
-<link rel="stylesheet" href="{{ asset('css/modern-form.css') }}">
 <div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="form-card">
-                <div class="form-header">
-                    <h2>Edit Pendaftaran Seminar Proposal MBKM</h2>
-                    <p>Perbarui data pendaftaran seminar proposal MBKM Anda</p>
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card-modern" style="background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%); border: none;">
+                <div class="card-modern-body" style="padding: 2rem;">
+                    <h2 class="mb-1 text-white font-weight-bold">
+                        <i class="fas fa-edit mr-2"></i> Edit Pendaftaran Seminar MBKM
+                    </h2>
+                    <p class="mb-0" style="color: rgba(255,255,255,0.9);">
+                        Update informasi pendaftaran seminar MBKM
+                    </p>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <form method="POST" action="{{ route("frontend.mbkm-seminars.update", [$mbkmSeminar->id]) }}" enctype="multipart/form-data">
-                    @method('PUT')
-                    @csrf
-                    
-                    <div class="form-body">
-                        <div class="info-box warning">
-                            <div class="info-box-title">Mode Edit</div>
-                            <div class="info-box-text">
-                                Pastikan semua perubahan dokumen sudah dikonfirmasi dengan dosen pembimbing sebelum menyimpan.
-                            </div>
-                        </div>
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card-modern">
+                <div class="card-modern-body">
+                    <form action="{{ route('frontend.mbkm-seminars.update', $mbkmSeminar->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+                        
+                        <input type="hidden" name="application_id" value="{{ $mbkmSeminar->application_id ?? '' }}">
 
-                        <!-- Informasi Aplikasi (Read-Only) -->
-                        <div class="info-box info mb-4">
-                            <div class="info-box-title">
-                                <i class="fas fa-info-circle mr-2"></i> Informasi Aplikasi MBKM
-                            </div>
-                            <div class="info-box-text">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <strong>Mahasiswa:</strong> {{ $mbkmSeminar->application->mahasiswa->nama ?? '-' }}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <strong>NIM:</strong> {{ $mbkmSeminar->application->mahasiswa->nim ?? '-' }}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <strong>Type:</strong> <span class="badge badge-info">{{ strtoupper($mbkmSeminar->application->type ?? '-') }}</span>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <strong>Status:</strong> <span class="badge badge-success">{{ ucfirst($mbkmSeminar->application->status ?? '-') }}</span>
-                                    </div>
-                                </div>
-                                <small class="text-muted mt-2 d-block"><i class="fas fa-lock mr-1"></i>Aplikasi tidak dapat diubah</small>
-                            </div>
-                        </div>
-
+                        <!-- Title -->
                         <div class="form-group">
-                            <label for="title">Judul Proposal <span class="required">*</span></label>
-                            <input class="form-control" type="text" name="title" id="title" value="{{ old('title', $mbkmSeminar->title) }}" required>
-                            @if($errors->has('title'))
-                                <span class="text-danger small">{{ $errors->first('title') }}</span>
-                            @endif
+                            <label class="form-label-modern required">Judul MBKM</label>
+                            <input type="text" name="title" class="form-control-modern @error('title') is-invalid @enderror" value="{{ old('title', $mbkmSeminar->title) }}" required>
+                            @error('title')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
+                        <!-- Description -->
                         <div class="form-group">
-                            <label for="proposal_document">Dokumen Proposal <span class="required">*</span></label>
-                            <div class="needsclick dropzone" id="proposal_document-dropzone">
-                                <div class="dz-message">
-                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
-                                    <p>Klik atau seret file ke sini</p>
-                                    <small>PDF dokumen proposal (maksimal 25 MB)</small>
-                                </div>
-                            </div>
-                            @if($errors->has('proposal_document'))
-                                <span class="text-danger small">{{ $errors->first('proposal_document') }}</span>
-                            @endif
+                            <label class="form-label-modern">Deskripsi / Abstrak</label>
+                            <textarea name="description" class="form-control-modern @error('description') is-invalid @enderror" rows="5">{{ old('description', $mbkmSeminar->description) }}</textarea>
+                            <small class="form-text text-muted">Jelaskan secara singkat tentang MBKM Anda</small>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
+                        <!-- Proposal Document -->
                         <div class="form-group">
-                            <label for="approval_document">Form Persetujuan Pembimbing <span class="required">*</span></label>
-                            <div class="needsclick dropzone" id="approval_document-dropzone">
-                                <div class="dz-message">
-                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
-                                    <p>Klik atau seret file ke sini</p>
-                                    <small>PDF form persetujuan (maksimal 10 MB)</small>
+                            <label class="form-label-modern">Dokumen Proposal MBKM (PDF)</label>
+                            @if($mbkmSeminar->proposal_document)
+                                <div class="mb-2">
+                                    <a href="{{ $mbkmSeminar->proposal_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-file-pdf"></i> Lihat Dokumen Saat Ini
+                                    </a>
                                 </div>
-                            </div>
-                            @if($errors->has('approval_document'))
-                                <span class="text-danger small">{{ $errors->first('approval_document') }}</span>
                             @endif
+                            <div class="custom-file">
+                                <input type="file" name="proposal_document" class="custom-file-input @error('proposal_document') is-invalid @enderror" id="proposalDocument" accept=".pdf">
+                                <label class="custom-file-label" for="proposalDocument">{{ $mbkmSeminar->proposal_document ? 'Ganti file...' : 'Pilih file...' }}</label>
+                            </div>
+                            <small class="form-text text-muted">Upload dokumen proposal baru jika ingin mengganti (Max: 10MB)</small>
+                            @error('proposal_document')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
+                        <!-- Approval Document -->
                         <div class="form-group">
-                            <label for="plagiarism_document">Hasil Cek Plagiarisme <span class="required">*</span></label>
-                            <div class="needsclick dropzone" id="plagiarism_document-dropzone">
-                                <div class="dz-message">
-                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
-                                    <p>Klik atau seret file ke sini</p>
-                                    <small>PDF hasil cek plagiarisme (maksimal 10 MB)</small>
+                            <label class="form-label-modern">Dokumen Persetujuan Pembimbing (PDF)</label>
+                            @if($mbkmSeminar->approval_document)
+                                <div class="mb-2">
+                                    <a href="{{ $mbkmSeminar->approval_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-file-pdf"></i> Lihat Dokumen Saat Ini
+                                    </a>
                                 </div>
-                            </div>
-                            @if($errors->has('plagiarism_document'))
-                                <span class="text-danger small">{{ $errors->first('plagiarism_document') }}</span>
                             @endif
+                            <div class="custom-file">
+                                <input type="file" name="approval_document" class="custom-file-input @error('approval_document') is-invalid @enderror" id="approvalDocument" accept=".pdf">
+                                <label class="custom-file-label" for="approvalDocument">{{ $mbkmSeminar->approval_document ? 'Ganti file...' : 'Pilih file...' }}</label>
+                            </div>
+                            <small class="form-text text-muted">Upload surat persetujuan dari pembimbing (opsional)</small>
+                            @error('approval_document')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                    </div>
 
-                    <div class="form-actions">
-                        <a href="{{ route('frontend.mbkm-seminars.index') }}" class="btn-back">
-                            <i class="fas fa-arrow-left mr-2"></i> Kembali
-                        </a>
-                        <button type="submit" class="btn-submit">
-                            <i class="fas fa-save mr-2"></i> Simpan Perubahan
-                        </button>
-                    </div>
-                </form>
+                        <!-- Plagiarism Check Document -->
+                        <div class="form-group">
+                            <label class="form-label-modern">Hasil Plagiarism Check (PDF)</label>
+                            @if($mbkmSeminar->plagiarism_document)
+                                <div class="mb-2">
+                                    <a href="{{ $mbkmSeminar->plagiarism_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-file-pdf"></i> Lihat Dokumen Saat Ini
+                                    </a>
+                                </div>
+                            @endif
+                            <div class="custom-file">
+                                <input type="file" name="plagiarism_document" class="custom-file-input @error('plagiarism_document') is-invalid @enderror" id="plagiarismDocument" accept=".pdf">
+                                <label class="custom-file-label" for="plagiarismDocument">{{ $mbkmSeminar->plagiarism_document ? 'Ganti file...' : 'Pilih file...' }}</label>
+                            </div>
+                            <small class="form-text text-muted">Upload hasil pengecekan plagiarisme (opsional)</small>
+                            @error('plagiarism_document')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-group">
+                            <label class="form-label-modern">Catatan Tambahan</label>
+                            <textarea name="notes" class="form-control-modern @error('notes') is-invalid @enderror" rows="3">{{ old('notes', $mbkmSeminar->notes) }}</textarea>
+                            <small class="form-text text-muted">Catatan atau informasi tambahan (opsional)</small>
+                            @error('notes')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ route('frontend.mbkm-seminars.show', $mbkmSeminar->id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Kembali
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
-@endsection
 
-@section('scripts')
+@push('scripts')
 <script>
-// Same dropzone configurations as create.blade.php
-Dropzone.options.proposalDocumentDropzone = {
-    url: '{{ route('frontend.mbkm-seminars.storeMedia') }}',
-    maxFilesize: 25,
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
-    params: { size: 25 },
-    success: function (file, response) {
-      $('form').find('input[name="proposal_document"]').remove()
-      $('form').append('<input type="hidden" name="proposal_document" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="proposal_document"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($mbkmSeminar) && $mbkmSeminar->proposal_document)
-      var file = {!! json_encode($mbkmSeminar->proposal_document) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="proposal_document" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-         return _results
-     }
-}
-
-Dropzone.options.approvalDocumentDropzone = {
-    url: '{{ route('frontend.mbkm-seminars.storeMedia') }}',
-    maxFilesize: 10,
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
-    params: { size: 10 },
-    success: function (file, response) {
-      $('form').find('input[name="approval_document"]').remove()
-      $('form').append('<input type="hidden" name="approval_document" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="approval_document"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($mbkmSeminar) && $mbkmSeminar->approval_document)
-      var file = {!! json_encode($mbkmSeminar->approval_document) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="approval_document" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-         return _results
-     }
-}
-
-Dropzone.options.plagiarismDocumentDropzone = {
-    url: '{{ route('frontend.mbkm-seminars.storeMedia') }}',
-    maxFilesize: 10,
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
-    params: { size: 10 },
-    success: function (file, response) {
-      $('form').find('input[name="plagiarism_document"]').remove()
-      $('form').append('<input type="hidden" name="plagiarism_document" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="plagiarism_document"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($mbkmSeminar) && $mbkmSeminar->plagiarism_document)
-      var file = {!! json_encode($mbkmSeminar->plagiarism_document) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="plagiarism_document" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-         return _results
-     }
-}
+$(document).ready(function() {
+    // Update file input label when file selected
+    $('.custom-file-input').on('change', function() {
+        let fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').html(fileName || 'Pilih file...');
+    });
+});
 </script>
+@endpush
 @endsection

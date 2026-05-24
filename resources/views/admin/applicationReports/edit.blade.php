@@ -39,7 +39,12 @@
             </div>
             <div class="form-group">
                 <label for="period">{{ trans('cruds.applicationReport.fields.period') }}</label>
-                <input class="form-control {{ $errors->has('period') ? 'is-invalid' : '' }}" type="text" name="period" id="period" value="{{ old('period', $applicationReport->period) }}">
+                <select class="form-control select2 {{ $errors->has('period') ? 'is-invalid' : '' }}" name="period" id="period">
+                    <option value disabled {{ old('period', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
+                    @foreach(App\Models\ApplicationReport::PERIOD_SELECT as $key => $label)
+                        <option value="{{ $key }}" {{ old('period', $applicationReport->period) === $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
                 @if($errors->has('period'))
                     <span class="text-danger">{{ $errors->first('period') }}</span>
                 @endif
@@ -97,6 +102,9 @@
 @section('scripts')
 <script>
     $(document).ready(function () {
+  // Initialize Select2 for period field
+  $('.select2').select2();
+
   function SimpleUploadAdapter(editor) {
     editor.plugins.get('FileRepository').createUploadAdapter = function(loader) {
       return {

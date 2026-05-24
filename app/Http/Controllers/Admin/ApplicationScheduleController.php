@@ -145,10 +145,6 @@ class ApplicationScheduleController extends Controller
     {
         $applicationSchedule = ApplicationSchedule::create($request->all());
 
-        foreach ($request->input('approval_form', []) as $file) {
-            $applicationSchedule->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('approval_form');
-        }
-
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $applicationSchedule->id]);
         }
@@ -172,20 +168,6 @@ class ApplicationScheduleController extends Controller
     public function update(UpdateApplicationScheduleRequest $request, ApplicationSchedule $applicationSchedule)
     {
         $applicationSchedule->update($request->all());
-
-        if (count($applicationSchedule->approval_form) > 0) {
-            foreach ($applicationSchedule->approval_form as $media) {
-                if (! in_array($media->file_name, $request->input('approval_form', []))) {
-                    $media->delete();
-                }
-            }
-        }
-        $media = $applicationSchedule->approval_form->pluck('file_name')->toArray();
-        foreach ($request->input('approval_form', []) as $file) {
-            if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationSchedule->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('approval_form');
-            }
-        }
 
         return redirect()->route('admin.application-schedules.index');
     }

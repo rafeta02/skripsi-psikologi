@@ -108,7 +108,8 @@ class ApplicationResultSeminarController extends Controller
             ]);
         }
 
-        return redirect()->route('frontend.application-result-seminars.index');
+        return redirect()->route('frontend.application-result-seminars.index')
+            ->with('success', 'Hasil seminar proposal berhasil disimpan!');
     }
 
     public function edit(ApplicationResultSeminar $applicationResultSeminar)
@@ -208,7 +209,8 @@ class ApplicationResultSeminarController extends Controller
             }
         }
 
-        return redirect()->route('frontend.application-result-seminars.index');
+        return redirect()->route('frontend.application-result-seminars.index')
+            ->with('success', 'Hasil seminar proposal berhasil diperbarui!');
     }
 
     public function show(ApplicationResultSeminar $applicationResultSeminar)
@@ -226,7 +228,7 @@ class ApplicationResultSeminarController extends Controller
 
         $applicationResultSeminar->delete();
 
-        return back();
+        return back()->with('success', 'Hasil seminar berhasil dihapus!');
     }
 
     public function massDestroy(MassDestroyApplicationResultSeminarRequest $request)

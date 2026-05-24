@@ -12,6 +12,26 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 
 ---
 
+## Perbedaan Penting: Proses Review Proposal
+
+### Skripsi Reguler
+- **TIDAK ADA seminar proposal formal**
+- Mahasiswa mendaftar reviewer via `SkripsiSeminar`
+- Admin menetapkan reviewer via `ApplicationAssignment`
+- Mahasiswa mengirim laporan proposal yang sudah disetujui pembimbing ke reviewer
+- Reviewer menilai secara **individual** (tidak ada penjadwalan/seminar bersama)
+- Mahasiswa melaporkan hasil review via `ApplicationResultSeminar`
+
+### Skripsi MBKM
+- **ADA seminar MBKM formal**
+- Mahasiswa mendaftar seminar via `MbkmSeminar`
+- Admin menetapkan reviewer via `ApplicationAssignment`
+- Mahasiswa menjadwalkan seminar via `ApplicationSchedule` (pertemuan bersama reviewer)
+- Seminar dilaksanakan secara formal dengan penjadwalan
+- (Hasil seminar mungkin perlu form tersendiri atau masuk ke flow berbeda)
+
+---
+
 ## Alur 1 — Skripsi Reguler
 
 1) Pendaftaran Aplikasi Skripsi
@@ -35,64 +55,79 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 
 4) Penyusunan Proposal
 - Peran: Mahasiswa
-- Kegiatan: menyusun proposal (bukti lampiran digunakan saat pendaftaran seminar)
+- Kegiatan: menyusun proposal dengan bimbingan dosen pembimbing
 
-5) Pendaftaran Seminar Proposal
+5) Pendaftaran Reviewer Proposal
 - Peran: Mahasiswa
-- Form: `SkripsiSeminar` (lampiran: proposal, persetujuan, plagiasi)
+- Form: `SkripsiSeminar` (lampiran: proposal, persetujuan pembimbing, plagiasi)
 - Keputusan: Admin verifikasi
   - Setujui: lanjut penetapan reviewer
   - Tolak: revisi/unggah ulang `SkripsiSeminar`
+- Catatan: Ini BUKAN pendaftaran seminar formal, hanya pendaftaran untuk mendapat reviewer
 
-6) Penetapan Reviewer Seminar
+6) Penetapan Reviewer Proposal
 - Peran: Admin
 - Form: `ApplicationAssignment` tambahan (role=`reviewer`, tipikal 2 reviewer)
+- Output: Reviewer ditugaskan untuk menilai proposal mahasiswa
 
-7) Penjadwalan Seminar Proposal
-- Peran: Mahasiswa (koordinasi dengan 2 reviewer + 1 pembimbing)
-- Form: `ApplicationSchedule` (schedule_type=`skripsi_seminar`, waktu, ruang/online)
-- Keputusan: Admin verifikasi
-  - Setujui: seminar dilaksanakan
-  - Tolak: reschedule/unggah ulang `ApplicationSchedule`
-
-8) Unggah Hasil Seminar Proposal
+7) Pengiriman Laporan ke Reviewer
 - Peran: Mahasiswa
-- Form: `ApplicationResultSeminar` (hasil: `passed`/`revision`/`failed`, berita acara/dokumen terkait)
-- Catatan: Jika `revision`, isi tenggat revisi. Jika `failed`, ikuti kebijakan akademik untuk pengulangan seminar.
+- Kegiatan: Mengirimkan laporan proposal yang telah disetujui pembimbing kepada para reviewer
+- Catatan: TIDAK ADA seminar formal atau penjadwalan (`ApplicationSchedule`). Reviewer akan menilai secara individual.
 
-9) Laporan Kendala (opsional, kapan saja)
+8) Review dan Penilaian Proposal
+- Peran: Reviewer (Dosen)
+- Kegiatan: Reviewer memberikan penilaian dan masukan terhadap proposal mahasiswa
+- Output: Hasil review diberikan kepada mahasiswa
+
+9) Pelaporan Hasil Review Proposal
+- Peran: Mahasiswa
+- Form: `ApplicationResultSeminar` (hasil: `passed`/`revision`/`failed`, dokumen terkait)
+- Catatan: 
+  - Jika `revision`: mahasiswa melakukan revisi sesuai masukan reviewer, isi tenggat revisi
+  - Jika `failed`: ikuti kebijakan akademik untuk pengulangan review
+  - Jika `passed`: lanjut ke tahap penelitian
+
+10) Proses Penelitian
+- Peran: Mahasiswa
+- Kegiatan: Melaksanakan penelitian sesuai proposal yang telah disetujui
+- Monitoring: Bimbingan dengan dosen pembimbing
+
+11) Laporan Kendala (opsional, kapan saja)
 - Peran: Mahasiswa
 - Form: `ApplicationReport` (periodik/insidental; status `submitted`→`reviewed`)
+- Catatan: Dapat dilaporkan kapan saja selama proses skripsi
 
-10) Pendaftaran Sidang Skripsi
+12) Pendaftaran Sidang Skripsi
 - Peran: Mahasiswa
-- Form: `SkripsiDefense` (unggah seluruh persyaratan)
+- Form: `SkripsiDefense` (unggah seluruh persyaratan: draft skripsi, bukti bimbingan, dll.)
 - Keputusan: Admin verifikasi
   - Setujui: lanjut penetapan penguji
   - Tolak: revisi/unggah ulang `SkripsiDefense`
 
-11) Penetapan Dosen Penguji
+13) Penetapan Dosen Penguji
 - Peran: Admin
 - Form: `ApplicationAssignment` (role=`examiner`, tipikal 2 penguji)
+- Output: Penguji sidang ditugaskan
 
-12) Penjadwalan Sidang Skripsi
-- Peran: Mahasiswa
+14) Penjadwalan Sidang Skripsi
+- Peran: Mahasiswa (koordinasi dengan penguji dan pembimbing)
 - Form: `ApplicationSchedule` (schedule_type=`skripsi_defense`, waktu, ruang/online)
 - Keputusan: Admin verifikasi
   - Setujui: sidang dilaksanakan
   - Tolak: reschedule/unggah ulang `ApplicationSchedule`
 
-13) Unggah Hasil Sidang Skripsi
+15) Pelaksanaan dan Unggah Hasil Sidang Skripsi
 - Peran: Mahasiswa
 - Form: `ApplicationResultDefense` (hasil: `passed`/`revision`/`failed`, berita acara, naskah final, lampiran lengkap)
 - Percabangan:
   - `failed`: ulang dari pendaftaran `SkripsiDefense`
   - `revision`/`passed`: lengkapi semua dokumen di `ApplicationResultDefense`
 
-14) Penilaian Sidang
+16) Penilaian Sidang
 - Peran: Admin (trigger/assign dosen mengisi nilai), Dosen Penguji + Pembimbing
 - Form: `ApplicationScore` (tautan ke `ApplicationResultDefense`, isi skor dan catatan)
-- Output: Nilai akhir mahasiswa tersimpan
+- Output: Nilai akhir mahasiswa tersimpan dan proses skripsi selesai
 
 ---
 

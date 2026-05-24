@@ -40,10 +40,21 @@ class LoginController extends Controller
 
     public function redirectTo()
     {
-        if (auth()->user()->is_admin) {
-            return '/admin';
+        $user = auth()->user();
+
+        if ($user->is_admin) {
+            return route('admin.home');
         }
 
-        return '/home';
+        switch ($user->level) {
+            case 'MAHASISWA':
+                return route('mahasiswa.dashboard');
+            case 'DOSEN':
+                return route('dosen.dashboard');
+            case 'STAFF':
+                return route('admin.home');
+        }
+
+        return route('home');
     }
 }

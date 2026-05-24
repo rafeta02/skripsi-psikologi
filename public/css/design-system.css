@@ -1,0 +1,720 @@
+/**
+ * Design System CSS
+ * Aplikasi Skripsi - Fakultas Psikologi UNS
+ * Professional Academic Theme
+ */
+
+/* ========================================
+   1. CSS Variables & Color Palette
+   ======================================== */
+
+:root {
+    /* Primary Colors */
+    --primary-50: #f5e6ff;
+    --primary-100: #e6ccff;
+    --primary-200: #cc99ff;
+    --primary-300: #b366ff;
+    --primary-400: #8033cc;
+    --primary-500: #22004C;  /* Main Primary */
+    --primary-600: #1a0039;
+    --primary-700: #130028;
+    --primary-800: #0d001a;
+    --primary-900: #06000d;
+    
+    /* Secondary Colors */
+    --secondary-50: #f0e6f5;
+    --secondary-100: #d9cceb;
+    --secondary-200: #b399d6;
+    --secondary-300: #8d66c2;
+    --secondary-400: #6633ad;
+    --secondary-500: #4A0080;  /* Main Secondary */
+    --secondary-600: #3d0066;
+    --secondary-700: #2f004d;
+    --secondary-800: #220033;
+    --secondary-900: #14001a;
+    
+    /* Semantic Colors */
+    --success-light: #d4edda;
+    --success: #28a745;
+    --success-dark: #1e7e34;
+    
+    --warning-light: #fff3cd;
+    --warning: #ffc107;
+    --warning-dark: #e0a800;
+    
+    --danger-light: #f8d7da;
+    --danger: #dc3545;
+    --danger-dark: #c82333;
+    
+    --info-light: #d1ecf1;
+    --info: #17a2b8;
+    --info-dark: #117a8b;
+    
+    /* Neutral Colors */
+    --gray-50: #f8f9fa;
+    --gray-100: #f4f6f9;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --gray-900: #212529;
+    
+    --white: #ffffff;
+    --black: #000000;
+    
+    /* Typography */
+    --font-family-sans: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-family-mono: 'Monaco', 'Consolas', 'Courier New', monospace;
+    
+    /* Font Sizes */
+    --font-size-xs: 0.75rem;    /* 12px */
+    --font-size-sm: 0.875rem;   /* 14px */
+    --font-size-base: 1rem;     /* 16px */
+    --font-size-lg: 1.125rem;   /* 18px */
+    --font-size-xl: 1.25rem;    /* 20px */
+    --font-size-2xl: 1.5rem;    /* 24px */
+    --font-size-3xl: 1.875rem;  /* 30px */
+    --font-size-4xl: 2.25rem;   /* 36px */
+    --font-size-5xl: 3rem;      /* 48px */
+    
+    /* Font Weights */
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    
+    /* Line Heights */
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+    --line-height-loose: 2;
+    
+    /* Spacing Scale (8px base) */
+    --spacing-0: 0;
+    --spacing-1: 0.25rem;   /* 4px */
+    --spacing-2: 0.5rem;    /* 8px */
+    --spacing-3: 0.75rem;   /* 12px */
+    --spacing-4: 1rem;      /* 16px */
+    --spacing-5: 1.25rem;   /* 20px */
+    --spacing-6: 1.5rem;    /* 24px */
+    --spacing-7: 1.75rem;   /* 28px */
+    --spacing-8: 2rem;      /* 32px */
+    --spacing-10: 2.5rem;   /* 40px */
+    --spacing-12: 3rem;     /* 48px */
+    --spacing-16: 4rem;     /* 64px */
+    --spacing-20: 5rem;     /* 80px */
+    
+    /* Border Radius */
+    --radius-none: 0;
+    --radius-sm: 0.25rem;   /* 4px */
+    --radius-base: 0.5rem;  /* 8px */
+    --radius-md: 0.625rem;  /* 10px */
+    --radius-lg: 0.75rem;   /* 12px */
+    --radius-xl: 1rem;      /* 16px */
+    --radius-2xl: 1.5rem;   /* 24px */
+    --radius-full: 9999px;
+    
+    /* Shadows - Elevation System */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-2xl: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    
+    /* Transitions */
+    --transition-fast: 150ms ease-in-out;
+    --transition-base: 300ms ease-in-out;
+    --transition-slow: 500ms ease-in-out;
+    
+    /* Z-index Scale */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+}
+
+/* ========================================
+   2. Typography Styles
+   ======================================== */
+
+h1, .h1 {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-4);
+}
+
+h2, .h2 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-4);
+}
+
+h3, .h3 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-3);
+}
+
+h4, .h4 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-normal);
+    color: var(--gray-800);
+    margin-bottom: var(--spacing-3);
+}
+
+h5, .h5 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-normal);
+    color: var(--gray-800);
+    margin-bottom: var(--spacing-2);
+}
+
+h6, .h6 {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-normal);
+    color: var(--gray-700);
+    margin-bottom: var(--spacing-2);
+}
+
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+
+.font-light { font-weight: var(--font-weight-light); }
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+/* ========================================
+   3. Modern Card Component
+   ======================================== */
+
+.card-modern {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    transition: all var(--transition-base);
+    overflow: hidden;
+}
+
+.card-modern:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card-modern-header {
+    padding: var(--spacing-5) var(--spacing-6);
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+.card-modern-header.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%);
+    color: var(--white);
+    border-bottom: none;
+}
+
+.card-modern-body {
+    padding: var(--spacing-6);
+}
+
+.card-modern-footer {
+    padding: var(--spacing-4) var(--spacing-6);
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+/* Card Variants */
+.card-modern-elevated {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-modern-flat {
+    box-shadow: none;
+    border: 1px solid var(--gray-300);
+}
+
+.card-modern-glass {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ========================================
+   4. Modern Button Component
+   ======================================== */
+
+.btn-modern {
+    padding: var(--spacing-3) var(--spacing-5);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-base);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    text-decoration: none;
+    line-height: 1.5;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-base);
+}
+
+.btn-modern:active {
+    transform: translateY(0);
+}
+
+.btn-modern:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Button Sizes */
+.btn-modern-sm {
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-sm);
+}
+
+.btn-modern-lg {
+    padding: var(--spacing-4) var(--spacing-8);
+    font-size: var(--font-size-lg);
+}
+
+/* Button Variants */
+.btn-modern-primary {
+    background: var(--primary-500);
+    color: var(--white);
+}
+
+.btn-modern-primary:hover {
+    background: var(--primary-600);
+    color: var(--white);
+}
+
+.btn-modern-secondary {
+    background: var(--secondary-500);
+    color: var(--white);
+}
+
+.btn-modern-secondary:hover {
+    background: var(--secondary-600);
+    color: var(--white);
+}
+
+.btn-modern-outline {
+    background: transparent;
+    border: 2px solid var(--primary-500);
+    color: var(--primary-500);
+}
+
+.btn-modern-outline:hover {
+    background: var(--primary-500);
+    color: var(--white);
+}
+
+.btn-modern-ghost {
+    background: transparent;
+    color: var(--primary-500);
+}
+
+.btn-modern-ghost:hover {
+    background: var(--primary-50);
+}
+
+/* ========================================
+   5. Modern Table Component
+   ======================================== */
+
+.table-modern {
+    width: 100%;
+    background: var(--white);
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table-modern thead {
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%);
+    color: var(--white);
+}
+
+.table-modern thead th {
+    padding: var(--spacing-4) var(--spacing-5);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: left;
+    border-bottom: none;
+}
+
+.table-modern tbody tr {
+    transition: background-color var(--transition-fast);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.table-modern tbody tr:last-child {
+    border-bottom: none;
+}
+
+.table-modern tbody tr:hover {
+    background: var(--gray-50);
+}
+
+.table-modern tbody td {
+    padding: var(--spacing-4) var(--spacing-5);
+    color: var(--gray-700);
+    font-size: var(--font-size-sm);
+}
+
+.table-modern tbody td:first-child {
+    font-weight: var(--font-weight-medium);
+    color: var(--gray-900);
+}
+
+/* Striped variant */
+.table-modern-striped tbody tr:nth-child(even) {
+    background: var(--gray-50);
+}
+
+.table-modern-striped tbody tr:hover {
+    background: var(--gray-100);
+}
+
+/* ========================================
+   6. Modern Badge Component
+   ======================================== */
+
+.badge-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-modern-primary {
+    background: var(--primary-100);
+    color: var(--primary-700);
+}
+
+.badge-modern-success {
+    background: var(--success-light);
+    color: var(--success-dark);
+}
+
+.badge-modern-warning {
+    background: var(--warning-light);
+    color: var(--warning-dark);
+}
+
+.badge-modern-danger {
+    background: var(--danger-light);
+    color: var(--danger-dark);
+}
+
+.badge-modern-info {
+    background: var(--info-light);
+    color: var(--info-dark);
+}
+
+.badge-modern-gray {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+/* Badge with dot indicator */
+.badge-modern-dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: currentColor;
+}
+
+/* ========================================
+   7. Modern Alert Component
+   ======================================== */
+
+.alert-modern {
+    padding: var(--spacing-4) var(--spacing-5);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+    box-shadow: var(--shadow-sm);
+}
+
+.alert-modern-icon {
+    font-size: var(--font-size-xl);
+    flex-shrink: 0;
+}
+
+.alert-modern-content {
+    flex: 1;
+}
+
+.alert-modern-title {
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-1);
+}
+
+.alert-modern-message {
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+}
+
+/* Alert Variants */
+.alert-modern-success {
+    background: var(--success-light);
+    border-color: var(--success);
+    color: var(--success-dark);
+}
+
+.alert-modern-warning {
+    background: var(--warning-light);
+    border-color: var(--warning);
+    color: var(--warning-dark);
+}
+
+.alert-modern-danger {
+    background: var(--danger-light);
+    border-color: var(--danger);
+    color: var(--danger-dark);
+}
+
+.alert-modern-info {
+    background: var(--info-light);
+    border-color: var(--info);
+    color: var(--info-dark);
+}
+
+/* ========================================
+   8. Utility Classes
+   ======================================== */
+
+/* Elevation (Shadow) Classes */
+.elevation-0 { box-shadow: none; }
+.elevation-1 { box-shadow: var(--shadow-xs); }
+.elevation-2 { box-shadow: var(--shadow-sm); }
+.elevation-3 { box-shadow: var(--shadow-base); }
+.elevation-4 { box-shadow: var(--shadow-md); }
+.elevation-5 { box-shadow: var(--shadow-lg); }
+
+/* Hover Elevations */
+.hover-elevation-1:hover { box-shadow: var(--shadow-xs); }
+.hover-elevation-2:hover { box-shadow: var(--shadow-sm); }
+.hover-elevation-3:hover { box-shadow: var(--shadow-base); }
+.hover-elevation-4:hover { box-shadow: var(--shadow-md); }
+.hover-elevation-5:hover { box-shadow: var(--shadow-lg); }
+
+/* Border Radius Classes */
+.rounded-none { border-radius: var(--radius-none); }
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded { border-radius: var(--radius-base); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Transition Classes */
+.transition-fast { transition: all var(--transition-fast); }
+.transition { transition: all var(--transition-base); }
+.transition-slow { transition: all var(--transition-slow); }
+
+/* Gradient Backgrounds */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #3498db 100%);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+/* Hover Effects */
+.hover-lift {
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.hover-scale {
+    transition: transform var(--transition-base);
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}
+
+/* ========================================
+   9. Animation Keyframes
+   ======================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Animation Classes */
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-in {
+    animation: slideInRight 0.5s ease-out;
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* ========================================
+   10. Responsive Utilities
+   ======================================== */
+
+@media (max-width: 768px) {
+    :root {
+        --font-size-4xl: 1.875rem;  /* Smaller on mobile */
+        --font-size-3xl: 1.5rem;
+        --font-size-2xl: 1.25rem;
+    }
+    
+    .card-modern-body {
+        padding: var(--spacing-4);
+    }
+    
+    .table-modern thead th,
+    .table-modern tbody td {
+        padding: var(--spacing-3);
+        font-size: var(--font-size-xs);
+    }
+}
+
+/* ========================================
+   11. Accessibility
+   ======================================== */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Screen reader only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+

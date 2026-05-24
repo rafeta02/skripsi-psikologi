@@ -11,11 +11,18 @@
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-body text-center">
-                    <img src="{{ asset('img/user.png') }}" alt="Profile" class="img-thumbnail mb-3" style="width: 200px; height: 200px; object-fit: cover;">
-                    <h4>{{ $mahasiswa->nama }}</h4>
-                    <p class="text-muted">{{ $mahasiswa->nim }}</p>
+                    <div class="mb-3">
+                        <img src="{{ asset('img/default.jpg') }}" alt="Profile" class="rounded-circle shadow-sm" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #22004C;">
+                    </div>
+                    <h4 class="mb-1">{{ $mahasiswa->nama }}</h4>
+                    <p class="text-muted mb-2"><strong>{{ $mahasiswa->nim }}</strong></p>
+                    <span class="badge badge-primary mb-3">Mahasiswa Aktif</span>
+                    <hr>
                     <a href="{{ route('frontend.mahasiswa-profile.edit') }}" class="btn btn-primary btn-block">
                         <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                    <a href="{{ route('mahasiswa.dashboard') }}" class="btn btn-outline-secondary btn-block mt-2">
+                        <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
                     </a>
                 </div>
             </div>

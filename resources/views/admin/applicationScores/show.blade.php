@@ -33,6 +33,70 @@
                     </tr>
                     <tr>
                         <th>
+                            Penulisan
+                        </th>
+                        <td>
+                            {{ $applicationScore->penulisan }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Isi
+                        </th>
+                        <td>
+                            {{ $applicationScore->isi }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Analisis
+                        </th>
+                        <td>
+                            {{ $applicationScore->analisis }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Teoritis
+                        </th>
+                        <td>
+                            {{ $applicationScore->teoritis }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Faktual
+                        </th>
+                        <td>
+                            {{ $applicationScore->faktual }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Pemecahan Masalah
+                        </th>
+                        <td>
+                            {{ $applicationScore->pemecahan_masalah }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Penyampaian
+                        </th>
+                        <td>
+                            {{ $applicationScore->penyampaian }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Sum
+                        </th>
+                        <td>
+                            {{ $applicationScore->sum }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
                             {{ trans('cruds.applicationScore.fields.score') }}
                         </th>
                         <td>

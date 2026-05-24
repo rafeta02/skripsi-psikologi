@@ -1,255 +1,126 @@
-@extends('layouts.frontend')
+@extends('layouts.mahasiswa')
+
 @section('content')
-<link rel="stylesheet" href="{{ asset('css/modern-form.css') }}">
 <div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="form-card">
-                <div class="form-header">
-                    <h2>Pendaftaran Seminar Proposal Skripsi</h2>
-                    <p>Daftar seminar proposal skripsi reguler Anda</p>
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card-modern" style="background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%); border: none;">
+                <div class="card-modern-body" style="padding: 2rem;">
+                    <h2 class="mb-1 text-white font-weight-bold">
+                        <i class="fas fa-presentation mr-2"></i> Pendaftaran Seminar Proposal
+                    </h2>
+                    <p class="mb-0" style="color: rgba(255,255,255,0.9);">
+                        Lengkapi form berikut untuk mendaftar seminar proposal
+                    </p>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <form method="POST" action="{{ route("frontend.skripsi-seminars.store") }}" enctype="multipart/form-data">
-                    @method('POST')
-                    @csrf
-                    
-                    <div class="form-body">
-                        <div class="info-box info">
-                            <div class="info-box-title">Persyaratan Seminar Proposal</div>
-                            <div class="info-box-text">
-                                <ul class="mb-0">
-                                    <li>Proposal sudah disetujui oleh dosen pembimbing</li>
-                                    <li>Upload dokumen proposal dalam format PDF (maksimal 25 MB)</li>
-                                    <li>Sertakan form persetujuan yang sudah ditandatangani</li>
-                                    <li>Lampirkan hasil cek plagiarisme (maksimal 20%)</li>
-                                </ul>
-                            </div>
-                        </div>
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card-modern">
+                <div class="card-modern-body">
+                    <form action="{{ route('frontend.skripsi-seminars.store') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        
+                        <input type="hidden" name="application_id" value="{{ $activeApplication->id ?? '' }}">
 
-                        @if($activeApplication)
-                            <input type="hidden" name="application_id" value="{{ $activeApplication->id }}">
-                        @else
-                            <div class="alert alert-warning mb-4">
-                                <i class="fas fa-exclamation-triangle mr-2"></i>
-                                Anda belum memiliki aplikasi skripsi yang aktif. Silakan buat aplikasi terlebih dahulu.
-                            </div>
-                        @endif
-
+                        <!-- Title -->
                         <div class="form-group">
-                            <label for="title">Judul Proposal <span class="required">*</span></label>
-                            <input class="form-control" type="text" name="title" id="title" value="{{ old('title', '') }}" placeholder="Masukkan judul proposal skripsi" required>
-                            @if($errors->has('title'))
-                                <span class="text-danger small">{{ $errors->first('title') }}</span>
-                            @endif
-                            <span class="help-block">Judul proposal yang akan dipresentasikan</span>
+                            <label class="form-label-modern required">Judul Proposal</label>
+                            <input type="text" name="title" class="form-control-modern @error('title') is-invalid @enderror" value="{{ old('title') }}" required>
+                            @error('title')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
+                        <!-- Description -->
                         <div class="form-group">
-                            <label for="proposal_document">Dokumen Proposal <span class="required">*</span></label>
-                            <div class="needsclick dropzone" id="proposal_document-dropzone">
-                                <div class="dz-message">
-                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
-                                    <p>Klik atau seret file ke sini</p>
-                                    <small>PDF dokumen proposal (maksimal 25 MB)</small>
-                                </div>
-                            </div>
-                            @if($errors->has('proposal_document'))
-                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('proposal_document') }}</span>
-                            @endif
-                            <span class="help-block">Upload dokumen proposal skripsi lengkap</span>
+                            <label class="form-label-modern">Deskripsi / Abstrak</label>
+                            <textarea name="description" class="form-control-modern @error('description') is-invalid @enderror" rows="5">{{ old('description') }}</textarea>
+                            <small class="form-text text-muted">Jelaskan secara singkat tentang proposal Anda</small>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
+                        <!-- Proposal Document -->
                         <div class="form-group">
-                            <label for="approval_document">Form Persetujuan Pembimbing <span class="required">*</span></label>
-                            <div class="needsclick dropzone" id="approval_document-dropzone">
-                                <div class="dz-message">
-                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
-                                    <p>Klik atau seret file ke sini</p>
-                                    <small>PDF form persetujuan (maksimal 10 MB)</small>
-                                </div>
+                            <label class="form-label-modern required">Dokumen Proposal (PDF)</label>
+                            <div class="custom-file">
+                                <input type="file" name="proposal_document" class="custom-file-input @error('proposal_document') is-invalid @enderror" id="proposalDocument" accept=".pdf" required>
+                                <label class="custom-file-label" for="proposalDocument">Pilih file...</label>
                             </div>
-                            @if($errors->has('approval_document'))
-                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('approval_document') }}</span>
-                            @endif
-                            <span class="help-block">Upload form persetujuan yang sudah ditandatangani dosen pembimbing</span>
+                            <small class="form-text text-muted">Upload dokumen proposal dalam format PDF (Max: 10MB)</small>
+                            @error('proposal_document')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
+                        <!-- Approval Document -->
                         <div class="form-group">
-                            <label for="plagiarism_document">Hasil Cek Plagiarisme <span class="required">*</span></label>
-                            <div class="needsclick dropzone" id="plagiarism_document-dropzone">
-                                <div class="dz-message">
-                                    <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #cbd5e0;"></i>
-                                    <p>Klik atau seret file ke sini</p>
-                                    <small>PDF hasil cek plagiarisme (maksimal 10 MB)</small>
-                                </div>
+                            <label class="form-label-modern required">Dokumen Persetujuan Pembimbing (PDF)</label>
+                            <div class="custom-file">
+                                <input type="file" name="approval_document" class="custom-file-input @error('approval_document') is-invalid @enderror" id="approvalDocument" accept=".pdf" required>
+                                <label class="custom-file-label" for="approvalDocument">Pilih file...</label>
                             </div>
-                            @if($errors->has('plagiarism_document'))
-                                <span class="text-danger small d-block mt-2"><i class="fas fa-exclamation-circle mr-1"></i>{{ $errors->first('plagiarism_document') }}</span>
-                            @endif
-                            <span class="help-block">Upload hasil cek plagiarisme dari Turnitin/software sejenis (maksimal 20%)</span>
+                            <small class="form-text text-muted">Upload surat persetujuan dari pembimbing (Max: 10MB)</small>
+                            @error('approval_document')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                    </div>
 
-                    <div class="form-actions">
-                        <a href="{{ route('frontend.skripsi-seminars.index') }}" class="btn-back">
-                            <i class="fas fa-arrow-left mr-2"></i> Kembali
-                        </a>
-                        <button type="submit" class="btn-submit" {{ !$activeApplication ? 'disabled' : '' }}>
-                            <i class="fas fa-paper-plane mr-2"></i> Daftar Seminar
-                        </button>
-                    </div>
-                </form>
+                        <!-- Plagiarism Check Document -->
+                        <div class="form-group">
+                            <label class="form-label-modern required">Hasil Plagiarism Check (PDF)</label>
+                            <div class="custom-file">
+                                <input type="file" name="plagiarism_document" class="custom-file-input @error('plagiarism_document') is-invalid @enderror" id="plagiarismDocument" accept=".pdf" required>
+                                <label class="custom-file-label" for="plagiarismDocument">Pilih file...</label>
+                            </div>
+                            <small class="form-text text-muted">Upload hasil pengecekan plagiarisme (Max: 10MB)</small>
+                            @error('plagiarism_document')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-group">
+                            <label class="form-label-modern">Catatan Tambahan</label>
+                            <textarea name="notes" class="form-control-modern @error('notes') is-invalid @enderror" rows="3">{{ old('notes') }}</textarea>
+                            <small class="form-text text-muted">Catatan atau informasi tambahan (opsional)</small>
+                            @error('notes')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ route('frontend.skripsi-seminars.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Kembali
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Kirim Pendaftaran
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
-@endsection
 
-@section('scripts')
+@push('scripts')
 <script>
-Dropzone.options.proposalDocumentDropzone = {
-    url: '{{ route('frontend.skripsi-seminars.storeMedia') }}',
-    maxFilesize: 25,
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 25
-    },
-    success: function (file, response) {
-      $('form').find('input[name="proposal_document"]').remove()
-      $('form').append('<input type="hidden" name="proposal_document" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="proposal_document"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiSeminar) && $skripsiSeminar->proposal_document)
-      var file = {!! json_encode($skripsiSeminar->proposal_document) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="proposal_document" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-         return _results
-     }
-}
-
-Dropzone.options.approvalDocumentDropzone = {
-    url: '{{ route('frontend.skripsi-seminars.storeMedia') }}',
-    maxFilesize: 10,
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="approval_document"]').remove()
-      $('form').append('<input type="hidden" name="approval_document" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="approval_document"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiSeminar) && $skripsiSeminar->approval_document)
-      var file = {!! json_encode($skripsiSeminar->approval_document) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="approval_document" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-         return _results
-     }
-}
-
-Dropzone.options.plagiarismDocumentDropzone = {
-    url: '{{ route('frontend.skripsi-seminars.storeMedia') }}',
-    maxFilesize: 10,
-    maxFiles: 1,
-    addRemoveLinks: true,
-    headers: {
-      'X-CSRF-TOKEN': "{{ csrf_token() }}"
-    },
-    params: {
-      size: 10
-    },
-    success: function (file, response) {
-      $('form').find('input[name="plagiarism_document"]').remove()
-      $('form').append('<input type="hidden" name="plagiarism_document" value="' + response.name + '">')
-    },
-    removedfile: function (file) {
-      file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="plagiarism_document"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
-      }
-    },
-    init: function () {
-@if(isset($skripsiSeminar) && $skripsiSeminar->plagiarism_document)
-      var file = {!! json_encode($skripsiSeminar->plagiarism_document) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="plagiarism_document" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
-@endif
-    },
-     error: function (file, response) {
-         if ($.type(response) === 'string') {
-             var message = response
-         } else {
-             var message = response.errors.file
-         }
-         file.previewElement.classList.add('dz-error')
-         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
-         _results = []
-         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-             node = _ref[_i]
-             _results.push(node.textContent = message)
-         }
-         return _results
-     }
-}
+$(document).ready(function() {
+    // Update file input label when file selected
+    $('.custom-file-input').on('change', function() {
+        let fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').html(fileName || 'Pilih file...');
+    });
+});
 </script>
+@endpush
 @endsection

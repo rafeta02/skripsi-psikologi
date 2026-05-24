@@ -76,13 +76,17 @@ class ApplicationAssignment extends Model
         }
         
         // If already a Carbon instance, just format it
-        if ($value instanceof Carbon) {
+        if ($value instanceof Carbon || $value instanceof \DateTimeInterface) {
             $this->attributes['assigned_at'] = $value->format('Y-m-d H:i:s');
             return;
         }
         
         // Otherwise, parse from string
-        $this->attributes['assigned_at'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
+        try {
+            $this->attributes['assigned_at'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            $this->attributes['assigned_at'] = Carbon::parse($value)->format('Y-m-d H:i:s');
+        }
     }
 
     public function getRespondedAtAttribute($value)
@@ -98,12 +102,16 @@ class ApplicationAssignment extends Model
         }
         
         // If already a Carbon instance, just format it
-        if ($value instanceof Carbon) {
+        if ($value instanceof Carbon || $value instanceof \DateTimeInterface) {
             $this->attributes['responded_at'] = $value->format('Y-m-d H:i:s');
             return;
         }
         
         // Otherwise, parse from string
-        $this->attributes['responded_at'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
+        try {
+            $this->attributes['responded_at'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            $this->attributes['responded_at'] = Carbon::parse($value)->format('Y-m-d H:i:s');
+        }
     }
 }

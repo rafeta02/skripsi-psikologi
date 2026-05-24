@@ -376,4 +376,17 @@ class ApplicationResultDefenseController extends Controller
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
     }
+
+    public function printScore(ApplicationResultDefense $applicationResultDefense)
+    {
+        abort_if(Gate::denies('application_result_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        
+        // Load relationships
+        $applicationResultDefense->load([
+            'application.mahasiswa',
+            'scores.examiner'
+        ]);
+        
+        return view('frontend.applicationResultDefenses.print-score', compact('applicationResultDefense'));
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
+use App\Models\Application;
 use App\Models\ApplicationAssignment;
 use App\Models\ApplicationScore;
 use App\Models\Dosen;
@@ -11,6 +12,38 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+    private function resolveDosen(): Dosen
+    {
+        $user = Auth::user();
+
+        $dosen = null;
+
+        if ($user->dosen_id) {
+            $dosen = Dosen::find($user->dosen_id);
+        }
+
+        if (!$dosen) {
+            $dosen = Dosen::where('nip', $user->email)
+                ->orWhere('nidn', $user->email)
+                ->first();
+        }
+
+        if (!$dosen) {
+            abort(404, 'Data dosen tidak ditemukan. Silakan hubungi administrator.');
+        }
+
+        return $dosen;
+    }
+
+    private function authorizeAssignmentOwnership(ApplicationAssignment $assignment): void
+    {
+        $dosen = $this->resolveDosen();
+
+        if ((int) $assignment->lecturer_id !== (int) $dosen->id) {
+            abort(403, 'Unauthorized');
+        }
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -41,6 +74,18 @@ class DashboardController extends Controller
             ->distinct('application_id')
             ->count();
 
+        $totalTaskAssignments = ApplicationAssignment::where('lecturer_id', $dosen->id)
+            ->count();
+
+        $completedGuidance = ApplicationAssignment::where('lecturer_id', $dosen->id)
+            ->where('role', 'supervisor')
+            ->whereIn('status', ['accepted'])
+            ->count();
+
+        $pendingReviews = ApplicationAssignment::where('lecturer_id', $dosen->id)
+            ->where('status', 'assigned')
+            ->count();
+
         $totalTasksPending = ApplicationAssignment::where('lecturer_id', $dosen->id)
             ->where('status', 'assigned')
             ->count();
@@ -52,7 +97,11 @@ class DashboardController extends Controller
         $totalScores = ApplicationScore::where('examiner_id', $dosen->id)->count();
 
         // Recent assignments
-        $recentAssignments = ApplicationAssignment::with(['application.mahasiswa', 'application'])
+        $recentAssignments = ApplicationAssignment::with([
+            'application.mahasiswa', 
+            'application.skripsiRegistration',
+            'application.mbkmRegistration'
+        ])
             ->where('lecturer_id', $dosen->id)
             ->orderBy('assigned_at', 'desc')
             ->limit(5)
@@ -61,6 +110,9 @@ class DashboardController extends Controller
         return view('dosen.dashboard', compact(
             'dosen',
             'totalMahasiswaBimbingan',
+            'totalTaskAssignments',
+            'completedGuidance',
+            'pendingReviews',
             'totalTasksPending',
             'totalTasksCompleted',
             'totalScores',
@@ -192,21 +244,127 @@ class DashboardController extends Controller
         return view('dosen.profile', compact('dosen'));
     }
 
+    public function reviewProposal($assignmentId)
+    {
+        $assignment = ApplicationAssignment::with([
+            'application.mahasiswa.user',
+            'application.skripsiRegistration',
+            'application.mbkmRegistration'
+        ])->findOrFail($assignmentId);
+
+        $this->authorizeAssignmentOwnership($assignment);
+
+        return view('dosen.review-proposal', compact('assignment'));
+    }
+
     public function respondToAssignment(Request $request, ApplicationAssignment $assignment)
     {
-        $request->validate([
-            'status' => 'required|in:accepted,rejected',
-            'note' => 'nullable|string'
+        $this->authorizeAssignmentOwnership($assignment);
+
+        // If it's a simple accept/reject (old flow)
+        if ($request->has('status')) {
+            $request->validate([
+                'status' => 'required|in:accepted,rejected',
+                'note' => 'nullable|string'
+            ]);
+
+            $assignment->update([
+                'status' => $request->status,
+                'responded_at' => now(),
+                'note' => $request->note
+            ]);
+
+            $statusText = $request->status === 'accepted' ? 'menyetujui' : 'menolak';
+            return redirect()->back()->with('message', "Anda berhasil {$statusText} penugasan pembimbingan.");
+        }
+
+        // If it's a review with decision (new flow)
+        $validated = $request->validate([
+            'review_decision' => 'required|in:approved,revision,rejected',
+            'score' => 'nullable|numeric|min:0|max:100',
+            'feedback' => 'required|string',
+            'revision_notes' => 'nullable|string',
         ]);
 
+        // Update assignment
         $assignment->update([
-            'status' => $request->status,
-            'responded_at' => now(), // Mutator will handle Carbon object
-            'note' => $request->note
+            'status' => 'accepted',
+            'response' => $validated['feedback'],
+            'responded_at' => now(),
         ]);
 
-        $statusText = $request->status === 'accepted' ? 'menyetujui' : 'menolak';
-        
-        return redirect()->back()->with('message', "Anda berhasil {$statusText} penugasan pembimbingan.");
+        // Update application status based on review decision
+        if ($assignment->application) {
+            $newStatus = match($validated['review_decision']) {
+                'approved' => 'approved',
+                'revision' => 'revision',
+                'rejected' => 'rejected',
+                default => 'submitted',
+            };
+            
+            $assignment->application->update(['status' => $newStatus]);
+        }
+
+        return redirect()->route('dosen.task-assignments')
+            ->with('success', 'Review berhasil dikirim!');
+    }
+
+    public function scoring($applicationId)
+    {
+        $application = Application::with([
+            'mahasiswa',
+            'skripsiDefense'
+        ])->findOrFail($applicationId);
+
+        $dosen = $this->resolveDosen();
+        $hasAccess = ApplicationAssignment::where('application_id', $application->id)
+            ->where('lecturer_id', $dosen->id)
+            ->exists();
+
+        if (!$hasAccess) {
+            abort(403, 'Unauthorized');
+        }
+
+        return view('dosen.scoring', compact('application'));
+    }
+
+    public function storeScoring(Request $request, $applicationId)
+    {
+        $application = Application::findOrFail($applicationId);
+
+        $dosen = $this->resolveDosen();
+        $hasAccess = ApplicationAssignment::where('application_id', $application->id)
+            ->where('lecturer_id', $dosen->id)
+            ->exists();
+
+        if (!$hasAccess) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Validate
+        $validated = $request->validate([
+            'overall_score' => 'required|numeric|min:0|max:100',
+            'presentation_score' => 'nullable|numeric|min:0|max:100',
+            'content_score' => 'nullable|numeric|min:0|max:100',
+            'methodology_score' => 'nullable|numeric|min:0|max:100',
+            'qa_score' => 'nullable|numeric|min:0|max:100',
+            'grade_letter' => 'nullable|string|max:5',
+            'comments' => 'required|string',
+            'recommendation' => 'required|in:passed,passed_with_revision,failed',
+        ]);
+
+        // Create or update ApplicationScore
+        $score = ApplicationScore::updateOrCreate(
+            [
+                'application_id' => $application->id,
+                'examiner_id' => $dosen->id,
+            ],
+            array_merge($validated, [
+                'scored_at' => now(),
+            ])
+        );
+
+        return redirect()->route('dosen.scores')
+            ->with('success', 'Penilaian berhasil disimpan!');
     }
 }

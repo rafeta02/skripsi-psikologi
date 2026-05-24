@@ -1,164 +1,157 @@
-@extends('layouts.frontend')
+@extends('layouts.mahasiswa')
+
 @section('content')
-<link rel="stylesheet" href="{{ asset('css/modern-form.css') }}">
 <div class="container py-4">
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">Seminar Proposal MBKM</h1>
-            <p class="page-subtitle">Kelola pendaftaran seminar proposal program MBKM</p>
-        </div>
-        @can('mbkm_seminar_create')
-            <a href="{{ route('frontend.mbkm-seminars.create') }}" class="btn-primary-custom">
-                <i class="fas fa-plus-circle mr-2"></i> Daftar Seminar
-            </a>
-        @endcan
-    </div>
-
-    @if(session('message'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle mr-2"></i>{{ session('message') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
-
-    <div class="info-box info mb-4">
-        <div class="info-box-title">Informasi Seminar</div>
-        <div class="info-box-text">
-            <ul class="mb-0">
-                <li>Pastikan proposal sudah disetujui dosen pembimbing sebelum mendaftar</li>
-                <li>Admin akan mengecek kelengkapan dokumen dan mengassign dosen reviewer</li>
-                <li>Setelah disetujui, Anda dapat mengatur jadwal seminar</li>
-            </ul>
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card-modern" style="background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%); border: none;">
+                <div class="card-modern-body" style="padding: 2rem;">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-white font-weight-bold">
+                                <i class="fas fa-chalkboard-teacher mr-2"></i> Seminar MBKM
+                            </h2>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.9);">
+                                Pendaftaran dan jadwal seminar MBKM formal
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            @can('mbkm_seminar_create')
+                                <a href="{{ route('frontend.mbkm-seminars.create') }}" class="btn btn-light btn-lg shadow">
+                                    <i class="fas fa-plus-circle"></i> Daftar Seminar
+                                </a>
+                            @endcan
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="table-card">
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped table-hover datatable datatable-MbkmSeminar">
-                <thead>
-                    <tr>
-                        <th width="10"></th>
-                        <th>Mahasiswa</th>
-                        <th>Judul</th>
-                        <th>Tanggal Daftar</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($mbkmSeminars as $key => $mbkmSeminar)
-                        <tr data-entry-id="{{ $mbkmSeminar->id }}">
-                            <td></td>
-                            <td>
-                                <div class="font-weight-bold">{{ $mbkmSeminar->application->mahasiswa->nama ?? '' }}</div>
-                                <small class="text-muted">{{ $mbkmSeminar->application->mahasiswa->nim ?? '' }}</small>
-                            </td>
-                            <td>
-                                <div class="text-truncate" style="max-width: 300px;" title="{{ $mbkmSeminar->title }}">
-                                    {{ $mbkmSeminar->title ?? '-' }}
-                                </div>
-                            </td>
-                            <td>
-                                <i class="fas fa-calendar-alt mr-1 text-muted"></i>
-                                {{ $mbkmSeminar->created_at ? $mbkmSeminar->created_at->format('d M Y') : '-' }}
-                            </td>
-                            <td>
-                                @if($mbkmSeminar->application->status == 'submitted')
-                                    <span class="status-badge pending">
-                                        <i class="fas fa-clock mr-1"></i> Menunggu
-                                    </span>
-                                @elseif($mbkmSeminar->application->status == 'approved')
-                                    <span class="status-badge approved">
-                                        <i class="fas fa-check-circle mr-1"></i> Disetujui
-                                    </span>
-                                @elseif($mbkmSeminar->application->status == 'rejected')
-                                    <span class="status-badge rejected">
-                                        <i class="fas fa-times-circle mr-1"></i> Ditolak
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    @can('mbkm_seminar_show')
-                                        <a class="btn btn-xs btn-primary" href="{{ route('frontend.mbkm-seminars.show', $mbkmSeminar->id) }}" title="Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    @endcan
+    <!-- Seminars List -->
+    <div class="row">
+        <div class="col-lg-12">
+            @if($mbkmSeminars->count() > 0)
+                @foreach($mbkmSeminars as $seminar)
+                    <div class="card-modern mb-4">
+                        <div class="card-modern-body">
+                            <div class="row align-items-start">
+                                <div class="col-md-8">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3498db, #2ecc71); border-radius: var(--radius-base); display: flex; align-items: center; justify-content: center; margin-right: var(--spacing-3);">
+                                            <i class="fas fa-chalkboard-teacher" style="font-size: 20px; color: white;"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h4 class="mb-1 font-weight-bold">Seminar MBKM</h4>
+                                            <p class="mb-2 text-muted">
+                                                <i class="fas fa-book mr-2"></i>{{ $seminar->title ?? 'Judul MBKM' }}
+                                            </p>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @if($seminar->application)
+                                                    @if($seminar->application->status == 'submitted')
+                                                        <span class="badge-modern badge-modern-warning">
+                                                            <i class="fas fa-clock"></i> Menunggu Review
+                                                        </span>
+                                                    @elseif($seminar->application->status == 'approved')
+                                                        <span class="badge-modern badge-modern-success">
+                                                            <i class="fas fa-check-circle"></i> Disetujui
+                                                        </span>
+                                                    @elseif($seminar->application->status == 'scheduled')
+                                                        <span class="badge-modern badge-modern-info">
+                                                            <i class="fas fa-calendar-check"></i> Terjadwal
+                                                        </span>
+                                                    @elseif($seminar->application->status == 'revision')
+                                                        <span class="badge-modern badge-modern-warning">
+                                                            <i class="fas fa-edit"></i> Revisi
+                                                        </span>
+                                                    @elseif($seminar->application->status == 'rejected')
+                                                        <span class="badge-modern badge-modern-danger">
+                                                            <i class="fas fa-times-circle"></i> Ditolak
+                                                        </span>
+                                                    @elseif($seminar->application->status == 'done')
+                                                        <span class="badge-modern badge-modern-secondary">
+                                                            <i class="fas fa-flag-checkered"></i> Selesai
+                                                        </span>
+                                                    @endif
+                                                @endif
+                                                
+                                                <span class="badge-modern badge-modern-outline">
+                                                    <i class="far fa-calendar"></i> {{ $seminar->created_at->format('d M Y') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                    @can('mbkm_seminar_edit')
-                                        <a class="btn btn-xs btn-info" href="{{ route('frontend.mbkm-seminars.edit', $mbkmSeminar->id) }}" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    @endcan
+                                    @if($seminar->description)
+                                        <div class="mb-3">
+                                            <p class="text-muted mb-0">{{ Str::limit($seminar->description, 200) }}</p>
+                                        </div>
+                                    @endif
 
-                                    @can('mbkm_seminar_delete')
-                                        <form action="{{ route('frontend.mbkm-seminars.destroy', $mbkmSeminar->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?');" style="display: inline-block;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-xs btn-danger" title="Hapus">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    @endcan
+                                    <!-- Documents -->
+                                    @if($seminar->proposal_document || $seminar->approval_document || $seminar->plagiarism_document)
+                                        <div class="mb-3">
+                                            <h6 class="font-weight-semibold mb-2">Dokumen Terlampir:</h6>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @if($seminar->proposal_document)
+                                                    <a href="{{ $seminar->proposal_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-file-pdf"></i> Proposal MBKM
+                                                    </a>
+                                                @endif
+                                                @if($seminar->approval_document)
+                                                    <a href="{{ $seminar->approval_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                                        <i class="fas fa-file-pdf"></i> Persetujuan
+                                                    </a>
+                                                @endif
+                                                @if($seminar->plagiarism_document)
+                                                    <a href="{{ $seminar->plagiarism_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-file-pdf"></i> Plagiarism Check
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+
+                                <div class="col-md-4 text-right">
+                                    <div class="d-flex flex-column gap-2">
+                                        @can('mbkm_seminar_show')
+                                            <a href="{{ route('frontend.mbkm-seminars.show', $seminar->id) }}" class="btn-modern btn-modern-primary">
+                                                <i class="fas fa-eye"></i> Lihat Detail
+                                            </a>
+                                        @endcan
+                                        
+                                        @can('mbkm_seminar_edit')
+                                            @if($seminar->application && in_array($seminar->application->status, ['revision', 'submitted']))
+                                                <a href="{{ route('frontend.mbkm-seminars.edit', $seminar->id) }}" class="btn-modern btn-modern-outline">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            @endif
+                                        @endcan
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                <div class="card-modern">
+                    <div class="card-modern-body text-center py-5">
+                        <div style="width: 100px; height: 100px; background: var(--gray-100); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--spacing-4);">
+                            <i class="fas fa-chalkboard-teacher fa-3x text-muted"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">Belum Ada Pendaftaran Seminar MBKM</h4>
+                        <p class="text-muted mb-4">Anda belum mendaftar untuk seminar MBKM</p>
+                        @can('mbkm_seminar_create')
+                            <a href="{{ route('frontend.mbkm-seminars.create') }}" class="btn-modern btn-modern-primary btn-modern-lg">
+                                <i class="fas fa-plus-circle"></i> Daftar Seminar Sekarang
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-@parent
-<script>
-    $(function () {
-  let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-@can('mbkm_seminar_delete')
-  let deleteButtonTrans = 'Hapus yang dipilih'
-  let deleteButton = {
-    text: deleteButtonTrans,
-    url: "{{ route('frontend.mbkm-seminars.massDestroy') }}",
-    className: 'btn-danger',
-    action: function (e, dt, node, config) {
-      var ids = $.map(dt.rows({ selected: true }).nodes(), function (entry) {
-          return $(entry).data('entry-id')
-      });
-
-      if (ids.length === 0) {
-        alert('Tidak ada data yang dipilih')
-        return
-      }
-
-      if (confirm('Yakin ingin menghapus ' + ids.length + ' data?')) {
-        $.ajax({
-          headers: {'x-csrf-token': _token},
-          method: 'POST',
-          url: config.url,
-          data: { ids: ids, _method: 'DELETE' }})
-          .done(function () { location.reload() })
-      }
-    }
-  }
-  dtButtons.push(deleteButton)
-@endcan
-
-  $.extend(true, $.fn.dataTable.defaults, {
-    orderCellsTop: true,
-    order: [[ 3, 'desc' ]],
-    pageLength: 25,
-  });
-  let table = $('.datatable-MbkmSeminar:not(.ajaxTable)').DataTable({ buttons: dtButtons })
-  $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){
-      $($.fn.dataTable.tables(true)).DataTable()
-          .columns.adjust();
-  });
-  
-})
-
-</script>
 @endsection

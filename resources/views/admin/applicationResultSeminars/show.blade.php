@@ -88,12 +88,20 @@
                         </div>
                     </div>
 
-            <div class="form-group">
-                        <label class="font-weight-bold">Catatan/Saran Perbaikan:</label>
-                        <p class="form-control-plaintext">
-                            {{ $applicationResultSeminar->note ?: 'Tidak ada catatan' }}
-                        </p>
-                    </div>
+                    @if($applicationResultSeminar->meeting_recording_link)
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Rekaman Meeting:</label>
+                                    <p class="form-control-plaintext">
+                                        <a href="{{ $applicationResultSeminar->meeting_recording_link }}" target="_blank" class="btn btn-sm btn-info">
+                                            <i class="fas fa-video mr-1"></i> Lihat Rekaman
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 

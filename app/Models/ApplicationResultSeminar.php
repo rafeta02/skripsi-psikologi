@@ -43,7 +43,7 @@ class ApplicationResultSeminar extends Model implements HasMedia
     protected $fillable = [
         'application_id',
         'result',
-        'note',
+        'meeting_recording_link',
         'revision_deadline',
         'created_at',
         'updated_at',

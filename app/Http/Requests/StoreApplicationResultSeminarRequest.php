@@ -25,9 +25,10 @@ class StoreApplicationResultSeminarRequest extends FormRequest
                 'required',
                 'string',
             ],
-            'note' => [
+            'meeting_recording_link' => [
                 'nullable',
-                'string',
+                'url',
+                'max:500',
             ],
             'revision_deadline' => [
                 'date_format:' . config('panel.date_format'),

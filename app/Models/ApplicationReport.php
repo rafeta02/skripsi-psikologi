@@ -32,6 +32,12 @@ class ApplicationReport extends Model implements HasMedia
         'reviewed'  => 'Reviewed',
     ];
 
+    public const PERIOD_SELECT = [
+        'proposal'   => 'Proposal',
+        'penelitian' => 'Penelitian',
+        'sidang'     => 'Sidang',
+    ];
+
     protected $fillable = [
         'application_id',
         'report_text',

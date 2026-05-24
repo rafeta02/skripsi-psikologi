@@ -17,10 +17,41 @@ class StoreApplicationScoreRequest extends FormRequest
     public function rules()
     {
         return [
+            'penulisan' => [
+                'integer',
+                'nullable',
+            ],
+            'isi' => [
+                'integer',
+                'nullable',
+            ],
+            'analisis' => [
+                'integer',
+                'nullable',
+            ],
+            'teoritis' => [
+                'integer',
+                'nullable',
+            ],
+            'faktual' => [
+                'integer',
+                'nullable',
+            ],
+            'pemecahan_masalah' => [
+                'integer',
+                'nullable',
+            ],
+            'penyampaian' => [
+                'integer',
+                'nullable',
+            ],
+            'sum' => [
+                'numeric',
+                'nullable',
+            ],
             'score' => [
                 'numeric',
-                'min:0',
-                'max:10',
+                'nullable',
             ],
         ];
     }

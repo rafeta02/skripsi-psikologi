@@ -58,7 +58,10 @@ class ApplicationReportController extends Controller
             });
 
             $table->editColumn('period', function ($row) {
-                return $row->period ? $row->period : '-';
+                if ($row->period && isset(ApplicationReport::PERIOD_SELECT[$row->period])) {
+                    return '<span class="badge badge-info">' . ApplicationReport::PERIOD_SELECT[$row->period] . '</span>';
+                }
+                return '<span class="text-muted">-</span>';
             });
             
             $table->editColumn('status', function ($row) {

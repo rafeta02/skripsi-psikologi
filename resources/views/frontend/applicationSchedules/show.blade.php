@@ -1,235 +1,204 @@
-@extends('layouts.frontend')
+@extends('layouts.mahasiswa')
+
 @section('content')
-<link rel="stylesheet" href="{{ asset('css/modern-form.css') }}">
 <div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="detail-card">
-                <div class="detail-header">
-                    <div>
-                        <h2>Detail Jadwal</h2>
-                        <p>Informasi lengkap jadwal seminar/sidang</p>
-                    </div>
-                    <div>
-                        @if($applicationSchedule->status == 'pending')
-                            <span class="status-badge pending large">
-                                <i class="fas fa-clock mr-2"></i> Menunggu Persetujuan
-                            </span>
-                        @elseif($applicationSchedule->status == 'approved')
-                            <span class="status-badge approved large">
-                                <i class="fas fa-check-circle mr-2"></i> Disetujui
-                            </span>
-                        @elseif($applicationSchedule->status == 'rejected')
-                            <span class="status-badge rejected large">
-                                <i class="fas fa-times-circle mr-2"></i> Ditolak
-                            </span>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="detail-body">
-                    <!-- Informasi Aplikasi -->
-                    <div class="detail-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-file-alt mr-2"></i> Informasi Aplikasi
-                        </h3>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <span class="info-label">Mahasiswa:</span>
-                                    <span class="info-value">{{ $applicationSchedule->application->mahasiswa->nama ?? '-' }}</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <span class="info-label">NIM:</span>
-                                    <span class="info-value">{{ $applicationSchedule->application->mahasiswa->nim ?? '-' }}</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <span class="info-label">Tipe Aplikasi:</span>
-                                    <span class="info-value text-capitalize">{{ $applicationSchedule->application->type ?? '-' }}</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <span class="info-label">Stage:</span>
-                                    <span class="info-value text-capitalize">{{ $applicationSchedule->application->stage ?? '-' }}</span>
-                                </div>
-                            </div>
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card-modern" style="background: linear-gradient(135deg, #8e44ad 0%, #3498db 100%); border: none;">
+                <div class="card-modern-body" style="padding: 2rem;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 text-white font-weight-bold">
+                                <i class="fas fa-calendar-alt mr-2"></i> Detail Jadwal
+                            </h2>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.9);">
+                                Informasi lengkap jadwal seminar atau sidang
+                            </p>
+                        </div>
+                        <div>
+                            @can('application_schedule_edit')
+                                @if($applicationSchedule->application && $applicationSchedule->application->status == 'submitted')
+                                    <a href="{{ route('frontend.application-schedules.edit', $applicationSchedule->id) }}" class="btn btn-light">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                @endif
+                            @endcan
                         </div>
                     </div>
-
-                    <!-- Informasi Jadwal -->
-                    <div class="detail-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-calendar-alt mr-2"></i> Detail Jadwal
-                        </h3>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <span class="info-label">Tipe Jadwal:</span>
-                                    <span class="info-value">
-                                        @if($applicationSchedule->schedule_type == 'seminar' || $applicationSchedule->schedule_type == 'skripsi_seminar')
-                                            <span class="badge badge-info">
-                                                <i class="fas fa-presentation mr-1"></i> Seminar Proposal
-                                            </span>
-                                        @elseif($applicationSchedule->schedule_type == 'defense' || $applicationSchedule->schedule_type == 'skripsi_defense')
-                                            <span class="badge badge-warning">
-                                                <i class="fas fa-gavel mr-1"></i> Sidang Skripsi
-                                            </span>
-                                        @elseif($applicationSchedule->schedule_type == 'mbkm_seminar')
-                                            <span class="badge badge-success">
-                                                <i class="fas fa-users mr-1"></i> Seminar MBKM
-                                            </span>
-                                        @else
-                                            <span class="badge badge-secondary">
-                                                <i class="fas fa-calendar mr-1"></i> {{ ucfirst($applicationSchedule->schedule_type) }}
-                                            </span>
-                                        @endif
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <span class="info-label">Waktu Pelaksanaan:</span>
-                                    <span class="info-value">
-                                        <i class="fas fa-clock mr-1 text-muted"></i>
-                                        {{ $applicationSchedule->waktu ? \Carbon\Carbon::parse($applicationSchedule->waktu)->format('l, d F Y - H:i') : '-' }} WIB
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tempat Pelaksanaan -->
-                    <div class="detail-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-map-marker-alt mr-2"></i> Tempat Pelaksanaan
-                        </h3>
-                        <div class="row">
-                            @if($applicationSchedule->ruang)
-                                <div class="col-md-12">
-                                    <div class="info-item">
-                                        <span class="info-label">Ruangan:</span>
-                                        <span class="info-value">
-                                            <i class="fas fa-door-open mr-1 text-muted"></i>
-                                            {{ $applicationSchedule->ruang->nama ?? '-' }}
-                                        </span>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if($applicationSchedule->custom_place)
-                                <div class="col-md-12">
-                                    <div class="info-item">
-                                        <span class="info-label">Tempat Lain:</span>
-                                        <span class="info-value">
-                                            <i class="fas fa-building mr-1 text-muted"></i>
-                                            {{ $applicationSchedule->custom_place }}
-                                        </span>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if($applicationSchedule->online_meeting)
-                                <div class="col-md-12">
-                                    <div class="info-item">
-                                        <span class="info-label">Link Meeting Online:</span>
-                                        <span class="info-value">
-                                            <i class="fas fa-video mr-1 text-muted"></i>
-                                            <a href="{{ $applicationSchedule->online_meeting }}" target="_blank" class="text-primary">
-                                                {{ $applicationSchedule->online_meeting }}
-                                                <i class="fas fa-external-link-alt ml-1"></i>
-                                            </a>
-                                        </span>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if(!$applicationSchedule->ruang && !$applicationSchedule->custom_place && !$applicationSchedule->online_meeting)
-                                <div class="col-md-12">
-                                    <div class="alert alert-warning mb-0">
-                                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                                        Tempat pelaksanaan belum ditentukan
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Catatan -->
-                    @if($applicationSchedule->note)
-                        <div class="detail-section">
-                            <h3 class="section-title">
-                                <i class="fas fa-sticky-note mr-2"></i> Catatan
-                            </h3>
-                            <div class="note-box">
-                                {{ $applicationSchedule->note }}
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Dokumen -->
-                    @if($applicationSchedule->approval_form && count($applicationSchedule->approval_form) > 0)
-                        <div class="detail-section">
-                            <h3 class="section-title">
-                                <i class="fas fa-file-pdf mr-2"></i> Form Persetujuan
-                            </h3>
-                            <div class="document-list">
-                                @foreach($applicationSchedule->approval_form as $key => $media)
-                                    <div class="document-item">
-                                        <div class="document-icon">
-                                            <i class="fas fa-file-pdf"></i>
-                                        </div>
-                                        <div class="document-info">
-                                            <div class="document-name">{{ $media['file_name'] ?? 'Form Persetujuan ' . ($key + 1) }}</div>
-                                            <div class="document-meta">
-                                                <span><i class="fas fa-calendar mr-1"></i>{{ \Carbon\Carbon::parse($media['created_at'] ?? now())->format('d M Y') }}</span>
-                                                <span><i class="fas fa-hdd mr-1"></i>{{ number_format(($media['size'] ?? 0) / 1024, 2) }} KB</span>
-                                            </div>
-                                        </div>
-                                        <div class="document-actions">
-                                            <a href="{{ $media['url'] ?? '#' }}" class="btn-icon" target="_blank" title="Lihat">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ $media['url'] ?? '#' }}" class="btn-icon" download title="Download">
-                                                <i class="fas fa-download"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Feedback Admin -->
-                    @if($applicationSchedule->admin_feedback)
-                        <div class="detail-section">
-                            <h3 class="section-title">
-                                <i class="fas fa-comment-dots mr-2"></i> Feedback Admin
-                            </h3>
-                            <div class="alert alert-info mb-0">
-                                <strong>Admin:</strong> {{ $applicationSchedule->admin_feedback }}
-                            </div>
-                        </div>
-                    @endif
-                </div>
-
-                <div class="detail-actions">
-                    <a href="{{ route('frontend.application-schedules.index') }}" class="btn-back">
-                        <i class="fas fa-arrow-left mr-2"></i> Kembali
-                    </a>
-                    @can('application_schedule_edit')
-                        @if($applicationSchedule->status == 'pending' || $applicationSchedule->status == 'rejected')
-                            <a href="{{ route('frontend.application-schedules.edit', $applicationSchedule->id) }}" class="btn-primary-custom">
-                                <i class="fas fa-edit mr-2"></i> Edit Jadwal
-                            </a>
-                        @endif
-                    @endcan
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Detail Content -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card-modern mb-4">
+                <div class="card-modern-body">
+                    <h4 class="font-weight-bold mb-3">Informasi Jadwal</h4>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="text-muted mb-1">Jenis Acara</label>
+                            <h5 class="font-weight-semibold">
+                                @if($applicationSchedule->schedule_type === 'mbkm_seminar')
+                                    <i class="fas fa-chalkboard-teacher text-primary"></i> Seminar MBKM
+                                @elseif($applicationSchedule->schedule_type === 'skripsi_defense')
+                                    <i class="fas fa-graduation-cap text-success"></i> Sidang Skripsi
+                                @else
+                                    {{ ucfirst(str_replace('_', ' ', $applicationSchedule->schedule_type)) }}
+                                @endif
+                            </h5>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="text-muted mb-1">Tanggal</label>
+                            <p class="font-weight-semibold">
+                                <i class="far fa-calendar"></i> {{ \Carbon\Carbon::parse($applicationSchedule->waktu)->translatedFormat('l, d F Y') }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted mb-1">Waktu</label>
+                            <p class="font-weight-semibold">
+                                <i class="far fa-clock"></i> {{ \Carbon\Carbon::parse($applicationSchedule->waktu)->format('H:i') }} WIB
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-muted mb-1">Lokasi</label>
+                        @if($applicationSchedule->ruang)
+                            <p class="font-weight-semibold">
+                                <i class="fas fa-map-marker-alt text-danger"></i> {{ $applicationSchedule->ruang->name }}
+                            </p>
+                            <small class="text-muted">Pelaksanaan Offline</small>
+                        @elseif($applicationSchedule->online_link)
+                            <p class="font-weight-semibold mb-2">
+                                <i class="fas fa-video text-primary"></i> Online Meeting
+                            </p>
+                            <a href="{{ $applicationSchedule->online_link }}" target="_blank" class="btn btn-sm btn-primary">
+                                <i class="fas fa-external-link-alt"></i> Buka Link Meeting
+                            </a>
+                        @else
+                            <p class="text-muted">Belum ditentukan</p>
+                        @endif
+                    </div>
+
+                    @if($applicationSchedule->notes)
+                        <div class="mb-4">
+                            <label class="text-muted mb-1">Catatan</label>
+                            <div class="alert alert-light">
+                                {{ $applicationSchedule->notes }}
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">Dibuat Pada</label>
+                            <p class="font-weight-semibold">
+                                {{ $applicationSchedule->created_at->format('d M Y H:i') }}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">Terakhir Diupdate</label>
+                            <p class="font-weight-semibold">
+                                {{ $applicationSchedule->updated_at->format('d M Y H:i') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Status -->
+            <div class="card-modern mb-4">
+                <div class="card-modern-body">
+                    <h5 class="font-weight-bold mb-3">Status</h5>
+                    
+                    @if($applicationSchedule->application)
+                        @if($applicationSchedule->application->status == 'submitted')
+                            <div class="alert alert-warning">
+                                <i class="fas fa-clock"></i> <strong>Menunggu Verifikasi</strong>
+                                <p class="mb-0 mt-2 small">Jadwal Anda sedang menunggu verifikasi dari admin</p>
+                            </div>
+                        @elseif($applicationSchedule->application->status == 'scheduled')
+                            <div class="alert alert-success">
+                                <i class="fas fa-calendar-check"></i> <strong>Terjadwal</strong>
+                                <p class="mb-0 mt-2 small">Jadwal Anda telah diverifikasi dan dikonfirmasi</p>
+                            </div>
+                        @elseif($applicationSchedule->application->status == 'revision')
+                            <div class="alert alert-warning">
+                                <i class="fas fa-edit"></i> <strong>Revisi</strong>
+                                <p class="mb-0 mt-2 small">Silakan lakukan perubahan jadwal sesuai catatan admin</p>
+                            </div>
+                        @elseif($applicationSchedule->application->status == 'rejected')
+                            <div class="alert alert-danger">
+                                <i class="fas fa-times-circle"></i> <strong>Ditolak</strong>
+                                <p class="mb-0 mt-2 small">Jadwal tidak dapat disetujui</p>
+                            </div>
+                        @elseif($applicationSchedule->application->status == 'done')
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-flag-checkered"></i> <strong>Selesai</strong>
+                                <p class="mb-0 mt-2 small">Acara telah selesai dilaksanakan</p>
+                            </div>
+                        @endif
+                    @else
+                        <div class="alert alert-secondary">
+                            <i class="fas fa-info-circle"></i> Status tidak tersedia
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Application Info -->
+            @if($applicationSchedule->application)
+                <div class="card-modern">
+                    <div class="card-modern-body">
+                        <h5 class="font-weight-bold mb-3">Informasi Aplikasi</h5>
+                        
+                        <div class="mb-3">
+                            <label class="text-muted mb-1">Tipe</label>
+                            <p class="font-weight-semibold text-uppercase">
+                                <span class="badge badge-primary">{{ $applicationSchedule->application->type }}</span>
+                            </p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-muted mb-1">Tahap</label>
+                            <p class="font-weight-semibold text-capitalize">
+                                <span class="badge badge-info">{{ $applicationSchedule->application->stage }}</span>
+                            </p>
+                        </div>
+
+                        @if($applicationSchedule->application->mahasiswa)
+                            <div class="mb-3">
+                                <label class="text-muted mb-1">Mahasiswa</label>
+                                <p class="font-weight-semibold">
+                                    {{ $applicationSchedule->application->mahasiswa->nama }}
+                                </p>
+                                <p class="text-sm text-muted">
+                                    NIM: {{ $applicationSchedule->application->mahasiswa->nim }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="row mt-4">
+        <div class="col-lg-12">
+            <a href="{{ route('frontend.application-schedules.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Kembali ke Daftar
+            </a>
         </div>
     </div>
 </div>

@@ -2,10 +2,27 @@
 
 @section('content')
 <div class="container py-4">
+    <!-- Page Header -->
     <div class="mb-4">
-        <h2><i class="fas fa-calendar-alt"></i> Jadwal Saya</h2>
-        <p class="text-muted">Jadwal seminar, sidang, dan bimbingan</p>
+        <h2 class="mb-1"><i class="fas fa-calendar-alt text-primary"></i> Jadwal Saya</h2>
+        <p class="text-muted mb-2">Jadwal seminar, sidang, dan bimbingan Anda</p>
+        <small class="text-muted">
+            <i class="fas fa-info-circle"></i> Total {{ count($schedules) }} jadwal
+        </small>
     </div>
+
+    <!-- Info Card -->
+    @if(count($schedules) > 0)
+    <div class="alert alert-warning border-left" style="border-left: 4px solid #ffc107 !important;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-bell fa-2x mr-3"></i>
+            <div>
+                <h5 class="mb-1">Pengingat Jadwal</h5>
+                <p class="mb-0">Pastikan Anda hadir tepat waktu pada jadwal yang telah ditentukan. Hubungi admin jika ada perubahan mendadak.</p>
+            </div>
+        </div>
+    </div>
+    @endif
 
     @if(count($schedules) > 0)
         <div class="row">

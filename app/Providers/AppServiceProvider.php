@@ -19,6 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \App\Models\ApplicationScore::observe(\App\Observers\ApplicationScoreObserver::class);
     }
 }

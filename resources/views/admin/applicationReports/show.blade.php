@@ -59,7 +59,11 @@
                             Periode Laporan
                         </th>
                         <td>
-                            {{ $applicationReport->period ?? '-' }}
+                            @if($applicationReport->period)
+                                <span class="badge badge-info">{{ App\Models\ApplicationReport::PERIOD_SELECT[$applicationReport->period] ?? $applicationReport->period }}</span>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
                         </td>
                     </tr>
                     <tr>
