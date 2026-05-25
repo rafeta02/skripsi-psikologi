@@ -143,9 +143,18 @@
                                 <i class="fas fa-clipboard-check"></i> Laporan Hasil Review
                             </a>
                             @endcan
-                            <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn-modern btn-modern-outline" style="color: var(--primary-500); border-color: var(--primary-500);">
-                                <i class="fas fa-graduation-cap"></i> Daftar Sidang
-                            </a>
+                            @if($allowedForms['skripsi_defense']['allowed'] ?? false)
+                                <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn-modern btn-modern-outline" style="color: var(--primary-500); border-color: var(--primary-500);">
+                                    <i class="fas fa-graduation-cap"></i> Daftar Sidang
+                                </a>
+                            @else
+                                <span class="btn-modern btn-modern-outline disabled" style="opacity: 0.65; cursor: not-allowed;" title="{{ $allowedForms['skripsi_defense']['message'] ?? '' }}">
+                                    <i class="fas fa-graduation-cap"></i> Daftar Sidang
+                                </span>
+                                @if($allowedForms['skripsi_defense']['message'] ?? null)
+                                    <small class="text-muted d-block w-100 mt-1">{{ $allowedForms['skripsi_defense']['message'] }}</small>
+                                @endif
+                            @endif
                         </div>
                     @endif
                 </div>

@@ -72,6 +72,13 @@
                                     <span class="badge badge-{{ $resultBadge[0] }} badge-lg px-3 py-2">
                                         {{ $resultBadge[1] }}
                                     </span>
+                                    @if($result->result === 'passed')
+                                        @if($result->isValidatedByAdmin())
+                                            <span class="badge badge-success ml-1">Divalidasi Admin</span>
+                                        @else
+                                            <span class="badge badge-warning ml-1">Menunggu Validasi Admin</span>
+                                        @endif
+                                    @endif
                                     @if($result->note)
                                         <p class="mt-3 mb-0 text-muted">{{ Str::limit($result->note, 200) }}</p>
                                     @endif

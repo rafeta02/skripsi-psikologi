@@ -227,6 +227,24 @@ class ApplicationResultSeminarController extends Controller
     {
         $resultSeminar = ApplicationResultSeminar::with('application')->findOrFail($id);
 
+        if ($resultSeminar->result !== 'passed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi admin hanya untuk laporan dengan hasil lulus (passed).',
+            ], 422);
+        }
+
+        $alreadyValidated = ApplicationAction::where('application_id', $resultSeminar->application_id)
+            ->where('action_type', 'result_seminar_approved')
+            ->exists();
+
+        if ($alreadyValidated) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Laporan hasil seminar ini sudah divalidasi.',
+            ], 422);
+        }
+
         $request->validate([
             'notes' => 'nullable|string',
         ]);
@@ -253,7 +271,7 @@ class ApplicationResultSeminarController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Hasil seminar berhasil disetujui'
+                'message' => 'Laporan hasil lulus divalidasi. Mahasiswa dapat melanjutkan ke pendaftaran sidang skripsi.',
             ]);
         } catch (\Exception $e) {
             return response()->json([

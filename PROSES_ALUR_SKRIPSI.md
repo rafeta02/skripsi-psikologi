@@ -88,7 +88,7 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 - Catatan: 
   - Jika `revision`: mahasiswa melakukan revisi sesuai masukan reviewer, isi tenggat revisi
   - Jika `failed`: `SkripsiSeminar` dibuka kembali; mahasiswa edit & unggah ulang dokumen; reviewer 1/2 direset; status kembali `submitted` menunggu admin
-  - Jika `passed`: lanjut ke tahap penelitian
+  - Jika `passed`: status aplikasi `submitted` menunggu **validasi admin**; setelah admin menyetujui (`result_seminar_approved`), mahasiswa dapat mendaftar sidang (`SkripsiDefense`) dan melanjutkan penelitian
 
 10) Proses Penelitian
 - Peran: Mahasiswa
@@ -102,6 +102,7 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 
 12) Pendaftaran Sidang Skripsi
 - Peran: Mahasiswa
+- Prasyarat: `ApplicationResultSeminar` hasil `passed` sudah divalidasi admin
 - Form: `SkripsiDefense` (unggah seluruh persyaratan: draft skripsi, bukti bimbingan, dll.)
 - Keputusan: Admin verifikasi
   - Setujui: lanjut penetapan penguji

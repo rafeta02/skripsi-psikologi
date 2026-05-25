@@ -268,19 +268,36 @@
                 </div>
             </div>
 
+            @php
+                $adminValidated = $applicationResultSeminar->isValidatedByAdmin();
+            @endphp
+
+            @if($applicationResultSeminar->result === 'passed' && $adminValidated)
+                <div class="card shadow-sm mb-4 border-success">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                        <p class="mb-0 text-success font-weight-bold">Sudah divalidasi — mahasiswa dapat mendaftar sidang skripsi.</p>
+                    </div>
+                </div>
+            @endif
+
             <!-- Actions Card -->
-            @if($applicationResultSeminar->application && $applicationResultSeminar->application->status !== 'approved' && $applicationResultSeminar->application->status !== 'rejected')
+            @if($applicationResultSeminar->application && $applicationResultSeminar->application->status !== 'rejected' && !$adminValidated)
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white">
                         <h5 class="mb-0"><i class="fas fa-tasks mr-2"></i>Aksi</h5>
                     </div>
                     <div class="card-body">
-                        <button type="button" class="btn btn-success btn-block mb-2" data-toggle="modal" data-target="#approveModal">
-                            <i class="fas fa-check mr-1"></i> Setujui Hasil Seminar
-                        </button>
-                        <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#rejectModal">
-                            <i class="fas fa-times mr-1"></i> Tolak Hasil Seminar
-                        </button>
+                        @if($applicationResultSeminar->result === 'passed')
+                            <button type="button" class="btn btn-success btn-block mb-2" data-toggle="modal" data-target="#approveModal">
+                                <i class="fas fa-check mr-1"></i> Validasi Hasil Lulus
+                            </button>
+                        @endif
+                        @if($applicationResultSeminar->application->status !== 'approved' || $applicationResultSeminar->result !== 'passed')
+                            <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#rejectModal">
+                                <i class="fas fa-times mr-1"></i> Tolak Laporan
+                            </button>
+                        @endif
                     </div>
                 </div>
             @endif
@@ -305,7 +322,7 @@
                 <div class="modal-body">
                     <div class="alert alert-success">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Hasil seminar akan disetujui dan status aplikasi akan diubah menjadi "Disetujui".
+                        Validasi laporan hasil <strong>lulus</strong>. Setelah disetujui, mahasiswa dapat mendaftar sidang skripsi (<code>SkripsiDefense</code>).
                     </div>
                     <div class="form-group">
                         <label for="approve_notes">Catatan (Opsional)</label>

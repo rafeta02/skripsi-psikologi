@@ -23,9 +23,16 @@ class SkripsiDefenseController extends Controller
     {
         abort_if(Gate::denies('skripsi_defense_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $skripsiDefenses = SkripsiDefense::with(['application', 'created_by', 'media'])->get();
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        $formAccessService = new FormAccessService();
+        $defenseAccess = $formAccessService->canAccessSkripsiDefense($mahasiswaId);
 
-        return view('frontend.skripsiDefenses.index', compact('skripsiDefenses'));
+        $applicationIds = Application::where('mahasiswa_id', $mahasiswaId)->pluck('id');
+        $skripsiDefenses = SkripsiDefense::with(['application', 'created_by', 'media'])
+            ->whereIn('application_id', $applicationIds)
+            ->get();
+
+        return view('frontend.skripsiDefenses.index', compact('skripsiDefenses', 'defenseAccess'));
     }
 
     public function create()

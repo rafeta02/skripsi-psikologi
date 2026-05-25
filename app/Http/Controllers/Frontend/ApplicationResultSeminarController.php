@@ -120,12 +120,19 @@ class ApplicationResultSeminarController extends Controller
             }
         }
 
-        Application::where('id', $validated['application_id'])->update([
-            'status' => $validated['result'] === 'passed' ? 'approved' : ($validated['result'] === 'revision' ? 'revision' : 'rejected'),
-        ]);
+        $status = match ($validated['result']) {
+            'passed' => 'submitted',
+            'revision' => 'revision',
+            default => 'rejected',
+        };
+        Application::where('id', $validated['application_id'])->update(['status' => $status]);
+
+        $message = $validated['result'] === 'passed'
+            ? 'Laporan hasil lulus berhasil dikirim. Menunggu validasi admin sebelum Anda dapat mendaftar sidang skripsi.'
+            : 'Laporan hasil review proposal berhasil dikirim!';
 
         return redirect()->route('frontend.application-result-seminars.index')
-            ->with('success', 'Laporan hasil review proposal berhasil dikirim!');
+            ->with('success', $message);
     }
 
     public function show(ApplicationResultSeminar $applicationResultSeminar)
@@ -136,7 +143,13 @@ class ApplicationResultSeminarController extends Controller
 
         $applicationResultSeminar->load('application');
 
-        return view('frontend.applicationResultSeminars.show', compact('applicationResultSeminar'));
+        $formAccessService = new FormAccessService();
+        $canAccessDefense = $formAccessService->canAccessSkripsiDefense(auth()->user()->mahasiswa_id);
+
+        return view('frontend.applicationResultSeminars.show', compact(
+            'applicationResultSeminar',
+            'canAccessDefense'
+        ));
     }
 
     protected function authorizeOwnership(ApplicationResultSeminar $applicationResultSeminar): void

@@ -7,6 +7,7 @@ use App\Models\MbkmRegistration;
 use App\Models\SkripsiRegistration;
 use App\Models\MbkmSeminar;
 use App\Models\SkripsiSeminar;
+use App\Models\ApplicationAction;
 use App\Models\ApplicationResultSeminar;
 use App\Models\SkripsiDefense;
 use App\Models\ApplicationResultDefense;
@@ -324,65 +325,91 @@ class FormAccessService
     }
 
     /**
-     * Check if student can access Skripsi Defense
+     * Whether admin has validated a passed seminar result report (mahasiswa may proceed to defense).
+     */
+    public function isSeminarResultValidatedByAdmin(int $applicationId): bool
+    {
+        return ApplicationAction::where('application_id', $applicationId)
+            ->where('action_type', 'result_seminar_approved')
+            ->exists();
+    }
+
+    /**
+     * Check if student can access Skripsi Defense (requires passed result validated by admin).
      */
     public function canAccessSkripsiDefense($mahasiswaId)
     {
-        // Must have completed and approved seminar
         $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
-            // ->whereIn('type', ['skripsi', 'mbkm'])
-            // ->whereIn('stage', ['seminar', 'review'])
-            // ->where('status', 'approved')
+            ->where('type', 'skripsi')
+            ->where('stage', 'seminar')
+            ->orderByDesc('created_at')
             ->first();
 
         if (!$seminarApp) {
             return [
                 'allowed' => false,
-                'message' => 'Anda harus menyelesaikan seminar proposal terlebih dahulu dan mendapat persetujuan.',
-                'application' => null
+                'message' => 'Anda harus menyelesaikan review proposal dan mengirim laporan hasil terlebih dahulu.',
+                'application' => null,
             ];
         }
 
-        // // Check if seminar result is approved
-        // $seminarResult = ApplicationResultSeminar::where('application_id', $seminarApp->id)
-        //     ->first();
+        $seminarResult = ApplicationResultSeminar::where('application_id', $seminarApp->id)
+            ->orderByDesc('created_at')
+            ->first();
 
-        // if (!$seminarResult) {
-        //     return [
-        //         'allowed' => false,
-        //         'message' => 'Hasil seminar proposal Anda belum diinput oleh admin.',
-        //         'application' => $seminarApp
-        //     ];
-        // }
+        if (!$seminarResult) {
+            return [
+                'allowed' => false,
+                'message' => 'Anda harus mengirim laporan hasil review proposal terlebih dahulu.',
+                'application' => $seminarApp,
+            ];
+        }
 
-        // // If seminar result is "failed", cannot proceed to defense
-        // if ($seminarResult->result === 'failed') {
-        //     return [
-        //         'allowed' => false,
-        //         'message' => 'Anda harus mengulang seminar proposal terlebih dahulu.',
-        //         'application' => $seminarApp
-        //     ];
-        // }
+        if ($seminarResult->result === 'failed') {
+            return [
+                'allowed' => false,
+                'message' => 'Review proposal tidak lulus. Perbaiki pendaftaran reviewer terlebih dahulu.',
+                'application' => $seminarApp,
+            ];
+        }
 
-        // // Check if defense already exists
-        // $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
-        //     ->whereIn('type', ['skripsi', 'mbkm'])
-        //     ->where('stage', 'defense')
-        //     ->whereIn('status', ['submitted', 'approved', 'scheduled'])
-        //     ->first();
+        if ($seminarResult->result === 'revision') {
+            return [
+                'allowed' => false,
+                'message' => 'Proposal masih dalam tahap revisi. Selesaikan revisi dan laporan hasil terlebih dahulu.',
+                'application' => $seminarApp,
+            ];
+        }
 
-        // if ($defenseApp) {
-        //     return [
-        //         'allowed' => false,
-        //         'message' => 'Anda sudah mendaftar sidang skripsi. Tunggu proses persetujuan.',
-        //         'application' => $seminarApp
-        //     ];
-        // }
+        if ($seminarResult->result === 'passed') {
+            if (!$this->isSeminarResultValidatedByAdmin($seminarApp->id) || $seminarApp->status !== 'approved') {
+                return [
+                    'allowed' => false,
+                    'message' => 'Laporan hasil lulus menunggu validasi admin. Anda belum dapat mendaftar sidang skripsi.',
+                    'application' => $seminarApp,
+                    'pending_admin_validation' => true,
+                ];
+            }
+        }
+
+        $defenseExists = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('type', 'skripsi')
+            ->where('stage', 'defense')
+            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
+            ->exists();
+
+        if ($defenseExists) {
+            return [
+                'allowed' => false,
+                'message' => 'Anda sudah mendaftar sidang skripsi.',
+                'application' => $seminarApp,
+            ];
+        }
 
         return [
             'allowed' => true,
             'message' => null,
-            'application' => $seminarApp
+            'application' => $seminarApp,
         ];
     }
 

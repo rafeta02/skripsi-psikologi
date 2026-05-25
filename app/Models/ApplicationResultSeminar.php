@@ -66,6 +66,13 @@ class ApplicationResultSeminar extends Model implements HasMedia
         return $this->belongsTo(Application::class, 'application_id');
     }
 
+    public function isValidatedByAdmin(): bool
+    {
+        return ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'result_seminar_approved')
+            ->exists();
+    }
+
     public function getRevisionDeadlineAttribute($value)
     {
         return $value ? Carbon::parse($value)->format(config('panel.date_format')) : null;

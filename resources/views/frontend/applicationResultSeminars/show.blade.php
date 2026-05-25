@@ -222,9 +222,21 @@
                         </a>
                     @endif
                     @if($applicationResultSeminar->result === 'passed')
-                        <div class="alert alert-success mb-0">
-                            <i class="fas fa-check-circle"></i> Proposal Anda telah disetujui. Lanjutkan ke tahap berikutnya.
-                        </div>
+                        @if($canAccessDefense['allowed'] ?? false)
+                            <div class="alert alert-success mb-3">
+                                <i class="fas fa-check-circle"></i> Laporan hasil lulus sudah divalidasi admin. Anda dapat mendaftar sidang skripsi.
+                            </div>
+                            @can('skripsi_defense_create')
+                                <a href="{{ route('frontend.skripsi-defenses.create') }}" class="btn btn-success btn-block">
+                                    <i class="fas fa-graduation-cap"></i> Daftar Sidang Skripsi
+                                </a>
+                            @endcan
+                        @else
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-hourglass-half"></i>
+                                {{ $canAccessDefense['message'] ?? 'Menunggu validasi admin sebelum dapat mendaftar sidang skripsi.' }}
+                            </div>
+                        @endif
                     @endif
                     @if($applicationResultSeminar->result === 'failed')
                         <div class="alert alert-danger mb-3">
