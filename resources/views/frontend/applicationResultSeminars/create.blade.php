@@ -71,9 +71,9 @@
                             <!-- Notes from Reviewer -->
                             <div class="form-group">
                                 <label class="form-label-modern">Catatan dari Reviewer</label>
-                                <textarea name="notes" class="form-control-modern @error('notes') is-invalid @enderror" rows="4">{{ old('notes') }}</textarea>
+                                <textarea name="note" class="form-control-modern @error('note') is-invalid @enderror" rows="4">{{ old('note') }}</textarea>
                                 <small class="form-text text-muted">Masukan, saran, atau komentar dari reviewer</small>
-                                @error('notes')
+                                @error('note')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -119,7 +119,7 @@
 
                             <!-- Action Buttons -->
                             <div class="d-flex justify-content-between mt-4">
-                                <a href="{{ route('mahasiswa.dashboard') }}" class="btn btn-secondary">
+                                <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Kembali
                                 </a>
                                 <button type="submit" class="btn btn-primary btn-lg">

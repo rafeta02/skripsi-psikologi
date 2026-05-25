@@ -67,8 +67,13 @@
                                 </a>
                             @elseif($app->stage == 'seminar')
                                 <a href="{{ route('frontend.skripsi-seminars.index') }}" class="btn btn-outline-primary text-left mb-2">
-                                    <i class="fas fa-file-upload"></i> Upload Dokumen Seminar
+                                    <i class="fas fa-file-upload"></i> Pendaftaran Reviewer Proposal
                                 </a>
+                                @can('application_result_seminar_access')
+                                <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn btn-outline-danger text-left mb-2">
+                                    <i class="fas fa-clipboard-check"></i> Laporan Hasil Review Proposal
+                                </a>
+                                @endcan
                             @elseif($app->stage == 'defense')
                                 <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn btn-outline-primary text-left mb-2">
                                     <i class="fas fa-file-upload"></i> Upload Dokumen Sidang

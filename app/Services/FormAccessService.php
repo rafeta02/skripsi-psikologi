@@ -7,6 +7,7 @@ use App\Models\MbkmRegistration;
 use App\Models\SkripsiRegistration;
 use App\Models\MbkmSeminar;
 use App\Models\SkripsiSeminar;
+use App\Models\ApplicationResultSeminar;
 use App\Models\SkripsiDefense;
 use App\Models\ApplicationResultSeminar;
 use App\Models\ApplicationResultDefense;
@@ -209,6 +210,45 @@ class FormAccessService
             'allowed' => true,
             'message' => null,
             'application' => $registrationApp
+        ];
+    }
+
+    /**
+     * Check if student can submit/view laporan hasil review proposal (ApplicationResultSeminar).
+     */
+    public function canAccessApplicationResultSeminar($mahasiswaId, bool $forCreate = true)
+    {
+        $seminar = SkripsiSeminar::whereHas('application', function ($query) use ($mahasiswaId) {
+            $query->where('mahasiswa_id', $mahasiswaId)->where('type', 'skripsi');
+        })
+            ->whereHas('application', fn ($query) => $query->where('status', 'approved'))
+            ->whereNotNull('reviewer_1_id')
+            ->with('application')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$seminar) {
+            return [
+                'allowed' => false,
+                'message' => 'Anda harus menyelesaikan pendaftaran reviewer proposal dan mendapat persetujuan admin terlebih dahulu.',
+                'application' => null,
+            ];
+        }
+
+        $existing = ApplicationResultSeminar::where('application_id', $seminar->application_id)->exists();
+
+        if ($forCreate && $existing) {
+            return [
+                'allowed' => false,
+                'message' => 'Laporan hasil review sudah pernah dikirim.',
+                'application' => $seminar->application,
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'message' => null,
+            'application' => $seminar->application,
         ];
     }
 

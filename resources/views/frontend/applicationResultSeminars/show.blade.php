@@ -234,7 +234,7 @@
     <!-- Back Button -->
     <div class="row mt-4">
         <div class="col-lg-12">
-            <a href="{{ route('mahasiswa.dashboard') }}" class="btn btn-secondary">
+            <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
             </a>
         </div>

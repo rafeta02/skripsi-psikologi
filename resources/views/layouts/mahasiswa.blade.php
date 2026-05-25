@@ -367,6 +367,14 @@
                                 <i class="fas fa-folder"></i> Dokumen
                             </a>
                         </li>
+
+                        @can('application_result_seminar_access')
+                        <li class="nav-item">
+                            <a href="{{ route('frontend.application-result-seminars.index') }}" class="nav-link {{ request()->routeIs('frontend.application-result-seminars.*') ? 'active' : '' }}">
+                                <i class="fas fa-clipboard-check"></i> Laporan Review
+                            </a>
+                        </li>
+                        @endcan
                         
                         {{-- Profile - Always visible --}}
                         <li class="nav-item">

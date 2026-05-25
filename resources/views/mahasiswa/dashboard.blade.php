@@ -137,9 +137,16 @@
                             </a>
                         @endif
                     @elseif($currentPhase == 2 && $activeApplication)
-                        <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn-modern btn-modern-primary mt-3">
-                            <i class="fas fa-graduation-cap"></i> Daftar Sidang
-                        </a>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            @can('application_result_seminar_access')
+                            <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn-modern btn-modern-primary">
+                                <i class="fas fa-clipboard-check"></i> Laporan Hasil Review
+                            </a>
+                            @endcan
+                            <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn-modern btn-modern-outline" style="color: var(--primary-500); border-color: var(--primary-500);">
+                                <i class="fas fa-graduation-cap"></i> Daftar Sidang
+                            </a>
+                        </div>
                     @endif
                 </div>
             </div>
