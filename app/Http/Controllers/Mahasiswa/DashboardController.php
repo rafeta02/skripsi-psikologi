@@ -115,23 +115,39 @@ class DashboardController extends Controller
         if ($activeApplication->type == 'skripsi') {
             $registration = SkripsiRegistration::where('application_id', $activeApplication->id)->first();
             if ($registration) {
+                $supervisorAccepted = ApplicationAssignment::where('application_id', $activeApplication->id)
+                    ->where('role', 'supervisor')
+                    ->where('status', 'accepted')
+                    ->exists();
+
                 return [
                     'phase' => 1,
                     'phase_name' => 'Sudah Pendaftaran',
                     'phase_description' => 'Anda sudah melakukan pendaftaran skripsi',
-                    'next_step' => 'Tunggu persetujuan dan daftar seminar proposal',
-                    'application' => $activeApplication
+                    'next_step' => $supervisorAccepted
+                        ? 'Daftar seminar proposal'
+                        : 'Tunggu persetujuan dosen pembimbing',
+                    'application' => $activeApplication,
+                    'supervisor_accepted' => $supervisorAccepted,
                 ];
             }
         } elseif ($activeApplication->type == 'mbkm') {
             $registration = MbkmRegistration::where('application_id', $activeApplication->id)->first();
             if ($registration) {
+                $supervisorAccepted = ApplicationAssignment::where('application_id', $activeApplication->id)
+                    ->where('role', 'supervisor')
+                    ->where('status', 'accepted')
+                    ->exists();
+
                 return [
                     'phase' => 1,
                     'phase_name' => 'Sudah Pendaftaran',
                     'phase_description' => 'Anda sudah melakukan pendaftaran MBKM',
-                    'next_step' => 'Tunggu persetujuan dan daftar seminar',
-                    'application' => $activeApplication
+                    'next_step' => $supervisorAccepted
+                        ? 'Daftar seminar MBKM'
+                        : 'Tunggu persetujuan dosen pembimbing',
+                    'application' => $activeApplication,
+                    'supervisor_accepted' => $supervisorAccepted,
                 ];
             }
         }
@@ -162,7 +178,12 @@ class DashboardController extends Controller
         $phaseName = $phaseData['phase_name'];
         $phaseDescription = $phaseData['phase_description'];
         $nextStep = $phaseData['next_step'];
+        $supervisorAccepted = $phaseData['supervisor_accepted'] ?? false;
         $activeApplication = $phaseData['application'] ?? null;
+
+        if ($activeApplication) {
+            $activeApplication->load(['assignments.lecturer', 'skripsiRegistration', 'mbkmRegistration']);
+        }
 
         // Statistics
         $totalApplications = Application::where('mahasiswa_id', $mahasiswa->id)->count();
@@ -227,6 +248,7 @@ class DashboardController extends Controller
             'phaseName',
             'phaseDescription',
             'nextStep',
+            'supervisorAccepted',
             'allowedForms'
         ));
     }
@@ -244,6 +266,7 @@ class DashboardController extends Controller
         $currentPhase = $phaseData['phase'];
 
         $applications = Application::where('mahasiswa_id', $mahasiswa->id)
+            ->with(['assignments.lecturer', 'skripsiRegistration', 'mbkmRegistration'])
             ->orderBy('created_at', 'desc')
             ->get();
         

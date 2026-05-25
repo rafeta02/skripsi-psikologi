@@ -248,7 +248,7 @@ class DashboardController extends Controller
     {
         $assignment = ApplicationAssignment::with([
             'application.mahasiswa.user',
-            'application.skripsiRegistration',
+            'application.skripsiRegistration.theme',
             'application.mbkmRegistration'
         ])->findOrFail($assignmentId);
 
@@ -274,6 +274,11 @@ class DashboardController extends Controller
                 'note' => $request->note
             ]);
 
+            if ($assignment->application) {
+                $applicationStatus = $request->status === 'accepted' ? 'approved' : 'rejected';
+                $assignment->application->update(['status' => $applicationStatus]);
+            }
+
             $statusText = $request->status === 'accepted' ? 'menyetujui' : 'menolak';
             return redirect()->back()->with('message', "Anda berhasil {$statusText} penugasan pembimbingan.");
         }
@@ -281,15 +286,20 @@ class DashboardController extends Controller
         // If it's a review with decision (new flow)
         $validated = $request->validate([
             'review_decision' => 'required|in:approved,revision,rejected',
-            'score' => 'nullable|numeric|min:0|max:100',
             'feedback' => 'required|string',
             'revision_notes' => 'nullable|string',
         ]);
 
-        // Update assignment
+        $assignmentStatus = $validated['review_decision'] === 'rejected' ? 'rejected' : 'accepted';
+
+        $note = $validated['feedback'];
+        if ($validated['review_decision'] === 'revision' && !empty($validated['revision_notes'])) {
+            $note .= "\n\nCatatan revisi:\n" . $validated['revision_notes'];
+        }
+
         $assignment->update([
-            'status' => 'accepted',
-            'response' => $validated['feedback'],
+            'status' => $assignmentStatus,
+            'note' => $note,
             'responded_at' => now(),
         ]);
 
@@ -301,12 +311,19 @@ class DashboardController extends Controller
                 'rejected' => 'rejected',
                 default => 'submitted',
             };
-            
+
             $assignment->application->update(['status' => $newStatus]);
         }
 
+        $message = match($validated['review_decision']) {
+            'approved' => 'Penugasan diterima dan proposal disetujui.',
+            'revision' => 'Penugasan diterima. Mahasiswa diminta melakukan revisi.',
+            'rejected' => 'Penugasan ditolak.',
+            default => 'Review berhasil dikirim.',
+        };
+
         return redirect()->route('dosen.task-assignments')
-            ->with('success', 'Review berhasil dikirim!');
+            ->with('success', $message);
     }
 
     public function scoring($applicationId)

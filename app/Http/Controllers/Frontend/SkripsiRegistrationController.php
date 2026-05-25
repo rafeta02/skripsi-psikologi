@@ -147,7 +147,7 @@ class SkripsiRegistrationController extends Controller
     
     public function show($applicationId)
     {
-        $application = Application::with(['skripsiRegistration', 'mahasiswa'])->findOrFail($applicationId);
+        $application = Application::with(['skripsiRegistration', 'mahasiswa', 'assignments.lecturer'])->findOrFail($applicationId);
         
         // Verify ownership
         $user = Auth::user();

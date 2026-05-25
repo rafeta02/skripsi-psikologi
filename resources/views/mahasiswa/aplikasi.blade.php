@@ -85,7 +85,7 @@
                 <i class="fas fa-lightbulb fa-2x mr-3"></i>
                 <div>
                     <h5 class="mb-1">Tips</h5>
-                    <p class="mb-0">Pastikan Anda selalu cek status aplikasi secara berkala untuk informasi revisi atau persetujuan dari admin. Jika ada catatan revisi, segera perbaiki agar proses tidak tertunda.</p>
+                    <p class="mb-0">Pendaftaran dianggap <strong>diterima</strong> setelah dosen pembimbing menerima penugasan. Setelah admin menugaskan dosen, status akan menampilkan &quot;Menunggu Dosen&quot; hingga dosen menyetujui.</p>
                 </div>
             </div>
         </div>
@@ -112,7 +112,9 @@
                             </small>
                         </div>
                         <div class="col-md-4 text-right">
-                            @if($app->status == 'submitted')
+                            @if($app->stage == 'registration')
+                                @include('partials.mahasiswa-registration-status', ['application' => $app])
+                            @elseif($app->status == 'submitted')
                                 <span class="badge badge-warning badge-lg px-3 py-2" style="font-size: 14px;">
                                     <i class="fas fa-clock"></i> Menunggu Review
                                 </span>
@@ -168,12 +170,17 @@
                             <div class="mb-3">
                                 <label class="text-muted small mb-1"><i class="fas fa-info-circle"></i> Status Detail</label>
                                 <h5 class="mb-0">
-                                    @if($app->status == 'submitted')
+                                    @if($app->stage == 'registration')
+                                        @php $regStatus = $app->getRegistrationStatusForMahasiswa(); @endphp
+                                        <span class="text-{{ $regStatus['badge'] === 'success' ? 'success' : ($regStatus['badge'] === 'danger' ? 'danger' : 'warning') }}">
+                                            {{ $regStatus['detail'] }}
+                                        </span>
+                                    @elseif($app->status == 'submitted')
                                         <span class="text-warning">Menunggu Review Admin</span>
                                     @elseif($app->status == 'approved')
                                         <span class="text-success">Telah Disetujui</span>
                                     @elseif($app->status == 'rejected')
-                                        <span class="text-danger">Ditolak oleh Admin</span>
+                                        <span class="text-danger">Ditolak</span>
                                     @elseif($app->status == 'revision')
                                         <span class="text-warning">Memerlukan Perbaikan</span>
                                     @elseif($app->status == 'scheduled')

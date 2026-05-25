@@ -116,6 +116,111 @@ class Application extends Model implements HasMedia
         return $this->hasOne(MbkmRegistration::class);
     }
 
+    public function assignments()
+    {
+        return $this->hasMany(ApplicationAssignment::class, 'application_id');
+    }
+
+    /**
+     * Registration is fully accepted for mahasiswa only after supervisor accepts assignment.
+     */
+    public function isRegistrationAcceptedBySupervisor(): bool
+    {
+        if ($this->stage !== 'registration') {
+            return $this->status === 'approved';
+        }
+
+        return $this->assignments()
+            ->where('role', 'supervisor')
+            ->where('status', 'accepted')
+            ->exists();
+    }
+
+    /**
+     * Human-readable registration status for mahasiswa UI.
+     */
+    public function getRegistrationStatusForMahasiswa(): array
+    {
+        if ($this->stage !== 'registration') {
+            return $this->mapApplicationStatusForMahasiswa();
+        }
+
+        if ($this->status === 'revision') {
+            return [
+                'badge' => 'warning',
+                'icon' => 'edit',
+                'label' => 'Perlu Revisi',
+                'detail' => 'Perbaiki pendaftaran sesuai catatan yang diberikan',
+            ];
+        }
+
+        if ($this->status === 'rejected') {
+            return [
+                'badge' => 'danger',
+                'icon' => 'times-circle',
+                'label' => 'Ditolak',
+                'detail' => 'Pendaftaran ditolak',
+            ];
+        }
+
+        $supervisorAssignment = $this->assignments
+            ->where('role', 'supervisor')
+            ->first();
+
+        if ($supervisorAssignment?->status === 'rejected') {
+            return [
+                'badge' => 'danger',
+                'icon' => 'times-circle',
+                'label' => 'Ditolak',
+                'detail' => 'Dosen pembimbing menolak penugasan',
+            ];
+        }
+
+        if ($this->isRegistrationAcceptedBySupervisor()) {
+            return [
+                'badge' => 'success',
+                'icon' => 'check-circle',
+                'label' => 'Diterima',
+                'detail' => 'Pendaftaran disetujui oleh dosen pembimbing',
+            ];
+        }
+
+        $adminAssigned = false;
+        if ($this->type === 'skripsi' && $this->skripsiRegistration) {
+            $adminAssigned = (bool) $this->skripsiRegistration->assigned_supervisor_id;
+        } elseif ($this->type === 'mbkm' && $this->mbkmRegistration) {
+            $adminAssigned = (bool) $this->mbkmRegistration->approval_date;
+        }
+
+        if ($adminAssigned || ($supervisorAssignment && $supervisorAssignment->status === 'assigned')) {
+            return [
+                'badge' => 'warning',
+                'icon' => 'clock',
+                'label' => 'Menunggu Dosen',
+                'detail' => 'Admin telah menugaskan dosen pembimbing. Menunggu persetujuan dosen.',
+            ];
+        }
+
+        return [
+            'badge' => 'warning',
+            'icon' => 'clock',
+            'label' => 'Menunggu Review',
+            'detail' => 'Menunggu verifikasi admin',
+        ];
+    }
+
+    protected function mapApplicationStatusForMahasiswa(): array
+    {
+        return match ($this->status) {
+            'approved' => ['badge' => 'success', 'icon' => 'check-circle', 'label' => 'Disetujui', 'detail' => 'Telah disetujui'],
+            'rejected' => ['badge' => 'danger', 'icon' => 'times-circle', 'label' => 'Ditolak', 'detail' => 'Ditolak'],
+            'revision' => ['badge' => 'warning', 'icon' => 'edit', 'label' => 'Perlu Revisi', 'detail' => 'Memerlukan perbaikan'],
+            'scheduled' => ['badge' => 'info', 'icon' => 'calendar-check', 'label' => 'Terjadwal', 'detail' => 'Sudah dijadwalkan'],
+            'done' => ['badge' => 'secondary', 'icon' => 'flag-checkered', 'label' => 'Selesai', 'detail' => 'Proses selesai'],
+            default => ['badge' => 'warning', 'icon' => 'clock', 'label' => 'Menunggu Review', 'detail' => 'Menunggu verifikasi'],
+        };
+    }
+
     /**
      * Check if mahasiswa already has an active application
      */

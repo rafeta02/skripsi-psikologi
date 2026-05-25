@@ -126,7 +126,7 @@
                         <a href="{{ route('frontend.choose-path') }}" class="btn-modern btn-modern-primary mt-3">
                             <i class="fas fa-route"></i> Mulai Daftar
                         </a>
-                    @elseif($currentPhase == 1 && $activeApplication)
+                    @elseif($currentPhase == 1 && $activeApplication && ($supervisorAccepted ?? false))
                         @if($activeApplication->type == 'skripsi')
                             <a href="{{ route('frontend.skripsi-seminars.index') }}" class="btn-modern btn-modern-primary mt-3">
                                 <i class="fas fa-presentation"></i> Daftar Seminar
@@ -402,7 +402,9 @@
                             <div class="col-md-4">
                                 <strong>Status:</strong>
                                 <p>
-                                    @if($activeApplication->status == 'submitted')
+                                    @if($activeApplication->stage == 'registration')
+                                        @include('partials.mahasiswa-registration-status', ['application' => $activeApplication])
+                                    @elseif($activeApplication->status == 'submitted')
                                         <span class="badge badge-warning">Submitted</span>
                                     @elseif($activeApplication->status == 'approved')
                                         <span class="badge badge-success">Approved</span>

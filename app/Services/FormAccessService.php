@@ -127,11 +127,14 @@ class FormAccessService
      */
     public function canAccessMbkmSeminar($mahasiswaId)
     {
-        // Must have approved MBKM registration
+        // Must have registration accepted by supervisor (dosen)
         $registrationApp = Application::where('mahasiswa_id', $mahasiswaId)
             ->where('type', 'mbkm')
             ->where('stage', 'registration')
             ->where('status', 'approved')
+            ->whereHas('assignments', function ($query) {
+                $query->where('role', 'supervisor')->where('status', 'accepted');
+            })
             ->first();
 
         if (!$registrationApp) {
@@ -169,11 +172,14 @@ class FormAccessService
      */
     public function canAccessSkripsiSeminar($mahasiswaId)
     {
-        // Must have approved Skripsi registration
+        // Must have registration accepted by supervisor (dosen)
         $registrationApp = Application::where('mahasiswa_id', $mahasiswaId)
             ->where('type', 'skripsi')
             ->where('stage', 'registration')
             ->where('status', 'approved')
+            ->whereHas('assignments', function ($query) {
+                $query->where('role', 'supervisor')->where('status', 'accepted');
+            })
             ->first();
 
         if (!$registrationApp) {

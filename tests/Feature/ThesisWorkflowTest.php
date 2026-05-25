@@ -163,7 +163,6 @@ class ThesisWorkflowTest extends TestCase
         // TC-SR-025-034: Dosen reviews proposal
         $reviewData = [
             'review_decision' => 'approved',
-            'score' => 85,
             'feedback' => 'Proposal bagus, silakan lanjutkan penelitian',
         ];
         
@@ -177,6 +176,39 @@ class ThesisWorkflowTest extends TestCase
         $this->assertEquals('approved', $application->status);
         
         // Test complete!
+    }
+
+    /** @test */
+    public function test_dosen_rejecting_assignment_sets_rejected_status()
+    {
+        $application = Application::factory()->create([
+            'mahasiswa_id' => $this->mahasiswa->id,
+            'type' => 'skripsi',
+            'stage' => 'registration',
+            'status' => 'approved',
+        ]);
+
+        $assignment = ApplicationAssignment::create([
+            'application_id' => $application->id,
+            'lecturer_id' => $this->dosen->id,
+            'role' => 'supervisor',
+            'status' => 'assigned',
+            'assigned_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->dosenUser)
+            ->post(route('dosen.task-assignments.respond', $assignment->id), [
+                'review_decision' => 'rejected',
+                'feedback' => 'Tidak dapat membimbing pada semester ini',
+            ]);
+
+        $response->assertRedirect(route('dosen.task-assignments'));
+
+        $assignment->refresh();
+        $this->assertEquals('rejected', $assignment->status);
+
+        $application->refresh();
+        $this->assertEquals('rejected', $application->status);
     }
 
     /** @test */

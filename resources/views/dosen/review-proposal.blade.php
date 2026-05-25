@@ -11,7 +11,7 @@
                         <i class="fas fa-clipboard-check mr-2"></i> Review Proposal
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Berikan penilaian dan feedback untuk proposal mahasiswa
+                        Tinjau pendaftaran skripsi dan berikan keputusan beserta feedback
                     </p>
                 </div>
             </div>
@@ -73,15 +73,17 @@
                         @endphp
                         @if($registration)
                             <div class="mb-3">
-                                <label class="text-muted mb-1">Judul Proposal</label>
-                                <h6 class="font-weight-semibold">{{ $registration->proposal_title_1 ?? '-' }}</h6>
+                                <label class="text-muted mb-1">Tema Keilmuan</label>
+                                <p class="font-weight-semibold mb-0">{{ $registration->theme->name ?? '-' }}</p>
                             </div>
-                            @if($registration->proposal_description_1)
-                                <div class="mb-3">
-                                    <label class="text-muted mb-1">Deskripsi</label>
-                                    <p>{{ Str::limit($registration->proposal_description_1, 300) }}</p>
-                                </div>
-                            @endif
+                            <div class="mb-3">
+                                <label class="text-muted mb-1">Judul Skripsi</label>
+                                <h6 class="font-weight-semibold mb-0">{{ $registration->title ?? '-' }}</h6>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted mb-1">Abstrak</label>
+                                <div class="p-3 rounded" style="background: #f8f9fa; white-space: pre-wrap;">{{ $registration->abstract ?? '-' }}</div>
+                            </div>
                         @endif
                     @elseif($assignment->application && $assignment->application->type == 'mbkm')
                         @php
@@ -161,7 +163,7 @@
         <div class="col-lg-12">
             <div class="card-modern">
                 <div class="card-modern-body">
-                    <h5 class="font-weight-bold mb-4">Form Penilaian & Feedback</h5>
+                    <h5 class="font-weight-bold mb-4">Form Keputusan & Feedback</h5>
                     
                     <form action="{{ route('dosen.task-assignments.respond', $assignment->id) }}" method="POST">
                         @csrf
@@ -176,16 +178,6 @@
                                 <option value="rejected" {{ old('review_decision') == 'rejected' ? 'selected' : '' }}>❌ Ditolak (Rejected)</option>
                             </select>
                             @error('review_decision')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Score/Grade -->
-                        <div class="form-group">
-                            <label class="form-label-modern">Nilai (0-100)</label>
-                            <input type="number" name="score" class="form-control-modern @error('score') is-invalid @enderror" value="{{ old('score') }}" min="0" max="100" step="0.5">
-                            <small class="form-text text-muted">Nilai untuk proposal (opsional)</small>
-                            @error('score')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

@@ -49,9 +49,11 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 3) Penugasan Dosen Pembimbing
 - Peran: Admin
 - Form: `ApplicationAssignment` (role=`supervisor`, status=`assigned`)
+- Verifikasi admin: berkas disetujui & dosen ditugaskan; `Application.status` tetap `submitted` (belum diterima di sisi mahasiswa)
 - Peran: Dosen
   - Aksi: setujui/tolak penugasan
   - Dampak: `ApplicationAssignment.status` → `accepted` / `rejected`
+  - Jika dosen menerima: `Application.status` → `approved` (pendaftaran dianggap diterima oleh mahasiswa)
 
 4) Penyusunan Proposal
 - Peran: Mahasiswa
@@ -128,7 +130,6 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 - Peran: Admin (trigger/assign dosen mengisi nilai), Dosen Penguji + Pembimbing
 - Form: `ApplicationScore` (tautan ke `ApplicationResultDefense`, isi skor dan catatan)
 - Output: Nilai akhir mahasiswa tersimpan dan proses skripsi selesai
-
 ---
 
 ## Alur 2 — Skripsi MBKM

@@ -26,15 +26,13 @@
                         </tr>
                         <tr>
                             <td><strong>Status</strong></td>
-                            <td>: 
-                                <span class="badge 
-                                    @if($application->status == 'approved') badge-success
-                                    @elseif($application->status == 'rejected') badge-danger
-                                    @elseif($application->status == 'submitted') badge-warning
-                                    @else badge-info
-                                    @endif">
-                                    {{ ucfirst($application->status) }}
+                            <td>:
+                                @php $regStatus = $application->getRegistrationStatusForMahasiswa(); @endphp
+                                <span class="badge badge-{{ $regStatus['badge'] }}">
+                                    {{ $regStatus['label'] }}
                                 </span>
+                                <br>
+                                <small class="text-muted">{{ $regStatus['detail'] }}</small>
                             </td>
                         </tr>
                         <tr>

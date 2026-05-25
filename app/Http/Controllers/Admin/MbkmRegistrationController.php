@@ -273,10 +273,10 @@ class MbkmRegistrationController extends Controller
                     'approval_date' => now(),
                 ]);
 
-                // Update application status
-                $registration->application->update([
-                    'status' => 'approved',
-                ]);
+                // Keep submitted until supervisor accepts the assignment
+                if ($registration->application->status === 'revision') {
+                    $registration->application->update(['status' => 'submitted']);
+                }
 
                 // Create ApplicationAssignment for the preferred supervisor
                 if ($registration->preference_supervision_id) {

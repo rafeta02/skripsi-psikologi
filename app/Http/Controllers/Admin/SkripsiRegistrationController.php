@@ -239,10 +239,10 @@ class SkripsiRegistrationController extends Controller
                     'approval_date' => now(),
                 ]);
 
-                // Update application status to approved (admin approved, waiting for supervisor acceptance)
-                $registration->application->update([
-                    'status' => 'approved',
-                ]);
+                // Keep submitted until supervisor accepts the assignment
+                if ($registration->application->status === 'revision') {
+                    $registration->application->update(['status' => 'submitted']);
+                }
 
                 // Create ApplicationAssignment for supervisor
                 ApplicationAssignment::create([
