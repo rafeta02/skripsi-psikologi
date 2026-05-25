@@ -18,9 +18,10 @@
                         </div>
                         <div>
                             @can('skripsi_seminar_edit')
-                                @if($skripsiSeminar->application && in_array($skripsiSeminar->application->status, ['revision', 'submitted']))
+                                @if(!empty($canEdit['allowed']))
                                     <a href="{{ route('frontend.skripsi-seminars.edit', $skripsiSeminar->id) }}" class="btn btn-light">
-                                        <i class="fas fa-edit"></i> Edit
+                                        <i class="fas fa-edit"></i>
+                                        {{ !empty($canEdit['retry_after_failed']) ? 'Unggah Ulang' : 'Edit' }}
                                     </a>
                                 @endif
                             @endcan

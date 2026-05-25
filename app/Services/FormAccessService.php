@@ -190,25 +190,97 @@ class FormAccessService
             ];
         }
 
-        // Check if there's already a seminar application
         $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
             ->where('type', 'skripsi')
             ->where('stage', 'seminar')
-            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
+            ->orderByDesc('created_at')
             ->first();
 
         if ($seminarApp) {
-            return [
-                'allowed' => false,
-                'message' => 'Anda sudah mendaftar seminar proposal. Tunggu proses persetujuan.',
-                'application' => $registrationApp
-            ];
+            $retrySeminar = $this->getSkripsiSeminarForFailedRetry($mahasiswaId);
+            if ($retrySeminar) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Review proposal tidak lulus. Silakan perbaiki dan unggah ulang pendaftaran reviewer yang ada.',
+                    'application' => $registrationApp,
+                    'retry_seminar' => $retrySeminar,
+                ];
+            }
+
+            if (in_array($seminarApp->status, ['submitted', 'approved', 'scheduled', 'revision'])) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Anda sudah mendaftar reviewer proposal. Tunggu proses persetujuan.',
+                    'application' => $registrationApp,
+                ];
+            }
         }
 
         return [
             'allowed' => true,
             'message' => null,
-            'application' => $registrationApp
+            'application' => $registrationApp,
+        ];
+    }
+
+    /**
+     * Seminar registration that can be re-edited after a failed review report.
+     */
+    public function getSkripsiSeminarForFailedRetry($mahasiswaId): ?SkripsiSeminar
+    {
+        return SkripsiSeminar::whereHas('application', function ($query) use ($mahasiswaId) {
+            $query->where('mahasiswa_id', $mahasiswaId)
+                ->where('type', 'skripsi')
+                ->where('stage', 'seminar')
+                ->where('status', 'rejected');
+        })
+            ->whereIn('application_id', function ($query) {
+                $query->select('application_id')
+                    ->from('application_result_seminars')
+                    ->where('result', 'failed')
+                    ->whereNull('deleted_at');
+            })
+            ->with('application')
+            ->orderByDesc('created_at')
+            ->first();
+    }
+
+    /**
+     * Whether mahasiswa may edit this SkripsiSeminar (revision/submitted or failed retry).
+     */
+    public function canEditSkripsiSeminar(SkripsiSeminar $seminar, $mahasiswaId): array
+    {
+        $seminar->loadMissing('application');
+
+        if (!$seminar->application || (int) $seminar->application->mahasiswa_id !== (int) $mahasiswaId) {
+            return [
+                'allowed' => false,
+                'message' => 'Anda tidak memiliki akses ke pendaftaran ini.',
+                'retry_after_failed' => false,
+            ];
+        }
+
+        if (in_array($seminar->application->status, ['submitted', 'revision'])) {
+            return [
+                'allowed' => true,
+                'message' => null,
+                'retry_after_failed' => false,
+            ];
+        }
+
+        $retrySeminar = $this->getSkripsiSeminarForFailedRetry($mahasiswaId);
+        if ($retrySeminar && (int) $retrySeminar->id === (int) $seminar->id) {
+            return [
+                'allowed' => true,
+                'message' => null,
+                'retry_after_failed' => true,
+            ];
+        }
+
+        return [
+            'allowed' => false,
+            'message' => 'Pendaftaran tidak dapat diedit pada status ini.',
+            'retry_after_failed' => false,
         ];
     }
 

@@ -226,6 +226,22 @@
                             <i class="fas fa-check-circle"></i> Proposal Anda telah disetujui. Lanjutkan ke tahap berikutnya.
                         </div>
                     @endif
+                    @if($applicationResultSeminar->result === 'failed')
+                        <div class="alert alert-danger mb-3">
+                            <i class="fas fa-times-circle"></i> Review proposal tidak lulus. Perbaiki pendaftaran reviewer dan unggah ulang dokumen.
+                        </div>
+                        @can('skripsi_seminar_edit')
+                            @php
+                                $retrySeminarId = app(\App\Services\FormAccessService::class)
+                                    ->getSkripsiSeminarForFailedRetry(auth()->user()->mahasiswa_id)?->id;
+                            @endphp
+                            @if($retrySeminarId)
+                                <a href="{{ route('frontend.skripsi-seminars.edit', $retrySeminarId) }}" class="btn btn-danger btn-block">
+                                    <i class="fas fa-edit"></i> Perbaiki Pendaftaran Reviewer
+                                </a>
+                            @endif
+                        @endcan
+                    @endif
                 </div>
             </div>
         </div>

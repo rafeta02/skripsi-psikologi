@@ -29,6 +29,37 @@
         </div>
     </div>
 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    @endif
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show">
+            {{ session('warning') }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    @endif
+
+    @if(isset($retrySeminar) && $retrySeminar)
+        <div class="alert alert-danger border-left mb-4" style="border-left: 4px solid #dc3545 !important;">
+            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Review Proposal Tidak Lulus</h5>
+            <p class="mb-2">Perbaiki dokumen pendaftaran reviewer dan kirim ulang. Penugasan reviewer sebelumnya akan dikosongkan; admin akan menugaskan reviewer baru setelah Anda mengirim ulang.</p>
+            @can('skripsi_seminar_edit')
+            <a href="{{ route('frontend.skripsi-seminars.edit', $retrySeminar->id) }}" class="btn btn-danger">
+                <i class="fas fa-edit"></i> Perbaiki & Unggah Ulang Pendaftaran
+            </a>
+            @endcan
+        </div>
+    @endif
+
     <!-- Seminars List -->
     <div class="row">
         <div class="col-lg-12">
@@ -67,7 +98,8 @@
                                                         </span>
                                                     @elseif($seminar->application->status == 'rejected')
                                                         <span class="badge-modern badge-modern-danger">
-                                                            <i class="fas fa-times-circle"></i> Ditolak
+                                                            <i class="fas fa-times-circle"></i>
+                                                            {{ ($retrySeminar && (int) $retrySeminar->id === (int) $seminar->id) ? 'Review Gagal — Perlu Unggah Ulang' : 'Ditolak' }}
                                                         </span>
                                                     @elseif($seminar->application->status == 'done')
                                                         <span class="badge-modern badge-modern-secondary">
@@ -123,9 +155,16 @@
                                         @endcan
                                         
                                         @can('skripsi_seminar_edit')
-                                            @if($seminar->application && in_array($seminar->application->status, ['revision', 'submitted']))
+                                            @php
+                                                $canEditSeminar = $seminar->application && (
+                                                    in_array($seminar->application->status, ['revision', 'submitted'])
+                                                    || ($retrySeminar && (int) $retrySeminar->id === (int) $seminar->id)
+                                                );
+                                            @endphp
+                                            @if($canEditSeminar)
                                                 <a href="{{ route('frontend.skripsi-seminars.edit', $seminar->id) }}" class="btn-modern btn-modern-outline">
-                                                    <i class="fas fa-edit"></i> Edit
+                                                    <i class="fas fa-edit"></i>
+                                                    {{ ($retrySeminar && (int) $retrySeminar->id === (int) $seminar->id) ? 'Unggah Ulang' : 'Edit' }}
                                                 </a>
                                             @endif
                                         @endcan

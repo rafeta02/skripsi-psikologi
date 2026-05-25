@@ -87,7 +87,7 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 - Form: `ApplicationResultSeminar` (hasil: `passed`/`revision`/`failed`, dokumen terkait)
 - Catatan: 
   - Jika `revision`: mahasiswa melakukan revisi sesuai masukan reviewer, isi tenggat revisi
-  - Jika `failed`: ikuti kebijakan akademik untuk pengulangan review
+  - Jika `failed`: `SkripsiSeminar` dibuka kembali; mahasiswa edit & unggah ulang dokumen; reviewer 1/2 direset; status kembali `submitted` menunggu admin
   - Jika `passed`: lanjut ke tahap penelitian
 
 10) Proses Penelitian

@@ -21,6 +21,26 @@
     <!-- Form -->
     <div class="row">
         <div class="col-lg-12">
+            @if(!empty($retryAfterFailed))
+                <div class="alert alert-warning mb-4">
+                    <h5 class="alert-heading"><i class="fas fa-redo"></i> Pengulangan Pendaftaran Reviewer</h5>
+                    <p class="mb-0">
+                        Setelah Anda menyimpan, <strong>reviewer 1 dan reviewer 2 akan dikosongkan</strong> dan status kembali ke menunggu verifikasi admin.
+                        Unggah dokumen proposal terbaru jika ada perubahan. Laporan hasil review sebelumnya akan diarsipkan.
+                    </p>
+                    @if($skripsiSeminar->reviewer1 || $skripsiSeminar->reviewer2)
+                        <hr>
+                        <small class="text-muted">
+                            Reviewer sebelumnya:
+                            {{ $skripsiSeminar->reviewer1->nama ?? '-' }}
+                            @if($skripsiSeminar->reviewer2)
+                                &amp; {{ $skripsiSeminar->reviewer2->nama }}
+                            @endif
+                            (akan direset)
+                        </small>
+                    @endif
+                </div>
+            @endif
             <div class="card-modern">
                 <div class="card-modern-body">
                     <form action="{{ route('frontend.skripsi-seminars.update', $skripsiSeminar->id) }}" method="POST" enctype="multipart/form-data">
@@ -124,7 +144,8 @@
                                 <i class="fas fa-arrow-left"></i> Kembali
                             </a>
                             <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save"></i> Simpan Perubahan
+                                <i class="fas fa-save"></i>
+                                {{ !empty($retryAfterFailed) ? 'Kirim Ulang Pendaftaran' : 'Simpan Perubahan' }}
                             </button>
                         </div>
                     </form>
