@@ -298,10 +298,7 @@ class PdfGeneratorService
         $averageScore = $defenseResult ? (float) $defenseResult->final_score : 0;
         $finalGrade = $defenseResult ? (string) ($defenseResult->final_grade_letter ?? $this->calculateGradeLetter($averageScore)) : $this->calculateGradeLetter($averageScore);
 
-        // Get pembimbing
-        $pembimbing = $application->assignments()
-            ->where('role', 'supervisor')
-            ->first()?->lecturer;
+        $pembimbing = $this->resolveSupervisorForMahasiswa($application);
 
         // Get defense info
         $defense = SkripsiDefense::where('application_id', $application->id)->first();
@@ -353,6 +350,21 @@ class PdfGeneratorService
         $pdf->setPaper('a4', 'portrait');
         
         return $pdf;
+    }
+
+    private function resolveSupervisorForMahasiswa(Application $application)
+    {
+        $regApp = Application::where('mahasiswa_id', $application->mahasiswa_id)
+            ->where('stage', 'registration')
+            ->orderByDesc('created_at')
+            ->first();
+
+        $targetApp = $regApp ?? $application;
+
+        return $targetApp->assignments()
+            ->where('role', 'supervisor')
+            ->where('status', 'accepted')
+            ->first()?->lecturer;
     }
 
     /**

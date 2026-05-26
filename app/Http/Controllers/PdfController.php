@@ -24,6 +24,54 @@ class PdfController extends Controller
     }
 
     /**
+     * Dokumen kelulusan selalu mengacu ke aplikasi tahap defense (bukan registration/seminar).
+     */
+    protected function resolveDefenseApplication(Application $application): Application
+    {
+        $application->loadMissing('mahasiswa.prodi');
+
+        if ($application->stage === 'defense') {
+            return $application;
+        }
+
+        $defenseApp = Application::with(['mahasiswa.prodi', 'actions'])
+            ->where('mahasiswa_id', $application->mahasiswa_id)
+            ->where('stage', 'defense')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$defenseApp) {
+            abort(404, 'Aplikasi tahap sidang tidak ditemukan untuk mahasiswa ini.');
+        }
+
+        return $defenseApp;
+    }
+
+    protected function assertDefenseGraduationFinalized(Application $defenseApp): void
+    {
+        $finalized = $defenseApp->actions()
+            ->where('action_type', 'defense_finalized')
+            ->exists();
+
+        if (!$finalized) {
+            abort(403, 'Surat keterangan lulus belum tersedia. Tunggu finalisasi kelulusan oleh admin.');
+        }
+    }
+
+    protected function assertDefensePassed(Application $defenseApp): ApplicationResultDefense
+    {
+        $defenseResult = ApplicationResultDefense::where('application_id', $defenseApp->id)
+            ->whereIn('result', ['passed', 'revision'])
+            ->first();
+
+        if (!$defenseResult) {
+            abort(403, 'Mahasiswa belum lulus sidang skripsi atau data hasil sidang tidak ditemukan.');
+        }
+
+        return $defenseResult;
+    }
+
+    /**
      * Download Surat Tugas (Assignment Letter)
      */
     public function suratTugas(ApplicationAssignment $assignment)
@@ -148,18 +196,14 @@ class PdfController extends Controller
      */
     public function transkripNilai(Application $application)
     {
-        // Authorization check
         $this->authorize('view', $application);
 
-        $finalized = $application->actions()
-            ->where('action_type', 'defense_finalized')
-            ->exists();
-        if (!$finalized) {
-            abort(403, 'Dokumen nilai belum tersedia. Tunggu finalisasi kelulusan oleh admin.');
-        }
+        $defenseApp = $this->resolveDefenseApplication($application);
+        $this->assertDefenseGraduationFinalized($defenseApp);
+        $this->assertDefensePassed($defenseApp);
 
-        $pdf = $this->pdfService->generateTranskripNilai($application);
-        $filename = $this->pdfService->generateFilename('transkrip-nilai', $application);
+        $pdf = $this->pdfService->generateTranskripNilai($defenseApp);
+        $filename = $this->pdfService->generateFilename('transkrip-nilai', $defenseApp);
 
         return $pdf->download($filename);
     }
@@ -169,27 +213,14 @@ class PdfController extends Controller
      */
     public function suratKeteranganLulus(Application $application)
     {
-        // Authorization check
         $this->authorize('view', $application);
 
-        $finalized = $application->actions()
-            ->where('action_type', 'defense_finalized')
-            ->exists();
-        if (!$finalized) {
-            abort(403, 'Surat keterangan lulus belum tersedia. Tunggu finalisasi kelulusan oleh admin.');
-        }
+        $defenseApp = $this->resolveDefenseApplication($application);
+        $this->assertDefenseGraduationFinalized($defenseApp);
+        $this->assertDefensePassed($defenseApp);
 
-        // Check if student has passed
-        $defenseResult = ApplicationResultDefense::where('application_id', $application->id)
-            ->whereIn('result', ['passed', 'revision'])
-            ->first();
-
-        if (!$defenseResult) {
-            abort(403, 'Mahasiswa belum lulus sidang skripsi');
-        }
-
-        $pdf = $this->pdfService->generateSuratKeteranganLulus($application);
-        $filename = $this->pdfService->generateFilename('surat-keterangan-lulus', $application);
+        $pdf = $this->pdfService->generateSuratKeteranganLulus($defenseApp);
+        $filename = $this->pdfService->generateFilename('surat-keterangan-lulus', $defenseApp);
 
         return $pdf->download($filename);
     }
