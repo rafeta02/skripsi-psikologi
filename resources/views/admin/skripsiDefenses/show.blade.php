@@ -119,6 +119,82 @@
                 </div>
             </div>
 
+            <!-- Penetapan Dosen Penguji -->
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-user-check mr-2"></i>Penetapan Dosen Penguji Sidang</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="font-weight-bold d-block">Penguji 1 (Examiner 1)</label>
+                            <div class="p-2 border rounded bg-light">
+                                {{ $skripsiDefense->examiner1->dosen->nama ?? '-' }}
+                                @if($skripsiDefense->examiner1?->dosen?->nidn)
+                                    <small class="text-muted d-block">NIDN: {{ $skripsiDefense->examiner1->dosen->nidn }}</small>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="font-weight-bold d-block">Penguji 2 (Examiner 2)</label>
+                            <div class="p-2 border rounded bg-light">
+                                {{ $skripsiDefense->examiner2->dosen->nama ?? '-' }}
+                                @if($skripsiDefense->examiner2?->dosen?->nidn)
+                                    <small class="text-muted d-block">NIDN: {{ $skripsiDefense->examiner2->dosen->nidn }}</small>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    @can('skripsi_defense_edit')
+                        <form method="POST" action="{{ route('admin.skripsi-defenses.assign-examiners', $skripsiDefense->id) }}">
+                            @csrf
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="examiner_1_id">Pilih Penguji 1 <span class="text-danger">*</span></label>
+                                        <select class="form-control {{ $errors->has('examiner_1_id') ? 'is-invalid' : '' }}" name="examiner_1_id" id="examiner_1_id" required>
+                                            <option value="">-- Pilih Dosen --</option>
+                                            @foreach($dosens as $dosen)
+                                                <option value="{{ $dosen->id }}"
+                                                    {{ (old('examiner_1_id') == $dosen->id) || (($skripsiDefense->examiner1->dosen_id ?? null) == $dosen->id) ? 'selected' : '' }}>
+                                                    {{ $dosen->nama }}{{ $dosen->nidn ? ' (NIDN: ' . $dosen->nidn . ')' : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @if($errors->has('examiner_1_id'))
+                                            <div class="invalid-feedback">{{ $errors->first('examiner_1_id') }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="examiner_2_id">Pilih Penguji 2 <span class="text-danger">*</span></label>
+                                        <select class="form-control {{ $errors->has('examiner_2_id') ? 'is-invalid' : '' }}" name="examiner_2_id" id="examiner_2_id" required>
+                                            <option value="">-- Pilih Dosen --</option>
+                                            @foreach($dosens as $dosen)
+                                                <option value="{{ $dosen->id }}"
+                                                    {{ (old('examiner_2_id') == $dosen->id) || (($skripsiDefense->examiner2->dosen_id ?? null) == $dosen->id) ? 'selected' : '' }}>
+                                                    {{ $dosen->nama }}{{ $dosen->nidn ? ' (NIDN: ' . $dosen->nidn . ')' : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @if($errors->has('examiner_2_id'))
+                                            <div class="invalid-feedback">{{ $errors->first('examiner_2_id') }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save mr-1"></i> Simpan Penguji
+                            </button>
+                            <small class="text-muted d-block mt-2">Catatan: Penguji 1 dan Penguji 2 tidak boleh sama.</small>
+                        </form>
+                    @endcan
+                </div>
+            </div>
+
             <!-- Dokumen Sidang Utama -->
             <div class="card mt-3">
                 <div class="card-header bg-dark text-white">

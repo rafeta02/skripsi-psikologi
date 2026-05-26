@@ -528,9 +528,44 @@ class SkripsiDefenseController extends Controller
     {
         abort_if(Gate::denies('skripsi_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $skripsiDefense->load('application.mahasiswa.user', 'created_by');
+        $skripsiDefense->load(
+            'application.mahasiswa.user',
+            'created_by',
+            'examiners.dosen',
+            'examiner1.dosen',
+            'examiner2.dosen'
+        );
 
-        return view('admin.skripsiDefenses.show', compact('skripsiDefense'));
+        $dosens = Dosen::orderBy('nama')->get();
+
+        return view('admin.skripsiDefenses.show', compact('skripsiDefense', 'dosens'));
+    }
+
+    public function assignExaminers(Request $request, SkripsiDefense $skripsiDefense)
+    {
+        abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $validated = $request->validate([
+            'examiner_1_id' => ['required', 'exists:dosens,id'],
+            'examiner_2_id' => ['required', 'exists:dosens,id', 'different:examiner_1_id'],
+        ], [
+            'examiner_1_id.required' => 'Penguji 1 wajib dipilih.',
+            'examiner_2_id.required' => 'Penguji 2 wajib dipilih.',
+            'examiner_2_id.different' => 'Penguji 1 dan Penguji 2 tidak boleh sama.',
+        ]);
+
+        SkripsiDefenseExaminer::updateOrCreate(
+            ['skripsi_defense_id' => $skripsiDefense->id, 'role' => 'examiner_1'],
+            ['dosen_id' => $validated['examiner_1_id']]
+        );
+
+        SkripsiDefenseExaminer::updateOrCreate(
+            ['skripsi_defense_id' => $skripsiDefense->id, 'role' => 'examiner_2'],
+            ['dosen_id' => $validated['examiner_2_id']]
+        );
+
+        return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+            ->with('message', 'Penguji sidang berhasil ditetapkan.');
     }
 
     public function accept(Request $request, SkripsiDefense $skripsiDefense)

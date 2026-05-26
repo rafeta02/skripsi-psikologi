@@ -126,6 +126,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::delete('skripsi-defenses/destroy', 'SkripsiDefenseController@massDestroy')->name('skripsi-defenses.massDestroy');
     Route::post('skripsi-defenses/media', 'SkripsiDefenseController@storeMedia')->name('skripsi-defenses.storeMedia');
     Route::post('skripsi-defenses/ckmedia', 'SkripsiDefenseController@storeCKEditorImages')->name('skripsi-defenses.storeCKEditorImages');
+    Route::post('skripsi-defenses/{skripsi_defense}/assign-examiners', 'SkripsiDefenseController@assignExaminers')->name('skripsi-defenses.assign-examiners');
     Route::post('skripsi-defenses/{skripsi_defense}/accept', 'SkripsiDefenseController@accept')->name('skripsi-defenses.accept');
     Route::post('skripsi-defenses/{skripsi_defense}/reject', 'SkripsiDefenseController@reject')->name('skripsi-defenses.reject');
     Route::resource('skripsi-defenses', 'SkripsiDefenseController');
