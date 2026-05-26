@@ -347,6 +347,7 @@ class ApplicationResultDefenseController extends Controller
             'application.mahasiswa.prodi',
             'application.actions',
             'scores.examiner',
+            'media',
         ]);
         $applicationResultDefense->syncApplicationStatus();
 
