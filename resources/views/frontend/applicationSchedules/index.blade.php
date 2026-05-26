@@ -78,20 +78,14 @@
                                                 @endif
                                             </div>
                                             <div class="d-flex flex-wrap gap-2">
-                                                @if($schedule->application)
-                                                    @if($schedule->application->status == 'scheduled')
-                                                        <span class="badge-modern badge-modern-info">
-                                                            <i class="fas fa-calendar-check"></i> Terjadwal
-                                                        </span>
-                                                    @elseif($schedule->application->status == 'done')
-                                                        <span class="badge-modern badge-modern-secondary">
-                                                            <i class="fas fa-flag-checkered"></i> Selesai
-                                                        </span>
-                                                    @elseif($schedule->application->status == 'submitted')
-                                                        <span class="badge-modern badge-modern-warning">
-                                                            <i class="fas fa-clock"></i> Menunggu Verifikasi
-                                                        </span>
-                                                    @endif
+                                                @php $scheduleStatus = $schedule->adminValidationStatus(); @endphp
+                                                <span class="badge-modern badge-modern-{{ $scheduleStatus['badge'] === 'success' ? 'success' : ($scheduleStatus['badge'] === 'danger' ? 'danger' : 'warning') }}">
+                                                    <i class="fas fa-{{ $scheduleStatus['icon'] }}"></i> {{ $scheduleStatus['label'] }}
+                                                </span>
+                                                @if($schedule->application && $schedule->application->status == 'done')
+                                                    <span class="badge-modern badge-modern-secondary">
+                                                        <i class="fas fa-flag-checkered"></i> Selesai
+                                                    </span>
                                                 @endif
                                                 
                                                 @if($schedule->schedule_type === 'mbkm_seminar')
@@ -120,7 +114,7 @@
                                         @endcan
                                         
                                         @can('application_schedule_edit')
-                                            @if($schedule->application && $schedule->application->status == 'submitted')
+                                            @if(!$schedule->isApprovedByAdmin() && !$schedule->isRejectedByAdmin())
                                                 <a href="{{ route('frontend.application-schedules.edit', $schedule->id) }}" class="btn-modern btn-modern-outline">
                                                     <i class="fas fa-edit"></i> Edit
                                                 </a>

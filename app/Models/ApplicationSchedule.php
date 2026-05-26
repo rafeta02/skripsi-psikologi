@@ -94,4 +94,55 @@ class ApplicationSchedule extends Model implements HasMedia
     {
         return $this->belongsTo(Ruang::class, 'ruang_id');
     }
+
+    public function isApprovedByAdmin(): bool
+    {
+        if ($this->application?->status === 'scheduled') {
+            return true;
+        }
+
+        return ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'schedule_approved')
+            ->where('metadata->schedule_id', $this->id)
+            ->exists();
+    }
+
+    public function isRejectedByAdmin(): bool
+    {
+        return ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'schedule_rejected')
+            ->exists()
+            && !$this->isApprovedByAdmin();
+    }
+
+    /**
+     * Status validasi jadwal oleh admin (bukan status aplikasi tahap sebelumnya).
+     */
+    public function adminValidationStatus(): array
+    {
+        if ($this->isRejectedByAdmin()) {
+            return [
+                'label' => 'Ditolak',
+                'badge' => 'danger',
+                'icon' => 'times-circle',
+                'detail' => 'Jadwal ditolak admin. Silakan ajukan jadwal baru.',
+            ];
+        }
+
+        if ($this->isApprovedByAdmin()) {
+            return [
+                'label' => 'Dijadwalkan',
+                'badge' => 'success',
+                'icon' => 'calendar-check',
+                'detail' => 'Jadwal telah diverifikasi dan dikonfirmasi admin.',
+            ];
+        }
+
+        return [
+            'label' => 'Menunggu Verifikasi',
+            'badge' => 'warning',
+            'icon' => 'clock',
+            'detail' => 'Jadwal diajukan dan menunggu persetujuan admin.',
+        ];
+    }
 }

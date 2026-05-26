@@ -8,6 +8,7 @@ use App\Http\Requests\MassDestroyApplicationScheduleRequest;
 use App\Http\Requests\StoreApplicationScheduleRequest;
 use App\Http\Requests\UpdateApplicationScheduleRequest;
 use App\Models\Application;
+use App\Models\ApplicationAction;
 use App\Models\ApplicationSchedule;
 use App\Models\Ruang;
 use App\Models\SkripsiDefense;
@@ -111,6 +112,18 @@ class ApplicationScheduleController extends Controller
             'online_meeting',
             'note',
         ]));
+
+        ApplicationAction::create([
+            'application_id' => $application->id,
+            'action_type' => 'schedule_submitted',
+            'action_by' => auth()->id(),
+            'notes' => 'Pengajuan jadwal ' . ($request->schedule_type ?? ''),
+            'metadata' => [
+                'schedule_id' => $applicationSchedule->id,
+                'schedule_type' => $applicationSchedule->schedule_type,
+                'waktu' => $applicationSchedule->waktu,
+            ],
+        ]);
 
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $applicationSchedule->id]);

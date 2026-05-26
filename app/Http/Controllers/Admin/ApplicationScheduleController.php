@@ -97,15 +97,18 @@ class ApplicationScheduleController extends Controller
             });
 
             $table->addColumn('status_badge', function ($row) {
-                if (!$row->application) return '';
-                $status = $row->application->status;
-                $badges = [
-                    'submitted' => '<span class="badge badge-info">Menunggu</span>',
-                    'approved' => '<span class="badge badge-warning">Belum Dijadwalkan</span>',
-                    'scheduled' => '<span class="badge badge-success">Disetujui</span>',
-                    'rejected' => '<span class="badge badge-danger">Ditolak</span>',
-                ];
-                return $badges[$status] ?? '<span class="badge badge-secondary">Unknown</span>';
+                if (!$row->application) {
+                    return '';
+                }
+
+                $status = $row->adminValidationStatus();
+                $class = match ($status['badge']) {
+                    'success' => 'badge-success',
+                    'danger' => 'badge-danger',
+                    default => 'badge-warning',
+                };
+
+                return '<span class="badge ' . $class . '">' . e($status['label']) . '</span>';
             });
 
             $table->addColumn('rejection_reason', function ($row) {

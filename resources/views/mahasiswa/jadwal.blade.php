@@ -80,7 +80,8 @@
                             @endif
 
                             <div class="mt-3">
-                                <span class="badge badge-info">{{ $schedule->application->status ?? 'N/A' }}</span>
+                                @include('partials.schedule-validation-status', ['schedule' => $schedule])
+                                <p class="small text-muted mb-0 mt-2">{{ $schedule->adminValidationStatus()['detail'] }}</p>
                             </div>
                         </div>
                         <div class="card-footer text-muted small">

@@ -122,28 +122,17 @@
                     <h5 class="font-weight-bold mb-3">Status</h5>
                     
                     @if($applicationSchedule->application)
-                        @if($applicationSchedule->application->status == 'submitted')
-                            <div class="alert alert-warning">
-                                <i class="fas fa-clock"></i> <strong>Menunggu Verifikasi</strong>
-                                <p class="mb-0 mt-2 small">Jadwal Anda sedang menunggu verifikasi dari admin</p>
-                            </div>
-                        @elseif($applicationSchedule->application->status == 'scheduled')
-                            <div class="alert alert-success">
-                                <i class="fas fa-calendar-check"></i> <strong>Terjadwal</strong>
-                                <p class="mb-0 mt-2 small">Jadwal Anda telah diverifikasi dan dikonfirmasi</p>
-                            </div>
-                        @elseif($applicationSchedule->application->status == 'revision')
-                            <div class="alert alert-warning">
-                                <i class="fas fa-edit"></i> <strong>Revisi</strong>
-                                <p class="mb-0 mt-2 small">Silakan lakukan perubahan jadwal sesuai catatan admin</p>
-                            </div>
-                        @elseif($applicationSchedule->application->status == 'rejected')
-                            <div class="alert alert-danger">
-                                <i class="fas fa-times-circle"></i> <strong>Ditolak</strong>
-                                <p class="mb-0 mt-2 small">Jadwal tidak dapat disetujui</p>
-                            </div>
-                        @elseif($applicationSchedule->application->status == 'done')
-                            <div class="alert alert-secondary">
+                        @php $scheduleStatus = $applicationSchedule->adminValidationStatus(); @endphp
+                        <div class="alert alert-{{ $scheduleStatus['badge'] === 'success' ? 'success' : ($scheduleStatus['badge'] === 'danger' ? 'danger' : 'warning') }}">
+                            <i class="fas fa-{{ $scheduleStatus['icon'] }}"></i>
+                            <strong>{{ $scheduleStatus['label'] }}</strong>
+                            <p class="mb-0 mt-2 small">{{ $scheduleStatus['detail'] }}</p>
+                            @if($applicationSchedule->isRejectedByAdmin() && $applicationSchedule->application->notes)
+                                <p class="mb-0 mt-2 small"><strong>Catatan admin:</strong> {{ $applicationSchedule->application->notes }}</p>
+                            @endif
+                        </div>
+                        @if($applicationSchedule->application->status == 'done')
+                            <div class="alert alert-secondary mt-2">
                                 <i class="fas fa-flag-checkered"></i> <strong>Selesai</strong>
                                 <p class="mb-0 mt-2 small">Acara telah selesai dilaksanakan</p>
                             </div>
