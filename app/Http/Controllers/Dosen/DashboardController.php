@@ -95,6 +95,16 @@ class DashboardController extends Controller
             ->count();
 
         $totalScores = ApplicationScore::where('examiner_id', $dosen->id)->count();
+        $pendingDefenseScores = ApplicationScore::where('examiner_id', $dosen->id)
+            ->whereNull('score')
+            ->whereHas('application_result_defence', function ($q) {
+                $q->whereHas('application', function ($appQ) {
+                    $appQ->whereHas('actions', function ($actionQ) {
+                        $actionQ->where('action_type', 'result_defense_approved');
+                    });
+                });
+            })
+            ->count();
 
         // Recent assignments
         $recentAssignments = ApplicationAssignment::with([
@@ -116,6 +126,7 @@ class DashboardController extends Controller
             'totalTasksPending',
             'totalTasksCompleted',
             'totalScores',
+            'pendingDefenseScores',
             'recentAssignments'
         ));
     }
@@ -185,38 +196,6 @@ class DashboardController extends Controller
             ->get();
 
         return view('dosen.task-assignments', compact('assignments', 'dosen'));
-    }
-
-    public function scores()
-    {
-        $user = Auth::user();
-        
-        $dosen = null;
-        
-        if ($user->dosen_id) {
-            $dosen = Dosen::find($user->dosen_id);
-        }
-        
-        if (!$dosen) {
-            $dosen = Dosen::where('nip', $user->email)
-                ->orWhere('nidn', $user->email)
-                ->first();
-        }
-
-        if (!$dosen) {
-            abort(404, 'Data dosen tidak ditemukan. Silakan hubungi administrator.');
-        }
-
-        // Get all scores given by this dosen
-        $scores = ApplicationScore::with([
-            'application_result_defence.application.mahasiswa.prodi',
-            'application_result_defence.application'
-        ])
-            ->where('examiner_id', $dosen->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('dosen.scores', compact('scores', 'dosen'));
     }
 
     public function profile()
@@ -333,62 +312,4 @@ class DashboardController extends Controller
             ->with('success', $message);
     }
 
-    public function scoring($applicationId)
-    {
-        $application = Application::with([
-            'mahasiswa',
-            'skripsiDefense'
-        ])->findOrFail($applicationId);
-
-        $dosen = $this->resolveDosen();
-        $hasAccess = ApplicationAssignment::where('application_id', $application->id)
-            ->where('lecturer_id', $dosen->id)
-            ->exists();
-
-        if (!$hasAccess) {
-            abort(403, 'Unauthorized');
-        }
-
-        return view('dosen.scoring', compact('application'));
-    }
-
-    public function storeScoring(Request $request, $applicationId)
-    {
-        $application = Application::findOrFail($applicationId);
-
-        $dosen = $this->resolveDosen();
-        $hasAccess = ApplicationAssignment::where('application_id', $application->id)
-            ->where('lecturer_id', $dosen->id)
-            ->exists();
-
-        if (!$hasAccess) {
-            abort(403, 'Unauthorized');
-        }
-
-        // Validate
-        $validated = $request->validate([
-            'overall_score' => 'required|numeric|min:0|max:100',
-            'presentation_score' => 'nullable|numeric|min:0|max:100',
-            'content_score' => 'nullable|numeric|min:0|max:100',
-            'methodology_score' => 'nullable|numeric|min:0|max:100',
-            'qa_score' => 'nullable|numeric|min:0|max:100',
-            'grade_letter' => 'nullable|string|max:5',
-            'comments' => 'required|string',
-            'recommendation' => 'required|in:passed,passed_with_revision,failed',
-        ]);
-
-        // Create or update ApplicationScore
-        $score = ApplicationScore::updateOrCreate(
-            [
-                'application_id' => $application->id,
-                'examiner_id' => $dosen->id,
-            ],
-            array_merge($validated, [
-                'scored_at' => now(),
-            ])
-        );
-
-        return redirect()->route('dosen.scores')
-            ->with('success', 'Penilaian berhasil disimpan!');
-    }
 }

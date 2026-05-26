@@ -8,9 +8,12 @@ use App\Http\Requests\MassDestroyApplicationResultDefenseRequest;
 use App\Http\Requests\StoreApplicationResultDefenseRequest;
 use App\Http\Requests\UpdateApplicationResultDefenseRequest;
 use App\Models\Application;
+use App\Models\ApplicationAction;
 use App\Models\ApplicationResultDefense;
+use App\Models\ApplicationScore;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
@@ -340,9 +343,114 @@ class ApplicationResultDefenseController extends Controller
     {
         abort_if(Gate::denies('application_result_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationResultDefense->load('application');
+        $applicationResultDefense->load([
+            'application.mahasiswa.prodi',
+            'application.actions',
+            'scores.examiner',
+        ]);
+        $applicationResultDefense->syncApplicationStatus();
 
         return view('admin.applicationResultDefenses.show', compact('applicationResultDefense'));
+    }
+
+    public function approve(Request $request, $id)
+    {
+        $resultDefense = ApplicationResultDefense::with('application')->findOrFail($id);
+
+        if ($resultDefense->isValidatedByAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Laporan hasil sidang ini sudah divalidasi.',
+            ], 422);
+        }
+
+        $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            DB::transaction(function () use ($resultDefense, $request) {
+                ApplicationAction::create([
+                    'application_id' => $resultDefense->application_id,
+                    'action_type' => 'result_defense_approved',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->notes ?? 'Hasil sidang disetujui admin',
+                    'metadata' => [
+                        'result_defense_id' => $resultDefense->id,
+                        'result' => $resultDefense->result,
+                    ],
+                ]);
+
+                if (in_array($resultDefense->result, ['passed', 'revision'], true)) {
+                    $resultDefense->provisionScoreAssignments();
+                } elseif ($resultDefense->result === 'failed') {
+                    ApplicationScore::where('application_result_defence_id', $resultDefense->id)->delete();
+                }
+
+                $resultDefense->syncApplicationStatus();
+            });
+
+            $message = match ($resultDefense->result) {
+                'passed', 'revision' => 'Laporan hasil sidang divalidasi. Form penilaian telah dikirim ke dosen pembimbing dan penguji.',
+                'failed' => 'Laporan hasil sidang (tidak lulus) divalidasi. Mahasiswa dapat mendaftar ulang sidang skripsi.',
+                default => 'Laporan hasil sidang divalidasi.',
+            };
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $resultDefense = ApplicationResultDefense::with('application')->findOrFail($id);
+
+        $request->validate([
+            'reason' => 'required|string|min:10',
+        ], [
+            'reason.required' => 'Alasan penolakan wajib diisi',
+            'reason.min' => 'Alasan penolakan minimal 10 karakter',
+        ]);
+
+        try {
+            DB::transaction(function () use ($resultDefense, $request) {
+                if ($resultDefense->application) {
+                    $resultDefense->application->update([
+                        'notes' => $request->reason,
+                    ]);
+                }
+
+                ApplicationAction::create([
+                    'application_id' => $resultDefense->application_id,
+                    'action_type' => 'result_defense_rejected',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->reason,
+                    'metadata' => [
+                        'result_defense_id' => $resultDefense->id,
+                        'result' => $resultDefense->result,
+                    ],
+                ]);
+
+                $resultDefense->syncApplicationStatus();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Laporan hasil sidang ditolak. Mahasiswa dapat memperbaiki dan mengunggah ulang.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function destroy(ApplicationResultDefense $applicationResultDefense)

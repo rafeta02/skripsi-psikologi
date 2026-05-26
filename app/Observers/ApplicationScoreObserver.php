@@ -36,22 +36,33 @@ class ApplicationScoreObserver
      */
     protected function updateDefenseGrade(ApplicationScore $applicationScore)
     {
-        if ($applicationScore->application_result_defence_id) {
-            $defense = ApplicationResultDefense::find($applicationScore->application_result_defence_id);
-            
-            if ($defense) {
-                // Calculate final score
-                $finalScore = $defense->final_score;
-                
-                // Convert to letter grade
-                $gradeLetter = ApplicationResultDefense::convertScoreToGrade($finalScore);
-                
-                // Update defense record
-                $defense->update([
-                    'final_grade' => $finalScore,
-                    'final_grade_letter' => $gradeLetter
-                ]);
-            }
+        if (!$applicationScore->application_result_defence_id) {
+            return;
+        }
+
+        $defense = ApplicationResultDefense::find($applicationScore->application_result_defence_id);
+
+        if (!$defense) {
+            return;
+        }
+
+        $finalScore = $defense->final_score;
+        $gradeLetter = ApplicationResultDefense::convertScoreToGrade($finalScore);
+
+        $defense->update([
+            'final_grade' => $finalScore,
+            'final_grade_letter' => $gradeLetter,
+        ]);
+
+        if (!$defense->isValidatedByAdmin()) {
+            return;
+        }
+
+        $totalScorers = $defense->scores()->count();
+        $completedScorers = $defense->scores()->whereNotNull('score')->count();
+
+        if ($totalScorers > 0 && $totalScorers === $completedScorers && $defense->application) {
+            $defense->application->update(['status' => 'done']);
         }
     }
 }

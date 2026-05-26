@@ -393,16 +393,10 @@ class FormAccessService
             }
         }
 
-        $defenseExists = Application::where('mahasiswa_id', $mahasiswaId)
-            ->where('type', 'skripsi')
-            ->where('stage', 'defense')
-            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
-            ->exists();
-
-        if ($defenseExists) {
+        if ($this->hasActiveDefenseApplicationBlockingRegistration($mahasiswaId)) {
             return [
                 'allowed' => false,
-                'message' => 'Anda sudah mendaftar sidang skripsi.',
+                'message' => 'Anda sudah memiliki pendaftaran sidang skripsi yang masih aktif.',
                 'application' => $seminarApp,
             ];
         }
@@ -411,7 +405,58 @@ class FormAccessService
             'allowed' => true,
             'message' => null,
             'application' => $seminarApp,
+            'retry_after_failed' => $this->hasValidatedFailedDefenseResult($mahasiswaId),
         ];
+    }
+
+    /**
+     * Hasil sidang tidak lulus sudah divalidasi admin — mahasiswa boleh mendaftar ulang SkripsiDefense.
+     */
+    public function hasValidatedFailedDefenseResult(int $mahasiswaId): bool
+    {
+        return ApplicationResultDefense::query()
+            ->where('result', 'failed')
+            ->whereHas('application', function ($q) use ($mahasiswaId) {
+                $q->where('mahasiswa_id', $mahasiswaId)->where('stage', 'defense');
+            })
+            ->get()
+            ->contains(fn (ApplicationResultDefense $result) => $result->isValidatedByAdmin());
+    }
+
+    /**
+     * Apakah masih ada aplikasi tahap defense yang menghalangi pendaftaran sidang baru.
+     */
+    private function hasActiveDefenseApplicationBlockingRegistration(int $mahasiswaId): bool
+    {
+        $defenseApps = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('type', 'skripsi')
+            ->where('stage', 'defense')
+            ->whereIn('status', ['submitted', 'approved', 'scheduled', 'result', 'revision'])
+            ->get();
+
+        foreach ($defenseApps as $defenseApp) {
+            if ($this->defenseCycleClosedByValidatedFailure($defenseApp->id)) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Siklus sidang dianggap selesai (gagal) setelah admin memvalidasi laporan hasil failed.
+     */
+    public function defenseCycleClosedByValidatedFailure(int $defenseApplicationId): bool
+    {
+        $resultDefense = ApplicationResultDefense::where('application_id', $defenseApplicationId)->first();
+
+        if (!$resultDefense || $resultDefense->result !== 'failed') {
+            return false;
+        }
+
+        return $resultDefense->isValidatedByAdmin();
     }
 
     /**

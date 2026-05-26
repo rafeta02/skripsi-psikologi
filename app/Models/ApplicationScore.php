@@ -52,4 +52,9 @@ class ApplicationScore extends Model
     {
         return $this->belongsTo(Dosen::class, 'examiner_id');
     }
+
+    public function isComplete(): bool
+    {
+        return $this->score !== null;
+    }
 }

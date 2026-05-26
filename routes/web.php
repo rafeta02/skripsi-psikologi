@@ -201,6 +201,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::post('application-result-defenses/media', 'ApplicationResultDefenseController@storeMedia')->name('application-result-defenses.storeMedia');
     Route::post('application-result-defenses/ckmedia', 'ApplicationResultDefenseController@storeCKEditorImages')->name('application-result-defenses.storeCKEditorImages');
     Route::get('application-result-defenses/{application_result_defense}/print-score', 'ApplicationResultDefenseController@printScore')->name('application-result-defenses.print-score');
+    Route::post('application-result-defenses/{id}/approve', 'ApplicationResultDefenseController@approve')->name('application-result-defenses.approve');
+    Route::post('application-result-defenses/{id}/reject', 'ApplicationResultDefenseController@reject')->name('application-result-defenses.reject');
     Route::resource('application-result-defenses', 'ApplicationResultDefenseController');
 
     // Application Score
@@ -356,9 +358,9 @@ Route::group(['prefix' => 'dosen', 'as' => 'dosen.', 'namespace' => 'Dosen', 'mi
     Route::get('/task-assignments', 'DashboardController@taskAssignments')->name('task-assignments');
     Route::get('/task-assignments/{assignment}/review', 'DashboardController@reviewProposal')->name('review-proposal');
     Route::post('/task-assignments/{assignment}/respond', 'DashboardController@respondToAssignment')->name('task-assignments.respond');
-    Route::get('/scores', 'DashboardController@scores')->name('scores');
-    Route::get('/scoring/{application}', 'DashboardController@scoring')->name('scoring');
-    Route::post('/scoring/{application}', 'DashboardController@storeScoring')->name('scoring.store');
+    Route::get('/scores', 'ApplicationScoreController@index')->name('scores');
+    Route::get('/application-scores/{applicationScore}/edit', 'ApplicationScoreController@edit')->name('application-scores.edit');
+    Route::put('/application-scores/{applicationScore}', 'ApplicationScoreController@update')->name('application-scores.update');
     Route::get('/profile', 'DashboardController@profile')->name('profile');
 });
 

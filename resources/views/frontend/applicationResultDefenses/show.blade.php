@@ -112,10 +112,15 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="text-muted mb-1">Status</label>
+                            <label class="text-muted mb-1">Status Aplikasi</label>
                             <p class="font-weight-semibold text-capitalize">
                                 <span class="badge badge-secondary">{{ $applicationResultDefense->application->status }}</span>
                             </p>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="text-muted mb-1">Validasi Admin</label>
+                            <div>{!! $applicationResultDefense->adminValidationStatusHtml() !!}</div>
                         </div>
                     </div>
                 </div>
@@ -125,10 +130,17 @@
             @if($applicationResultDefense->result === 'passed')
                 <div class="card-modern">
                     <div class="card-modern-body">
-                        <div class="alert alert-success mb-0">
-                            <i class="fas fa-graduation-cap"></i> <strong>Lulus sidang.</strong>
-                            <p class="mb-0 mt-2 small">Nilai akhir akan diisi oleh dosen melalui tahap penilaian.</p>
-                        </div>
+                        @if($applicationResultDefense->isValidatedByAdmin())
+                            <div class="alert alert-success mb-0">
+                                <i class="fas fa-check-circle"></i> <strong>Laporan divalidasi admin.</strong>
+                                <p class="mb-0 mt-2 small">Dosen pembimbing dan penguji sedang mengisi penilaian sidang.</p>
+                            </div>
+                        @else
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-clock"></i> <strong>Menunggu validasi admin.</strong>
+                                <p class="mb-0 mt-2 small">Setelah disetujui, penilaian akan dibuka untuk dosen pembimbing dan penguji.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @elseif($applicationResultDefense->result === 'revision')
@@ -138,6 +150,25 @@
                             <i class="fas fa-edit"></i> <strong>Revisi diperlukan.</strong>
                             <p class="mb-0 mt-2 small">Selesaikan revisi sesuai batas waktu yang ditetapkan.</p>
                         </div>
+                    </div>
+                </div>
+            @elseif($applicationResultDefense->result === 'failed')
+                <div class="card-modern">
+                    <div class="card-modern-body">
+                        @if($applicationResultDefense->isValidatedByAdmin())
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-redo"></i> <strong>Sidang tidak lulus — validasi admin selesai.</strong>
+                                <p class="mb-0 mt-2 small">Anda dapat mendaftar ulang sidang skripsi melalui menu Pendaftaran Sidang.</p>
+                            </div>
+                            <a href="{{ route('frontend.skripsi-defenses.create') }}" class="btn btn-primary btn-block">
+                                <i class="fas fa-file-alt mr-1"></i> Daftar Ulang Sidang Skripsi
+                            </a>
+                        @else
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-clock"></i> <strong>Menunggu validasi admin.</strong>
+                                <p class="mb-0 mt-2 small">Setelah divalidasi, Anda dapat mendaftar ulang sidang skripsi.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endif

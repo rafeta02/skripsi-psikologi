@@ -80,6 +80,130 @@ class ApplicationResultDefense extends Model implements HasMedia
         return $this->hasMany(ApplicationScore::class, 'application_result_defence_id');
     }
 
+    public function isValidatedByAdmin(): bool
+    {
+        if (!$this->application_id) {
+            return false;
+        }
+
+        return ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'result_defense_approved')
+            ->exists();
+    }
+
+    public function isRejectedByAdmin(): bool
+    {
+        if (!$this->application_id) {
+            return false;
+        }
+
+        return ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'result_defense_rejected')
+            ->exists();
+    }
+
+    /**
+     * Keep applications.status aligned with laporan hasil sidang (not defense registration approval).
+     */
+    public function syncApplicationStatus(): void
+    {
+        if (!$this->application) {
+            return;
+        }
+
+        if ($this->isRejectedByAdmin()) {
+            $status = 'rejected';
+        } else {
+            $status = match ($this->result) {
+                'passed' => $this->isValidatedByAdmin() ? 'result' : 'submitted',
+                'revision' => $this->isValidatedByAdmin() ? 'revision' : 'submitted',
+                'failed' => $this->isValidatedByAdmin() ? 'rejected' : 'submitted',
+                default => $this->application->status,
+            };
+        }
+
+        if ($this->application->status !== $status) {
+            $this->application->update(['status' => $status]);
+            $this->application->refresh();
+        }
+    }
+
+    public function adminValidationStatusHtml(): string
+    {
+        if ($this->isRejectedByAdmin()) {
+            return '<span class="badge badge-danger badge-lg">Ditolak Admin</span>';
+        }
+
+        if ($this->result !== 'passed' && $this->result !== 'revision' && $this->result !== 'failed') {
+            return '<span class="badge badge-secondary badge-lg">-</span>';
+        }
+
+        if ($this->isValidatedByAdmin()) {
+            return '<span class="badge badge-success badge-lg">Disetujui Admin</span>';
+        }
+
+        return '<span class="badge badge-warning badge-lg">Menunggu Validasi Admin</span>';
+    }
+
+    /**
+     * Dosen pembimbing (registration) + penguji sidang (SkripsiDefense).
+     *
+     * @return array<int>
+     */
+    public function getScorerDosenIds(): array
+    {
+        $application = $this->application;
+        if (!$application) {
+            return [];
+        }
+
+        $ids = [];
+
+        $regApp = Application::where('mahasiswa_id', $application->mahasiswa_id)
+            ->where('type', $application->type)
+            ->where('stage', 'registration')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($regApp) {
+            $supervisorIds = ApplicationAssignment::where('application_id', $regApp->id)
+                ->where('role', 'supervisor')
+                ->where('status', 'accepted')
+                ->pluck('lecturer_id')
+                ->all();
+            $ids = array_merge($ids, $supervisorIds);
+        }
+
+        $skripsiDefense = SkripsiDefense::where('application_id', $application->id)->first();
+        if ($skripsiDefense) {
+            $examinerIds = $skripsiDefense->examiners()->pluck('dosen_id')->all();
+            $ids = array_merge($ids, $examinerIds);
+        }
+
+        return array_values(array_unique(array_filter($ids)));
+    }
+
+    /**
+     * Buat record ApplicationScore kosong untuk setiap penilai setelah admin memvalidasi.
+     * Tidak berlaku untuk hasil failed — mahasiswa mendaftar ulang sidang.
+     */
+    public function provisionScoreAssignments(): void
+    {
+        if ($this->result === 'failed') {
+            return;
+        }
+
+        foreach ($this->getScorerDosenIds() as $dosenId) {
+            ApplicationScore::firstOrCreate(
+                [
+                    'application_result_defence_id' => $this->id,
+                    'examiner_id' => $dosenId,
+                ],
+                []
+            );
+        }
+    }
+
     /**
      * Calculate average score for each examiner
      */

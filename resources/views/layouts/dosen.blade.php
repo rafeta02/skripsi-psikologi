@@ -240,10 +240,10 @@
                             </a>
                         </li>
                         
-                        {{-- Nilai --}}
+                        {{-- Penilaian Sidang --}}
                         <li class="nav-item">
-                            <a href="{{ route('dosen.scores') }}" class="nav-link {{ request()->routeIs('dosen.scores') ? 'active' : '' }}">
-                                <i class="fas fa-chart-bar"></i> Nilai
+                            <a href="{{ route('dosen.scores') }}" class="nav-link {{ request()->routeIs(['dosen.scores', 'dosen.application-scores.edit', 'dosen.application-scores.update']) ? 'active' : '' }}">
+                                <i class="fas fa-star"></i> Penilaian Sidang
                             </a>
                         </li>
                         

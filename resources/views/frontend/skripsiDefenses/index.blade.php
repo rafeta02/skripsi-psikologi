@@ -48,6 +48,13 @@
         </div>
     @endif
 
+    @if($defenseAccess['retry_after_failed'] ?? false)
+        <div class="alert alert-info">
+            <i class="fas fa-redo"></i>
+            Hasil sidang sebelumnya <strong>tidak lulus</strong> dan sudah divalidasi admin. Anda dapat mendaftar ulang sidang skripsi.
+        </div>
+    @endif
+
     @if(($defenseAccess['allowed'] ?? true) === false && ($defenseAccess['message'] ?? null))
         <div class="alert alert-warning">
             <i class="fas fa-info-circle"></i> {{ $defenseAccess['message'] }}

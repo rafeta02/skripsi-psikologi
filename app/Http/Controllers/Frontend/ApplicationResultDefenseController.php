@@ -148,8 +148,16 @@ class ApplicationResultDefenseController extends Controller
                 ->toMediaCollection('publication_document');
         }
 
+        $applicationResultDefense->syncApplicationStatus();
+
+        $message = match ($validated['result']) {
+            'passed' => 'Laporan hasil sidang berhasil dikirim. Menunggu validasi admin sebelum penilaian dosen.',
+            'revision' => 'Laporan hasil sidang (revisi) berhasil dikirim. Menunggu validasi admin.',
+            default => 'Laporan hasil sidang berhasil dikirim.',
+        };
+
         return redirect()->route('frontend.application-result-defenses.index')
-            ->with('success', 'Laporan hasil sidang berhasil dikirim.');
+            ->with('success', $message);
     }
 
     public function edit(ApplicationResultDefense $applicationResultDefense)
@@ -355,7 +363,8 @@ class ApplicationResultDefenseController extends Controller
     {
         abort_if(Gate::denies('application_result_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationResultDefense->load('application');
+        $applicationResultDefense->load('application', 'scores');
+        $applicationResultDefense->syncApplicationStatus();
         $applicationResultDefense->loadMedia(
             'report_document',
             'attendance_document',
