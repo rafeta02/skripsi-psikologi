@@ -2,16 +2,41 @@
 
 namespace App\Http\Requests;
 
-use App\Models\ApplicationSchedule;
+use Carbon\Carbon;
 use Gate;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Response;
 
 class StoreApplicationScheduleRequest extends FormRequest
 {
     public function authorize()
     {
         return Gate::allows('application_schedule_create');
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('date') && $this->filled('time')) {
+            $dt = Carbon::createFromFormat('Y-m-d H:i', $this->input('date') . ' ' . $this->input('time'));
+            $this->merge([
+                'waktu' => $dt->format(config('panel.date_format') . ' ' . config('panel.time_format')),
+            ]);
+        } elseif ($this->filled('waktu') && preg_match('/^\d{4}-\d{2}-\d{2}/', $this->input('waktu'))) {
+            $this->merge([
+                'waktu' => Carbon::parse($this->input('waktu'))->format(config('panel.date_format') . ' ' . config('panel.time_format')),
+            ]);
+        }
+
+        if ($this->filled('online_link') && !$this->filled('online_meeting')) {
+            $this->merge(['online_meeting' => $this->input('online_link')]);
+        }
+
+        if ($this->filled('notes') && !$this->filled('note')) {
+            $this->merge(['note' => $this->input('notes')]);
+        }
+
+        if ($this->input('location_type') === 'online') {
+            $this->merge(['ruang_id' => null]);
+        }
     }
 
     public function rules()

@@ -95,7 +95,14 @@
             <div class="card-body text-center py-5">
                 <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
                 <h3>Belum Ada Jadwal</h3>
-                <p class="text-muted mb-4">Anda belum memiliki jadwal. Jadwal akan muncul setelah aplikasi Anda disetujui dan dijadwalkan oleh admin.</p>
+                <p class="text-muted mb-4">Anda belum memiliki jadwal. Setelah pendaftaran sidang diterima admin, ajukan jadwal sidang; admin akan memverifikasi.</p>
+                @if(($allowedForms['defense_schedule']['allowed'] ?? false))
+                    @can('application_schedule_create')
+                        <a href="{{ route('frontend.application-schedules.create') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-calendar-plus"></i> Ajukan Jadwal Sidang
+                        </a>
+                    @endcan
+                @endif
                 <a href="{{ route('mahasiswa.aplikasi') }}" class="btn btn-primary">
                     <i class="fas fa-file-alt"></i> Lihat Aplikasi Saya
                 </a>

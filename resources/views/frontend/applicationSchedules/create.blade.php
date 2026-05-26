@@ -24,7 +24,13 @@
             @if(!$activeApplication)
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle"></i> <strong>Perhatian!</strong>
-                    <p class="mb-0 mt-2">Anda belum memiliki aplikasi yang disetujui untuk dijadwalkan. Pastikan pendaftaran seminar atau sidang Anda sudah disetujui terlebih dahulu.</p>
+                    <p class="mb-0 mt-2">
+                        @if($defenseScheduleAccess['message'] ?? null)
+                            {{ $defenseScheduleAccess['message'] }}
+                        @else
+                            Anda belum memiliki aplikasi yang disetujui untuk dijadwalkan. Pastikan pendaftaran sidang sudah <strong>diterima admin</strong> terlebih dahulu.
+                        @endif
+                    </p>
                 </div>
                 <a href="{{ route('mahasiswa.dashboard') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
@@ -51,6 +57,9 @@
                                     <option value="">-- Pilih Jenis Acara --</option>
                                     @if($activeApplication->type === 'mbkm' && $activeApplication->stage === 'seminar')
                                         <option value="mbkm_seminar" selected>Seminar MBKM</option>
+                                    @endif
+                                    @if($activeApplication->type === 'skripsi' && $activeApplication->stage === 'seminar')
+                                        <option value="skripsi_seminar" selected>Seminar Proposal Skripsi</option>
                                     @endif
                                     @if($activeApplication->stage === 'defense')
                                         <option value="skripsi_defense" selected>Sidang Skripsi</option>

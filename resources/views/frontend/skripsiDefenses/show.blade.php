@@ -250,6 +250,21 @@
                                 </ul>
                             </div>
                         @endif
+                        <div class="mt-3">
+                            @if($existingSchedule ?? null)
+                                <a href="{{ route('frontend.application-schedules.show', $existingSchedule->id) }}" class="btn btn-sm btn-info btn-block">
+                                    <i class="fas fa-calendar-check"></i> Lihat Jadwal Sidang
+                                </a>
+                            @elseif(($scheduleAccess['allowed'] ?? false))
+                                @can('application_schedule_create')
+                                    <a href="{{ route('frontend.application-schedules.create') }}" class="btn btn-sm btn-primary btn-block">
+                                        <i class="fas fa-calendar-plus"></i> Ajukan Jadwal Sidang
+                                    </a>
+                                @endcan
+                            @elseif(($scheduleAccess['message'] ?? null))
+                                <p class="small text-muted mb-0">{{ $scheduleAccess['message'] }}</p>
+                            @endif
+                        </div>
                     @elseif($defenseStatus === 'rejected')
                         <div class="alert alert-danger">
                             <i class="fas fa-times-circle"></i> <strong>Ditolak</strong>

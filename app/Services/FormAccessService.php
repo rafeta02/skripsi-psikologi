@@ -9,6 +9,7 @@ use App\Models\MbkmSeminar;
 use App\Models\SkripsiSeminar;
 use App\Models\ApplicationAction;
 use App\Models\ApplicationResultSeminar;
+use App\Models\ApplicationSchedule;
 use App\Models\SkripsiDefense;
 use App\Models\ApplicationResultDefense;
 use App\Models\Mahasiswa;
@@ -454,6 +455,50 @@ class FormAccessService
     }
 
     /**
+     * Mahasiswa dapat mengajukan jadwal sidang setelah pendaftaran sidang diterima admin.
+     */
+    public function canAccessDefenseSchedule($mahasiswaId)
+    {
+        $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', 'defense')
+            ->where('status', 'approved')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$defenseApp) {
+            return [
+                'allowed' => false,
+                'message' => 'Pendaftaran sidang belum disetujui admin.',
+                'application' => null,
+            ];
+        }
+
+        $defense = SkripsiDefense::where('application_id', $defenseApp->id)->first();
+
+        if (!$defense || !$defense->isAccepted()) {
+            return [
+                'allowed' => false,
+                'message' => 'Pendaftaran sidang harus diterima admin (status diterima) sebelum mengajukan jadwal.',
+                'application' => $defenseApp,
+            ];
+        }
+
+        if (ApplicationSchedule::where('application_id', $defenseApp->id)->exists()) {
+            return [
+                'allowed' => false,
+                'message' => 'Jadwal sidang sudah diajukan. Pantau status di menu Jadwal.',
+                'application' => $defenseApp,
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'message' => null,
+            'application' => $defenseApp,
+        ];
+    }
+
+    /**
      * Get allowed forms for a student
      */
     public function getAllowedForms($mahasiswaId)
@@ -465,6 +510,7 @@ class FormAccessService
             'skripsi_seminar' => $this->canAccessSkripsiSeminar($mahasiswaId),
             'application_result_seminar' => $this->canShowApplicationResultSeminarShortcut($mahasiswaId),
             'skripsi_defense' => $this->canAccessSkripsiDefense($mahasiswaId),
+            'defense_schedule' => $this->canAccessDefenseSchedule($mahasiswaId),
         ];
     }
 

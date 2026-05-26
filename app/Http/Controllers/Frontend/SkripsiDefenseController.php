@@ -8,6 +8,7 @@ use App\Http\Requests\MassDestroySkripsiDefenseRequest;
 use App\Http\Requests\StoreSkripsiDefenseRequest;
 use App\Http\Requests\UpdateSkripsiDefenseRequest;
 use App\Models\Application;
+use App\Models\ApplicationSchedule;
 use App\Models\SkripsiDefense;
 use App\Services\FormAccessService;
 use Gate;
@@ -346,7 +347,12 @@ class SkripsiDefenseController extends Controller
 
         $skripsiDefense->syncApplicationStatus();
 
-        return view('frontend.skripsiDefenses.show', compact('skripsiDefense'));
+        $formAccessService = new FormAccessService();
+        $scheduleAccess = $formAccessService->canAccessDefenseSchedule(auth()->user()->mahasiswa_id);
+
+        $existingSchedule = ApplicationSchedule::where('application_id', $skripsiDefense->application_id)->first();
+
+        return view('frontend.skripsiDefenses.show', compact('skripsiDefense', 'scheduleAccess', 'existingSchedule'));
     }
 
     public function destroy(SkripsiDefense $skripsiDefense)

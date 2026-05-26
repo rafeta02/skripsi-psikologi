@@ -131,6 +131,11 @@ class Application extends Model implements HasMedia
         return $this->hasOne(MbkmSeminar::class);
     }
 
+    public function schedules()
+    {
+        return $this->hasMany(ApplicationSchedule::class);
+    }
+
     /**
      * Detail page URL for the current stage (seminar, defense, registration, etc.).
      */

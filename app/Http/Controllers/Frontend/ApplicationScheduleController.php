@@ -10,6 +10,8 @@ use App\Http\Requests\UpdateApplicationScheduleRequest;
 use App\Models\Application;
 use App\Models\ApplicationSchedule;
 use App\Models\Ruang;
+use App\Models\SkripsiDefense;
+use App\Services\FormAccessService;
 use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -40,45 +42,84 @@ class ApplicationScheduleController extends Controller
         return view('frontend.applicationSchedules.index', compact('applicationSchedules'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         abort_if(Gate::denies('application_schedule_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // Get the active application for the current mahasiswa
         $mahasiswa = auth()->user()->mahasiswa;
-        
-        // Try to find application in seminar or defense stage that is approved
+        $formAccessService = new FormAccessService();
+        $defenseScheduleAccess = $mahasiswa
+            ? $formAccessService->canAccessDefenseSchedule($mahasiswa->id)
+            : ['allowed' => false, 'message' => 'Profil mahasiswa tidak ditemukan.'];
+
         $activeApplication = null;
+        $scheduleContext = null;
+
         if ($mahasiswa) {
-            // First try to find defense stage (priority)
-            $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
-                ->where('stage', 'defense')
-                ->where('status', 'approved')
-                ->first();
-            
-            // If no defense, try seminar
-            if (!$activeApplication) {
+            if ($defenseScheduleAccess['allowed']) {
+                $activeApplication = $defenseScheduleAccess['application'];
+                $scheduleContext = 'defense';
+            } else {
                 $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
                     ->where('stage', 'seminar')
                     ->where('status', 'approved')
+                    ->whereDoesntHave('schedules')
+                    ->orderByDesc('created_at')
                     ->first();
+
+                if ($activeApplication) {
+                    $scheduleContext = 'seminar';
+                }
             }
         }
 
         $ruangs = Ruang::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('frontend.applicationSchedules.create', compact('activeApplication', 'ruangs'));
+        return view('frontend.applicationSchedules.create', compact(
+            'activeApplication',
+            'ruangs',
+            'defenseScheduleAccess',
+            'scheduleContext'
+        ));
     }
 
     public function store(StoreApplicationScheduleRequest $request)
     {
-        $applicationSchedule = ApplicationSchedule::create($request->all());
+        $mahasiswa = auth()->user()->mahasiswa;
+        abort_if(!$mahasiswa, Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $application = Application::where('id', $request->application_id)
+            ->where('mahasiswa_id', $mahasiswa->id)
+            ->firstOrFail();
+
+        if ($application->stage === 'defense') {
+            $defense = SkripsiDefense::where('application_id', $application->id)->first();
+            abort_if(!$defense || !$defense->isAccepted(), Response::HTTP_FORBIDDEN, 'Pendaftaran sidang belum diterima admin.');
+
+            if (ApplicationSchedule::where('application_id', $application->id)->exists()) {
+                return redirect()->route('frontend.application-schedules.index')
+                    ->with('error', 'Jadwal sidang sudah diajukan.');
+            }
+        }
+
+        $applicationSchedule = ApplicationSchedule::create($request->only([
+            'application_id',
+            'schedule_type',
+            'waktu',
+            'ruang_id',
+            'custom_place',
+            'online_meeting',
+            'note',
+        ]));
 
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $applicationSchedule->id]);
         }
 
-        return redirect()->route('frontend.application-schedules.index')->with('success', 'Jadwal seminar berhasil dibuat');
+        $label = $request->schedule_type === 'skripsi_defense' ? 'sidang skripsi' : 'seminar';
+
+        return redirect()->route('frontend.application-schedules.index')
+            ->with('success', "Jadwal {$label} berhasil diajukan. Menunggu verifikasi admin.");
     }
 
     public function edit(ApplicationSchedule $applicationSchedule)

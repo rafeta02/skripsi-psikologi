@@ -337,6 +337,11 @@ Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['
     Route::resource('application-reports', 'ApplicationReportController')->only([
         'index', 'create', 'store', 'show',
     ]);
+
+    // Jadwal seminar / sidang (mahasiswa ajukan, admin verifikasi)
+    Route::resource('application-schedules', 'ApplicationScheduleController')->only([
+        'index', 'create', 'store', 'show', 'edit', 'update', 'destroy',
+    ]);
 });
 
 Route::group(['prefix' => 'dosen', 'as' => 'dosen.', 'namespace' => 'Dosen', 'middleware' => ['auth']], function () {
