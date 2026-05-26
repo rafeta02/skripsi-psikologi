@@ -50,12 +50,6 @@ class StoreApplicationResultDefenseRequest extends FormRequest
                 'nullable',
                 'date_format:' . config('panel.date_format'),
             ],
-            'final_grade' => [
-                'nullable',
-                'numeric',
-                'min:0',
-                'max:100',
-            ],
             
             // Optional Documents
             'form_document.*' => [
@@ -96,9 +90,6 @@ class StoreApplicationResultDefenseRequest extends FormRequest
             'report_document.min' => 'Minimal upload 1 berita acara sidang',
             'attendance_document.required' => 'Daftar hadir wajib diupload',
             'note.max' => 'Catatan maksimal 5000 karakter',
-            'final_grade.numeric' => 'Nilai harus berupa angka',
-            'final_grade.min' => 'Nilai minimal 0',
-            'final_grade.max' => 'Nilai maksimal 100',
         ];
     }
 }

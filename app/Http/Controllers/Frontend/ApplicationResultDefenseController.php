@@ -76,19 +76,30 @@ class ApplicationResultDefenseController extends Controller
                 ->with('error', $access['message']);
         }
 
-        $validated = $request->validate([
+        $rules = [
             'application_id' => 'required|exists:applications,id',
             'result' => 'required|in:passed,revision,failed',
             'note' => 'nullable|string|max:5000',
-            'revision_deadline' => 'nullable|date',
-            'final_grade' => 'nullable|numeric|min:0|max:100',
+            'revision_deadline' => 'nullable|required_if:result,revision|date',
             'report_document' => 'required|array|min:1',
             'report_document.*' => 'file|mimes:pdf|max:10240',
             'attendance_document' => 'required|file|mimes:pdf|max:10240',
+            'revision_approval_sheet' => 'nullable|array',
+            'revision_approval_sheet.*' => 'file|mimes:pdf|max:10240',
             'form_document' => 'nullable|array',
             'form_document.*' => 'file|mimes:pdf|max:10240',
             'latest_script' => 'nullable|file|mimes:pdf|max:20480',
-        ]);
+            'documentation' => 'nullable|array',
+            'documentation.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'certificate_document' => 'nullable|file|mimes:pdf|max:10240',
+            'publication_document' => 'nullable|file|mimes:pdf|max:10240',
+        ];
+
+        if ($request->input('result') === 'revision') {
+            $rules['revision_approval_sheet'] = 'required|array|min:1';
+        }
+
+        $validated = $request->validate($rules);
 
         if ((int) $validated['application_id'] !== (int) $access['application']->id) {
             abort(403, 'Aplikasi tidak valid.');
@@ -99,7 +110,6 @@ class ApplicationResultDefenseController extends Controller
             'result' => $validated['result'],
             'note' => $validated['note'] ?? null,
             'revision_deadline' => $validated['revision_deadline'] ?? null,
-            'final_grade' => $validated['final_grade'] ?? null,
         ]);
 
         foreach ($request->file('report_document', []) as $file) {
@@ -108,6 +118,10 @@ class ApplicationResultDefenseController extends Controller
 
         $applicationResultDefense->addMedia($request->file('attendance_document'))
             ->toMediaCollection('attendance_document');
+
+        foreach ($request->file('revision_approval_sheet', []) as $file) {
+            $applicationResultDefense->addMedia($file)->toMediaCollection('revision_approval_sheet');
+        }
 
         if ($request->hasFile('form_document')) {
             foreach ($request->file('form_document') as $file) {
@@ -118,6 +132,20 @@ class ApplicationResultDefenseController extends Controller
         if ($request->hasFile('latest_script')) {
             $applicationResultDefense->addMedia($request->file('latest_script'))
                 ->toMediaCollection('latest_script');
+        }
+
+        foreach ($request->file('documentation', []) as $file) {
+            $applicationResultDefense->addMedia($file)->toMediaCollection('documentation');
+        }
+
+        if ($request->hasFile('certificate_document')) {
+            $applicationResultDefense->addMedia($request->file('certificate_document'))
+                ->toMediaCollection('certificate_document');
+        }
+
+        if ($request->hasFile('publication_document')) {
+            $applicationResultDefense->addMedia($request->file('publication_document'))
+                ->toMediaCollection('publication_document');
         }
 
         return redirect()->route('frontend.application-result-defenses.index')
