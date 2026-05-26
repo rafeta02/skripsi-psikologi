@@ -665,6 +665,50 @@
                         <strong>NIM:</strong> {{ $skripsiDefense->application->mahasiswa->nim ?? 'N/A' }}<br>
                         <strong>Judul:</strong> {{ $skripsiDefense->title ?? 'N/A' }}
                     </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-user-check mr-1"></i>
+                        Penetapan <strong>2 dosen penguji</strong> wajib dilakukan saat menerima.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="accept_examiner_1_id">Penguji 1 <span class="text-danger">*</span></label>
+                                <select class="form-control {{ $errors->has('examiner_1_id') ? 'is-invalid' : '' }}" name="examiner_1_id" id="accept_examiner_1_id" required>
+                                    <option value="">-- Pilih Dosen --</option>
+                                    @foreach($dosens as $dosen)
+                                        <option value="{{ $dosen->id }}"
+                                            {{ (old('examiner_1_id') == $dosen->id) || (($skripsiDefense->examiner1->dosen_id ?? null) == $dosen->id) ? 'selected' : '' }}>
+                                            {{ $dosen->nama }}{{ $dosen->nidn ? ' (NIDN: ' . $dosen->nidn . ')' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @if($errors->has('examiner_1_id'))
+                                    <div class="invalid-feedback">{{ $errors->first('examiner_1_id') }}</div>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="accept_examiner_2_id">Penguji 2 <span class="text-danger">*</span></label>
+                                <select class="form-control {{ $errors->has('examiner_2_id') ? 'is-invalid' : '' }}" name="examiner_2_id" id="accept_examiner_2_id" required>
+                                    <option value="">-- Pilih Dosen --</option>
+                                    @foreach($dosens as $dosen)
+                                        <option value="{{ $dosen->id }}"
+                                            {{ (old('examiner_2_id') == $dosen->id) || (($skripsiDefense->examiner2->dosen_id ?? null) == $dosen->id) ? 'selected' : '' }}>
+                                            {{ $dosen->nama }}{{ $dosen->nidn ? ' (NIDN: ' . $dosen->nidn . ')' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @if($errors->has('examiner_2_id'))
+                                    <div class="invalid-feedback">{{ $errors->first('examiner_2_id') }}</div>
+                                @endif
+                                <small class="form-text text-muted">Penguji 1 dan Penguji 2 tidak boleh sama.</small>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label for="accept_note">Catatan (Opsional)</label>
                         <textarea class="form-control" name="admin_note" id="accept_note" rows="3" placeholder="Tambahkan catatan untuk mahasiswa (opsional)"></textarea>

@@ -572,9 +572,29 @@ class SkripsiDefenseController extends Controller
     {
         abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $validated = $request->validate([
+            'examiner_1_id' => ['required', 'exists:dosens,id'],
+            'examiner_2_id' => ['required', 'exists:dosens,id', 'different:examiner_1_id'],
+            'admin_note' => ['nullable', 'string'],
+        ], [
+            'examiner_1_id.required' => 'Penguji 1 wajib dipilih.',
+            'examiner_2_id.required' => 'Penguji 2 wajib dipilih.',
+            'examiner_2_id.different' => 'Penguji 1 dan Penguji 2 tidak boleh sama.',
+        ]);
+
+        SkripsiDefenseExaminer::updateOrCreate(
+            ['skripsi_defense_id' => $skripsiDefense->id, 'role' => 'examiner_1'],
+            ['dosen_id' => $validated['examiner_1_id']]
+        );
+
+        SkripsiDefenseExaminer::updateOrCreate(
+            ['skripsi_defense_id' => $skripsiDefense->id, 'role' => 'examiner_2'],
+            ['dosen_id' => $validated['examiner_2_id']]
+        );
+
         $skripsiDefense->update([
             'status' => 'accepted',
-            'admin_note' => $request->input('admin_note'),
+            'admin_note' => $validated['admin_note'] ?? null,
         ]);
 
         return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
