@@ -127,7 +127,17 @@
             @endif
 
             <!-- Quick Actions -->
-            @if($applicationResultDefense->result === 'passed')
+            @if(in_array($applicationResultDefense->result, ['passed', 'revision']) && $applicationResultDefense->isFinalizedByAdmin())
+                <div class="card-modern mb-4">
+                    <div class="card-modern-body">
+                        @include('partials.mahasiswa-graduation-documents', [
+                            'applicationId' => $applicationResultDefense->application_id,
+                            'finalScore' => $applicationResultDefense->final_score,
+                            'finalGradeLetter' => $applicationResultDefense->final_grade_letter,
+                        ])
+                    </div>
+                </div>
+            @elseif($applicationResultDefense->result === 'passed')
                 <div class="card-modern">
                     <div class="card-modern-body">
                         @if($applicationResultDefense->isValidatedByAdmin())
@@ -146,10 +156,17 @@
             @elseif($applicationResultDefense->result === 'revision')
                 <div class="card-modern">
                     <div class="card-modern-body">
-                        <div class="alert alert-warning mb-0">
-                            <i class="fas fa-edit"></i> <strong>Revisi diperlukan.</strong>
-                            <p class="mb-0 mt-2 small">Selesaikan revisi sesuai batas waktu yang ditetapkan.</p>
-                        </div>
+                        @if($applicationResultDefense->isValidatedByAdmin() && !$applicationResultDefense->isFinalizedByAdmin())
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-edit"></i> <strong>Revisi diperlukan.</strong>
+                                <p class="mb-0 mt-2 small">Selesaikan revisi sesuai batas waktu. Penilaian dosen sedang berjalan.</p>
+                            </div>
+                        @else
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-edit"></i> <strong>Revisi diperlukan.</strong>
+                                <p class="mb-0 mt-2 small">Selesaikan revisi sesuai batas waktu yang ditetapkan.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @elseif($applicationResultDefense->result === 'failed')

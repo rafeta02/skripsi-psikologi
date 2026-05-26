@@ -156,11 +156,32 @@
                                 @endif
                             @endif
                         </div>
+                    @elseif($currentPhase >= 4 && ($graduationApplicationId ?? null))
+                        <div class="mt-3">
+                            @include('partials.mahasiswa-graduation-documents', [
+                                'applicationId' => $graduationApplicationId,
+                                'finalScore' => $graduationFinalScore ?? null,
+                                'finalGradeLetter' => $graduationFinalGradeLetter ?? null,
+                            ])
+                        </div>
                     @endif
                 </div>
             </div>
         </div>
     </div>
+
+    @if(($graduationApplicationId ?? null) && $currentPhase < 4)
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                @include('partials.mahasiswa-graduation-documents', [
+                    'applicationId' => $graduationApplicationId,
+                    'finalScore' => $graduationFinalScore ?? null,
+                    'finalGradeLetter' => $graduationFinalGradeLetter ?? null,
+                    'class' => 'mb-0',
+                ])
+            </div>
+        </div>
+    @endif
 
     <style>
         /* Enhanced Timeline Styles */

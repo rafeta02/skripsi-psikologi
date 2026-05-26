@@ -22,6 +22,55 @@ use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
     /**
+     * Aplikasi defense yang sudah difinalisasi admin (siap unduh SKL & rekap nilai).
+     */
+    private function getGraduationDocumentsContext(int $mahasiswaId): array
+    {
+        $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', 'defense')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$defenseApp) {
+            return [
+                'graduationApplicationId' => null,
+                'graduationFinalScore' => null,
+                'graduationFinalGradeLetter' => null,
+            ];
+        }
+
+        $finalized = ApplicationAction::where('application_id', $defenseApp->id)
+            ->where('action_type', 'defense_finalized')
+            ->exists();
+
+        if (!$finalized) {
+            return [
+                'graduationApplicationId' => null,
+                'graduationFinalScore' => null,
+                'graduationFinalGradeLetter' => null,
+            ];
+        }
+
+        $resultDefense = ApplicationResultDefense::where('application_id', $defenseApp->id)
+            ->whereIn('result', ['passed', 'revision'])
+            ->first();
+
+        if (!$resultDefense) {
+            return [
+                'graduationApplicationId' => null,
+                'graduationFinalScore' => null,
+                'graduationFinalGradeLetter' => null,
+            ];
+        }
+
+        return [
+            'graduationApplicationId' => $defenseApp->id,
+            'graduationFinalScore' => $resultDefense->final_score,
+            'graduationFinalGradeLetter' => $resultDefense->final_grade_letter,
+        ];
+    }
+
+    /**
      * Determine current phase of student
      * Phase 0: Belum pendaftaran
      * Phase 1: Sudah melakukan pendaftaran
@@ -250,6 +299,8 @@ class DashboardController extends Controller
         $formAccessService = new FormAccessService();
         $allowedForms = $formAccessService->getAllowedForms($mahasiswa->id);
 
+        $graduationDocs = $this->getGraduationDocumentsContext($mahasiswa->id);
+
         return view('mahasiswa.dashboard', compact(
             'mahasiswa',
             'totalApplications',
@@ -265,7 +316,7 @@ class DashboardController extends Controller
             'nextStep',
             'supervisorAccepted',
             'allowedForms'
-        ));
+        ) + $graduationDocs);
     }
 
     public function aplikasi()
@@ -401,11 +452,19 @@ class DashboardController extends Controller
             ->pluck('application_id')
             ->all();
 
+        $graduationDocs = $this->getGraduationDocumentsContext($mahasiswa->id);
+
         // Get form access permissions
         $formAccessService = new FormAccessService();
         $allowedForms = $formAccessService->getAllowedForms($mahasiswa->id);
 
-        return view('mahasiswa.dokumen', compact('mahasiswa', 'applications', 'currentPhase', 'allowedForms', 'finalizedDefenseApplicationIds'));
+        return view('mahasiswa.dokumen', compact(
+            'mahasiswa',
+            'applications',
+            'currentPhase',
+            'allowedForms',
+            'finalizedDefenseApplicationIds'
+        ) + $graduationDocs);
     }
 
     public function profile()

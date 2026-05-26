@@ -24,6 +24,15 @@
     </div>
     @endif
 
+    @if($graduationApplicationId ?? null)
+        @include('partials.mahasiswa-graduation-documents', [
+            'applicationId' => $graduationApplicationId,
+            'finalScore' => $graduationFinalScore ?? null,
+            'finalGradeLetter' => $graduationFinalGradeLetter ?? null,
+            'class' => 'mb-4',
+        ])
+    @endif
+
     @if(count($applications) > 0)
         @foreach($applications as $app)
             <div class="card mb-4">
@@ -57,21 +66,6 @@
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i> Untuk upload dan mengelola dokumen, silakan kunjungi detail aplikasi di bawah ini.
                     </div>
-
-                    @if(($app->stage ?? null) === 'defense' && in_array($app->id, $finalizedDefenseApplicationIds ?? []))
-                        <div class="alert alert-success">
-                            <i class="fas fa-certificate"></i>
-                            Proses skripsi sudah <strong>selesai (finalisasi admin)</strong>. Anda dapat mengunduh:
-                            <div class="mt-2">
-                                <a class="btn btn-sm btn-success mr-2" href="{{ route('pdf.surat-keterangan-lulus', $app->id) }}" target="_blank">
-                                    <i class="fas fa-file-pdf"></i> Surat Keterangan Lulus
-                                </a>
-                                <a class="btn btn-sm btn-outline-success" href="{{ route('pdf.transkrip-nilai', $app->id) }}" target="_blank">
-                                    <i class="fas fa-file-pdf"></i> Rekap Nilai
-                                </a>
-                            </div>
-                        </div>
-                    @endif
 
                     <h5 class="mt-4"><i class="fas fa-paperclip"></i> Quick Links</h5>
                     <div class="btn-group-vertical w-100" role="group">

@@ -244,11 +244,11 @@
         @if(isset($logo) && $logo)
         <img src="{{ $logo }}" alt="Logo" class="header-logo">
         @endif
-        <div class="header-title">UNIVERSITAS [NAMA UNIVERSITAS]</div>
+        <div class="header-title">UNIVERSITAS SEBELAS MARET</div>
         <div class="header-subtitle">FAKULTAS PSIKOLOGI</div>
         <div class="header-subtitle">PROGRAM STUDI PSIKOLOGI</div>
         <div class="header-address">
-            Jl. [Alamat Kampus] | Telp: (021) xxx-xxxx | Email: psikologi@univ.ac.id
+            Jl. Ir. Sutami No 36A, Kentingan, Kecamatan Jebres, Kota Surakarta, Jawa Tengah 57126 | Telp: (0271) 646994 | Email: sebelasmaret@mail.uns.ac.id
         </div>
     </div>
 
