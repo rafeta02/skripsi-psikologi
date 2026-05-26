@@ -1,22 +1,22 @@
 @php
     $collections = [
-        ['label' => 'Berita Acara Sidang', 'media' => $record->report_document, 'multi' => true],
-        ['label' => 'Daftar Hadir', 'media' => $record->attendance_document, 'multi' => false],
-        ['label' => 'Lembar Persetujuan Revisi', 'media' => $record->revision_approval_sheet, 'multi' => true],
-        ['label' => 'Naskah Skripsi Final', 'media' => $record->latest_script, 'multi' => false],
-        ['label' => 'Form Penilaian Penguji', 'media' => $record->form_document, 'multi' => true],
-        ['label' => 'Dokumentasi Sidang', 'media' => $record->documentation, 'multi' => true],
-        ['label' => 'Lembar Pengesahan / Sertifikat', 'media' => $record->certificate_document, 'multi' => false],
-        ['label' => 'Bukti Publikasi', 'media' => $record->publication_document, 'multi' => false],
+        ['label' => 'Berita Acara Sidang', 'collection' => 'report_document'],
+        ['label' => 'Daftar Hadir', 'collection' => 'attendance_document'],
+        ['label' => 'Lembar Persetujuan Revisi', 'collection' => 'revision_approval_sheet'],
+        ['label' => 'Naskah Skripsi Final', 'collection' => 'latest_script'],
+        ['label' => 'Form Penilaian Penguji', 'collection' => 'form_document'],
+        ['label' => 'Dokumentasi Sidang', 'collection' => 'documentation'],
+        ['label' => 'Lembar Pengesahan / Sertifikat', 'collection' => 'certificate_document'],
+        ['label' => 'Bukti Publikasi', 'collection' => 'publication_document'],
     ];
     $hasAny = false;
 @endphp
 
 @foreach($collections as $col)
     @php
-        $items = $col['multi']
-            ? ($col['media'] && $col['media']->count() > 0 ? $col['media'] : collect())
-            : ($col['media'] ? collect([$col['media']]) : collect());
+        $items = $record->getMedia($col['collection'])->filter(function ($item) {
+            return $item instanceof \Spatie\MediaLibrary\MediaCollections\Models\Media;
+        });
     @endphp
     @if($items->count() > 0)
         @php $hasAny = true; @endphp

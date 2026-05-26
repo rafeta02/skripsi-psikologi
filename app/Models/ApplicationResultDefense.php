@@ -266,7 +266,7 @@ class ApplicationResultDefense extends Model implements HasMedia
 
     public function getFormDocumentAttribute()
     {
-        return $this->getMedia('form_document')->last();
+        return $this->getMedia('form_document');
     }
 
     public function getCertificateDocumentAttribute()

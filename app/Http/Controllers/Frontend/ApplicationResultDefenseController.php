@@ -356,6 +356,16 @@ class ApplicationResultDefenseController extends Controller
         abort_if(Gate::denies('application_result_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $applicationResultDefense->load('application');
+        $applicationResultDefense->loadMedia(
+            'report_document',
+            'attendance_document',
+            'revision_approval_sheet',
+            'latest_script',
+            'form_document',
+            'documentation',
+            'certificate_document',
+            'publication_document'
+        );
 
         $mahasiswaId = auth()->user()->mahasiswa_id;
         if ($mahasiswaId && $applicationResultDefense->application?->mahasiswa_id !== $mahasiswaId) {
