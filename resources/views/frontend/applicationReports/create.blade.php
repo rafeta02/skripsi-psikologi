@@ -38,11 +38,6 @@
                             <input type="hidden" name="application_id" value="{{ $activeApplication->id }}">
 
                             <div class="form-group">
-                                <label class="form-label-modern">Aplikasi</label>
-                                <input type="text" class="form-control-modern" value="{{ strtoupper($activeApplication->type) }} — {{ ucfirst($activeApplication->stage) }}" readonly>
-                            </div>
-
-                            <div class="form-group">
                                 <label class="form-label-modern required" for="period">Periode Laporan</label>
                                 <select name="period" id="period" class="form-control-modern @error('period') is-invalid @enderror">
                                     <option value="">-- Pilih periode (opsional) --</option>
