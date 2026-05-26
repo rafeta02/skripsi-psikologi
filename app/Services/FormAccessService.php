@@ -414,6 +414,46 @@ class FormAccessService
     }
 
     /**
+     * Whether Laporan Hasil Review shortcuts should appear (dashboard, menu, dokumen).
+     * Hidden after admin validates a passed report.
+     */
+    public function canShowApplicationResultSeminarShortcut($mahasiswaId): array
+    {
+        $seminar = SkripsiSeminar::whereHas('application', function ($query) use ($mahasiswaId) {
+            $query->where('mahasiswa_id', $mahasiswaId)->where('type', 'skripsi');
+        })
+            ->whereNotNull('reviewer_1_id')
+            ->with('application')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$seminar) {
+            return [
+                'allowed' => false,
+                'message' => null,
+            ];
+        }
+
+        $result = ApplicationResultSeminar::where('application_id', $seminar->application_id)->first();
+
+        if (!$result) {
+            return $this->canAccessApplicationResultSeminar($mahasiswaId, true);
+        }
+
+        if ($result->result === 'passed' && $this->isSeminarResultValidatedByAdmin($seminar->application_id)) {
+            return [
+                'allowed' => false,
+                'message' => 'Laporan hasil review sudah divalidasi admin.',
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'message' => null,
+        ];
+    }
+
+    /**
      * Get allowed forms for a student
      */
     public function getAllowedForms($mahasiswaId)
@@ -423,6 +463,7 @@ class FormAccessService
             'skripsi_registration' => $this->canAccessSkripsiRegistration($mahasiswaId),
             'mbkm_seminar' => $this->canAccessMbkmSeminar($mahasiswaId),
             'skripsi_seminar' => $this->canAccessSkripsiSeminar($mahasiswaId),
+            'application_result_seminar' => $this->canShowApplicationResultSeminarShortcut($mahasiswaId),
             'skripsi_defense' => $this->canAccessSkripsiDefense($mahasiswaId),
         ];
     }

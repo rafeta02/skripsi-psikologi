@@ -368,13 +368,13 @@
                             </a>
                         </li>
 
-                        @can('application_result_seminar_access')
+                        @if(($allowedForms['application_result_seminar']['allowed'] ?? false))
                         <li class="nav-item">
                             <a href="{{ route('frontend.application-result-seminars.index') }}" class="nav-link {{ request()->routeIs('frontend.application-result-seminars.*') ? 'active' : '' }}">
                                 <i class="fas fa-clipboard-check"></i> Laporan Review
                             </a>
                         </li>
-                        @endcan
+                        @endif
                         
                         {{-- Profile - Always visible --}}
                         <li class="nav-item">

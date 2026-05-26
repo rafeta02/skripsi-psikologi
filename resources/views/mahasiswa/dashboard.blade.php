@@ -138,11 +138,11 @@
                         @endif
                     @elseif($currentPhase == 2 && $activeApplication)
                         <div class="d-flex flex-wrap gap-2 mt-3">
-                            @can('application_result_seminar_access')
+                            @if($allowedForms['application_result_seminar']['allowed'] ?? false)
                             <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn-modern btn-modern-primary">
                                 <i class="fas fa-clipboard-check"></i> Laporan Hasil Review
                             </a>
-                            @endcan
+                            @endif
                             @if($allowedForms['skripsi_defense']['allowed'] ?? false)
                                 <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn-modern btn-modern-outline" style="color: var(--primary-500); border-color: var(--primary-500);">
                                     <i class="fas fa-graduation-cap"></i> Daftar Sidang
