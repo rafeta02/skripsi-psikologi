@@ -92,26 +92,26 @@
         </tr>
     </table>
 
-    @if($finalScore)
+    @if($defenseResult && $defenseResult->final_score !== null)
     <table class="data-table mb-3">
         <tr>
             <td>Nilai Akhir</td>
             <td>:</td>
-            <td><strong style="font-size: 14pt;">{{ number_format($finalScore->overall_score, 2) }} ({{ $finalScore->grade_letter }})</strong></td>
+            <td><strong style="font-size: 14pt;">{{ number_format($defenseResult->final_score, 2) }} ({{ $defenseResult->final_grade_letter }})</strong></td>
         </tr>
-        @if($finalScore->overall_score >= 85)
+        @if($defenseResult->final_score >= 85)
         <tr>
             <td>Predikat</td>
             <td>:</td>
             <td><strong style="color: #d4af37;">⭐ CUM LAUDE ⭐</strong></td>
         </tr>
-        @elseif($finalScore->overall_score >= 75)
+        @elseif($defenseResult->final_score >= 75)
         <tr>
             <td>Predikat</td>
             <td>:</td>
             <td><strong style="color: #4CAF50;">SANGAT MEMUASKAN</strong></td>
         </tr>
-        @elseif($finalScore->overall_score >= 60)
+        @elseif($defenseResult->final_score >= 60)
         <tr>
             <td>Predikat</td>
             <td>:</td>
@@ -130,7 +130,7 @@
                 <strong>
                 @if($defenseResult->result == 'passed')
                     ✓ LULUS TANPA REVISI
-                @elseif($defenseResult->result == 'passed_with_revision')
+                @elseif($defenseResult->result == 'revision')
                     ✓ LULUS DENGAN REVISI
                     @if($defenseResult->revision_deadline)
                         <br><small>(Revisi selesai: {{ \Carbon\Carbon::parse($defenseResult->revision_deadline)->isoFormat('D MMMM YYYY') }})</small>

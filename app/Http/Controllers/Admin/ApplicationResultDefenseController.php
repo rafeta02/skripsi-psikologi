@@ -409,6 +409,85 @@ class ApplicationResultDefenseController extends Controller
         }
     }
 
+    public function finalize(Request $request, $id)
+    {
+        abort_if(Gate::denies('application_result_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $resultDefense = ApplicationResultDefense::with(['application', 'scores'])->findOrFail($id);
+
+        if (!$resultDefense->isValidatedByAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hasil sidang harus divalidasi admin terlebih dahulu.',
+            ], 422);
+        }
+
+        if (!in_array($resultDefense->result, ['passed', 'revision'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Finalisasi kelulusan hanya untuk hasil lulus / revisi.',
+            ], 422);
+        }
+
+        $alreadyFinalized = ApplicationAction::where('application_id', $resultDefense->application_id)
+            ->where('action_type', 'defense_finalized')
+            ->exists();
+
+        if ($alreadyFinalized) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kelulusan sidang ini sudah difinalisasi.',
+            ], 422);
+        }
+
+        $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        $total = $resultDefense->scores()->count();
+        $completed = $resultDefense->scores()->whereNotNull('score')->count();
+
+        if ($total === 0 || $completed < $total) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Belum semua dosen mengisi nilai. Finalisasi belum dapat dilakukan.',
+            ], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($resultDefense, $request) {
+                ApplicationAction::create([
+                    'application_id' => $resultDefense->application_id,
+                    'action_type' => 'defense_finalized',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->notes ?? 'Finalisasi kelulusan sidang',
+                    'metadata' => [
+                        'result_defense_id' => $resultDefense->id,
+                        'final_score' => $resultDefense->final_score,
+                        'final_grade_letter' => $resultDefense->final_grade_letter,
+                    ],
+                ]);
+
+                if ($resultDefense->application) {
+                    $resultDefense->application->update([
+                        'status' => 'done',
+                        'notes' => $request->notes ?? $resultDefense->application->notes,
+                    ]);
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kelulusan difinalisasi. Mahasiswa dapat mengunduh surat keterangan lulus dan rekap nilai.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function reject(Request $request, $id)
     {
         $resultDefense = ApplicationResultDefense::with('application')->findOrFail($id);

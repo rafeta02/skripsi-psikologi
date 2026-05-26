@@ -20,6 +20,8 @@
             @php
                 $adminValidated = $applicationResultDefense->isValidatedByAdmin();
                 $adminRejected = $applicationResultDefense->isRejectedByAdmin();
+                $adminFinalized = $applicationResultDefense->isFinalizedByAdmin();
+                $scoringComplete = $applicationResultDefense->isScoringComplete();
             @endphp
 
             <div class="row mb-4">
@@ -40,11 +42,26 @@
                         <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#rejectDefenseModal">
                             <i class="fas fa-times mr-1"></i> Tolak Laporan
                         </button>
+                    @elseif($adminFinalized)
+                        <div class="alert alert-primary mb-0">
+                            <i class="fas fa-certificate mr-1"></i>
+                            Kelulusan sudah difinalisasi.
+                        </div>
                     @elseif($adminValidated && in_array($applicationResultDefense->result, ['passed', 'revision']))
                         <div class="alert alert-success mb-0">
                             <i class="fas fa-users mr-1"></i>
                             Penilaian dikirim ke {{ $applicationResultDefense->scores->count() }} dosen.
                         </div>
+                        @if($scoringComplete)
+                            <button type="button" class="btn btn-primary btn-block mt-2" data-toggle="modal" data-target="#finalizeDefenseModal">
+                                <i class="fas fa-check-double mr-1"></i> Finalisasi Kelulusan
+                            </button>
+                        @else
+                            <div class="alert alert-warning mt-2 mb-0">
+                                <i class="fas fa-clock mr-1"></i>
+                                Menunggu semua dosen mengisi nilai sebelum finalisasi.
+                            </div>
+                        @endif
                     @elseif($adminValidated && $applicationResultDefense->result === 'failed')
                         <div class="alert alert-info mb-0">
                             <i class="fas fa-redo mr-1"></i>
@@ -53,6 +70,19 @@
                     @endif
                 </div>
             </div>
+
+            @if($adminFinalized && $applicationResultDefense->application)
+                <div class="alert alert-success">
+                    <i class="fas fa-download mr-1"></i>
+                    Dokumen kelulusan sudah siap:
+                    <a class="btn btn-sm btn-success ml-2" href="{{ route('pdf.surat-keterangan-lulus', $applicationResultDefense->application->id) }}" target="_blank">
+                        <i class="fas fa-file-pdf mr-1"></i> Surat Keterangan Lulus
+                    </a>
+                    <a class="btn btn-sm btn-outline-success ml-2" href="{{ route('pdf.transkrip-nilai', $applicationResultDefense->application->id) }}" target="_blank">
+                        <i class="fas fa-file-pdf mr-1"></i> Rekap Nilai
+                    </a>
+                </div>
+            @endif
 
             <table class="table table-bordered table-striped">
                 <tbody>
@@ -190,6 +220,33 @@
     </div>
 </div>
 
+<!-- Finalize Modal -->
+<div class="modal fade" id="finalizeDefenseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-check-double mr-2"></i>Finalisasi Kelulusan</h5>
+                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <form id="finalizeDefenseForm">
+                <div class="modal-body">
+                    <div class="alert alert-primary">
+                        Finalisasi kelulusan akan membuka dokumen <strong>Surat Keterangan Lulus</strong> dan <strong>Rekap Nilai</strong> untuk mahasiswa.
+                    </div>
+                    <div class="form-group">
+                        <label for="finalize_notes">Catatan (opsional)</label>
+                        <textarea class="form-control" id="finalize_notes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-check mr-1"></i> Finalisasi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
@@ -235,6 +292,27 @@ $(document).ready(function() {
                 let msg = xhr.responseJSON?.message || 'Gagal';
                 if (xhr.responseJSON?.errors?.reason) msg = xhr.responseJSON.errors.reason[0];
                 alert(msg);
+            },
+            complete: function() { btn.prop('disabled', false); }
+        });
+    });
+
+    $('#finalizeDefenseForm').on('submit', function(e) {
+        e.preventDefault();
+        const btn = $(this).find('button[type="submit"]');
+        btn.prop('disabled', true);
+        $.ajax({
+            url: '{{ route("admin.application-result-defenses.finalize", $applicationResultDefense->id) }}',
+            method: 'POST',
+            data: $(this).serialize(),
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(res) {
+                $('#finalizeDefenseModal').modal('hide');
+                alert(res.message || 'Berhasil');
+                window.location.reload();
+            },
+            error: function(xhr) {
+                alert(xhr.responseJSON?.message || 'Gagal finalisasi');
             },
             complete: function() { btn.prop('disabled', false); }
         });

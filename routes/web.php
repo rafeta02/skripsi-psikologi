@@ -203,6 +203,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::get('application-result-defenses/{application_result_defense}/print-score', 'ApplicationResultDefenseController@printScore')->name('application-result-defenses.print-score');
     Route::post('application-result-defenses/{id}/approve', 'ApplicationResultDefenseController@approve')->name('application-result-defenses.approve');
     Route::post('application-result-defenses/{id}/reject', 'ApplicationResultDefenseController@reject')->name('application-result-defenses.reject');
+    Route::post('application-result-defenses/{id}/finalize', 'ApplicationResultDefenseController@finalize')->name('application-result-defenses.finalize');
     Route::resource('application-result-defenses', 'ApplicationResultDefenseController');
 
     // Application Score

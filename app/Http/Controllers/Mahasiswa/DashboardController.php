@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\ApplicationAssignment;
 use App\Models\ApplicationSchedule;
+use App\Models\ApplicationAction;
 use App\Models\ApplicationResultDefense;
 use App\Models\ApplicationScore;
 use App\Models\Mahasiswa;
@@ -45,16 +46,23 @@ class DashboardController extends Controller
             ];
         }
 
-        // Phase 4: Check if scores are available
+        // Phase 4: Nilai sidang tersedia + finalisasi admin
         $resultDefense = ApplicationResultDefense::where('application_id', $activeApplication->id)->first();
         if ($resultDefense) {
-            $hasScore = ApplicationScore::where('application_result_defence_id', $resultDefense->id)->exists();
-            if ($hasScore) {
+            $hasCompletedScore = ApplicationScore::where('application_result_defence_id', $resultDefense->id)
+                ->whereNotNull('score')
+                ->exists();
+
+            $finalized = ApplicationAction::where('application_id', $activeApplication->id)
+                ->where('action_type', 'defense_finalized')
+                ->exists();
+
+            if ($hasCompletedScore && $finalized) {
                 return [
                     'phase' => 4,
-                    'phase_name' => 'Nilai Tersedia',
-                    'phase_description' => 'Nilai sidang Anda sudah tersedia',
-                    'next_step' => 'Proses selesai, tunggu kelulusan',
+                    'phase_name' => 'Selesai (Finalisasi Admin)',
+                    'phase_description' => 'Kelulusan Anda sudah difinalisasi. Dokumen kelulusan dan nilai tersedia.',
+                    'next_step' => 'Unduh Surat Keterangan Lulus dan Rekap Nilai pada menu dokumen/PDF.',
                     'application' => $activeApplication
                 ];
             }
@@ -388,11 +396,16 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $finalizedDefenseApplicationIds = ApplicationAction::where('action_type', 'defense_finalized')
+            ->whereIn('application_id', $applications->pluck('id'))
+            ->pluck('application_id')
+            ->all();
+
         // Get form access permissions
         $formAccessService = new FormAccessService();
         $allowedForms = $formAccessService->getAllowedForms($mahasiswa->id);
 
-        return view('mahasiswa.dokumen', compact('mahasiswa', 'applications', 'currentPhase', 'allowedForms'));
+        return view('mahasiswa.dokumen', compact('mahasiswa', 'applications', 'currentPhase', 'allowedForms', 'finalizedDefenseApplicationIds'));
     }
 
     public function profile()

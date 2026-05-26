@@ -102,6 +102,28 @@ class ApplicationResultDefense extends Model implements HasMedia
             ->exists();
     }
 
+    public function isFinalizedByAdmin(): bool
+    {
+        if (!$this->application_id) {
+            return false;
+        }
+
+        return ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'defense_finalized')
+            ->exists();
+    }
+
+    public function isScoringComplete(): bool
+    {
+        $total = $this->scores()->count();
+        if ($total === 0) {
+            return false;
+        }
+
+        $completed = $this->scores()->whereNotNull('score')->count();
+        return $completed === $total;
+    }
+
     /**
      * Keep applications.status aligned with laporan hasil sidang (not defense registration approval).
      */

@@ -90,17 +90,13 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td>
-                        @if($loop->first && $scores->count() > 1)
-                            Penilaian Seminar Proposal
-                        @elseif($loop->last)
-                            Penilaian Sidang Skripsi
-                        @else
-                            Penilaian {{ $index + 1 }}
-                        @endif
+                        Penilaian Sidang Skripsi
                     </td>
                     <td>{{ $score->examiner->nama ?? '-' }}</td>
-                    <td class="text-center">{{ number_format($score->overall_score, 2) }}</td>
-                    <td class="text-center"><strong>{{ $score->grade_letter }}</strong></td>
+                    <td class="text-center">{{ number_format($score->score, 2) }}</td>
+                    <td class="text-center">
+                        <strong>{{ \App\Models\ApplicationResultDefense::convertScoreToGrade((float) $score->score) }}</strong>
+                    </td>
                 </tr>
                 @endforeach
                 

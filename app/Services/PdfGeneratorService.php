@@ -289,14 +289,14 @@ class PdfGeneratorService
      */
     public function generateTranskripNilai(Application $application)
     {
-        // Get all scores for this application
-        $scores = ApplicationScore::where('application_id', $application->id)
-            ->with('examiner')
-            ->get();
+        $defenseResult = ApplicationResultDefense::where('application_id', $application->id)
+            ->with(['scores.examiner'])
+            ->first();
 
-        // Calculate average score
-        $averageScore = $scores->avg('overall_score') ?? 0;
-        $finalGrade = $this->calculateGradeLetter($averageScore);
+        $scores = $defenseResult ? $defenseResult->scores->filter(fn ($s) => $s->score !== null) : collect();
+
+        $averageScore = $defenseResult ? (float) $defenseResult->final_score : 0;
+        $finalGrade = $defenseResult ? (string) ($defenseResult->final_grade_letter ?? $this->calculateGradeLetter($averageScore)) : $this->calculateGradeLetter($averageScore);
 
         // Get pembimbing
         $pembimbing = $application->assignments()
@@ -331,11 +331,6 @@ class PdfGeneratorService
      */
     public function generateSuratKeteranganLulus(Application $application)
     {
-        // Get final score
-        $finalScore = ApplicationScore::where('application_id', $application->id)
-            ->orderBy('created_at', 'desc')
-            ->first();
-
         // Get defense result
         $defenseResult = ApplicationResultDefense::where('application_id', $application->id)
             ->first();
@@ -350,7 +345,6 @@ class PdfGeneratorService
             'mahasiswa' => $application->mahasiswa,
             'prodi' => $application->mahasiswa->prodi,
             'defense' => $defense,
-            'finalScore' => $finalScore,
             'defenseResult' => $defenseResult,
             'graduationDate' => $defense ? $this->formatDate($defense->created_at) : $this->formatDate(now()),
         ];

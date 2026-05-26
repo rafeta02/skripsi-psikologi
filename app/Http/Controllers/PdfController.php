@@ -151,6 +151,13 @@ class PdfController extends Controller
         // Authorization check
         $this->authorize('view', $application);
 
+        $finalized = $application->actions()
+            ->where('action_type', 'defense_finalized')
+            ->exists();
+        if (!$finalized) {
+            abort(403, 'Dokumen nilai belum tersedia. Tunggu finalisasi kelulusan oleh admin.');
+        }
+
         $pdf = $this->pdfService->generateTranskripNilai($application);
         $filename = $this->pdfService->generateFilename('transkrip-nilai', $application);
 
@@ -165,9 +172,16 @@ class PdfController extends Controller
         // Authorization check
         $this->authorize('view', $application);
 
+        $finalized = $application->actions()
+            ->where('action_type', 'defense_finalized')
+            ->exists();
+        if (!$finalized) {
+            abort(403, 'Surat keterangan lulus belum tersedia. Tunggu finalisasi kelulusan oleh admin.');
+        }
+
         // Check if student has passed
         $defenseResult = ApplicationResultDefense::where('application_id', $application->id)
-            ->whereIn('result', ['passed', 'passed_with_revision'])
+            ->whereIn('result', ['passed', 'revision'])
             ->first();
 
         if (!$defenseResult) {
