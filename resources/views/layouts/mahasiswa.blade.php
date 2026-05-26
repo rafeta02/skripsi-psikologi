@@ -368,6 +368,14 @@
                             </a>
                         </li>
 
+                        @can('application_report_access')
+                        <li class="nav-item">
+                            <a href="{{ route('frontend.application-reports.index') }}" class="nav-link {{ request()->routeIs('frontend.application-reports.*') ? 'active' : '' }}">
+                                <i class="fas fa-flag"></i> Laporan Kendala
+                            </a>
+                        </li>
+                        @endcan
+
                         @if(($allowedForms['application_result_seminar']['allowed'] ?? false))
                         <li class="nav-item">
                             <a href="{{ route('frontend.application-result-seminars.index') }}" class="nav-link {{ request()->routeIs('frontend.application-result-seminars.*') ? 'active' : '' }}">

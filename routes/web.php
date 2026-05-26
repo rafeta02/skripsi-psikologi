@@ -329,6 +329,13 @@ Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['
     Route::resource('application-result-seminars', 'ApplicationResultSeminarController')->only([
         'index', 'create', 'store', 'show',
     ]);
+
+    // Laporan Kendala (opsional, kapan saja selama proses skripsi/MBKM)
+    Route::post('application-reports/media', 'ApplicationReportController@storeMedia')->name('application-reports.storeMedia');
+    Route::post('application-reports/ckmedia', 'ApplicationReportController@storeCKEditorImages')->name('application-reports.storeCKEditorImages');
+    Route::resource('application-reports', 'ApplicationReportController')->only([
+        'index', 'create', 'store', 'show',
+    ]);
 });
 
 Route::group(['prefix' => 'dosen', 'as' => 'dosen.', 'namespace' => 'Dosen', 'middleware' => ['auth']], function () {

@@ -97,6 +97,12 @@
                                 </a>
                             @endif
                         @endif
+
+                        @can('application_report_access')
+                        <a href="{{ route('frontend.application-reports.index') }}" class="btn btn-outline-warning text-left mb-2">
+                            <i class="fas fa-flag"></i> Laporan Kendala
+                        </a>
+                        @endcan
                         
                         <a href="{{ route('frontend.applications.show', $app->id) }}" class="btn btn-primary text-left">
                             <i class="fas fa-eye"></i> Lihat Detail Aplikasi

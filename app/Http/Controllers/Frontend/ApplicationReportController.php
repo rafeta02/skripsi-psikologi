@@ -47,16 +47,18 @@ class ApplicationReportController extends Controller
         $mahasiswa = $user->mahasiswa;
         
         if (!$mahasiswa) {
-            return redirect()->back()->with('error', 'Profil mahasiswa tidak ditemukan');
+            return redirect()->route('frontend.application-reports.index')
+                ->with('error', 'Profil mahasiswa tidak ditemukan');
         }
 
         $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
-            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
+            ->whereIn('status', ['submitted', 'approved', 'scheduled', 'revision'])
             ->orderBy('created_at', 'desc')
             ->first();
 
         if (!$activeApplication) {
-            return redirect()->back()->with('error', 'Tidak ada aplikasi aktif. Silakan buat aplikasi terlebih dahulu.');
+            return redirect()->route('frontend.application-reports.index')
+                ->with('error', 'Tidak ada aplikasi aktif. Silakan buat aplikasi terlebih dahulu.');
         }
 
         return view('frontend.applicationReports.create', compact('activeApplication'));
@@ -121,9 +123,27 @@ class ApplicationReportController extends Controller
     {
         abort_if(Gate::denies('application_report_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $this->authorizeOwnership($applicationReport);
+
         $applicationReport->load('application');
 
         return view('frontend.applicationReports.show', compact('applicationReport'));
+    }
+
+    protected function authorizeOwnership(ApplicationReport $applicationReport): void
+    {
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        if (!$mahasiswaId) {
+            abort(403, 'Unauthorized');
+        }
+
+        $owns = Application::where('id', $applicationReport->application_id)
+            ->where('mahasiswa_id', $mahasiswaId)
+            ->exists();
+
+        if (!$owns) {
+            abort(403, 'Unauthorized');
+        }
     }
 
     public function destroy(ApplicationReport $applicationReport)
