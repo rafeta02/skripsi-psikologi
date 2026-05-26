@@ -29,6 +29,19 @@
         </div>
     </div>
 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    @endif
+
     <!-- Reports List -->
     <div class="row">
         <div class="col-lg-12">
@@ -43,39 +56,26 @@
                                             <i class="fas fa-exclamation-triangle" style="font-size: 20px; color: white;"></i>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h4 class="mb-1 font-weight-bold">{{ $report->title }}</h4>
+                                            <h4 class="mb-1 font-weight-bold">
+                                                Laporan #{{ $report->id }}
+                                                @if($report->period)
+                                                    <small class="text-muted">— {{ App\Models\ApplicationReport::PERIOD_SELECT[$report->period] ?? $report->period }}</small>
+                                                @endif
+                                            </h4>
                                             <p class="text-muted mb-2">
                                                 <i class="far fa-calendar"></i> {{ $report->created_at->format('d M Y H:i') }}
                                             </p>
-                                            @if($report->description)
-                                                <p class="mb-2">{{ Str::limit($report->description, 150) }}</p>
+                                            @if($report->report_text)
+                                                <p class="mb-2">{{ Str::limit(strip_tags($report->report_text), 150) }}</p>
                                             @endif
                                             <div class="d-flex flex-wrap gap-2">
-                                                @if($report->status == 'pending')
-                                                    <span class="badge-modern badge-modern-warning">
-                                                        <i class="fas fa-clock"></i> Menunggu Tanggapan
+                                                @if($report->status == 'submitted')
+                                                    <span class="badge badge-warning">
+                                                        <i class="fas fa-clock"></i> Menunggu Tinjauan Admin
                                                     </span>
-                                                @elseif($report->status == 'resolved')
-                                                    <span class="badge-modern badge-modern-success">
-                                                        <i class="fas fa-check-circle"></i> Selesai
-                                                    </span>
-                                                @elseif($report->status == 'in_progress')
-                                                    <span class="badge-modern badge-modern-info">
-                                                        <i class="fas fa-spinner"></i> Dalam Proses
-                                                    </span>
-                                                @endif
-                                                
-                                                @if($report->priority == 'high')
-                                                    <span class="badge-modern badge-modern-danger">
-                                                        <i class="fas fa-exclamation"></i> Prioritas Tinggi
-                                                    </span>
-                                                @elseif($report->priority == 'medium')
-                                                    <span class="badge-modern badge-modern-warning">
-                                                        <i class="fas fa-minus"></i> Prioritas Sedang
-                                                    </span>
-                                                @elseif($report->priority == 'low')
-                                                    <span class="badge-modern badge-modern-secondary">
-                                                        <i class="fas fa-arrow-down"></i> Prioritas Rendah
+                                                @elseif($report->status == 'reviewed')
+                                                    <span class="badge badge-success">
+                                                        <i class="fas fa-check-circle"></i> Sudah Ditinjau
                                                     </span>
                                                 @endif
                                             </div>

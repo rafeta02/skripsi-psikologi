@@ -26,12 +26,32 @@ class StoreApplicationReportRequest extends FormRequest
                 'string',
             ],
             'report_document' => [
+                'nullable',
                 'array',
             ],
-            'period' => [
-                'string',
-                'nullable',
+            'report_document.*' => [
+                'file',
+                'mimes:pdf,jpg,jpeg,png',
+                'max:10240',
             ],
+            'period' => [
+                'nullable',
+                'string',
+                'in:proposal,penelitian,sidang',
+            ],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'report_text.required' => 'Uraian kendala wajib diisi.',
+            'report_text.string' => 'Uraian kendala tidak valid.',
+            'application_id.required' => 'Aplikasi wajib dipilih.',
+            'application_id.exists' => 'Aplikasi tidak ditemukan.',
+            'period.in' => 'Periode laporan tidak valid.',
+            'report_document.*.mimes' => 'Bukti pendukung harus berformat PDF atau gambar.',
+            'report_document.*.max' => 'Ukuran file maksimal 10MB.',
         ];
     }
 }

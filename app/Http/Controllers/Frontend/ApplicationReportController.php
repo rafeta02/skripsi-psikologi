@@ -66,14 +66,36 @@ class ApplicationReportController extends Controller
 
     public function store(StoreApplicationReportRequest $request)
     {
-        $data = $request->all();
-        // Automatically set status to 'submitted'
-        $data['status'] = 'submitted';
-        
-        $applicationReport = ApplicationReport::create($data);
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        $ownsApplication = Application::where('id', $request->input('application_id'))
+            ->where('mahasiswa_id', $mahasiswaId)
+            ->exists();
+
+        if (!$ownsApplication) {
+            abort(403, 'Unauthorized');
+        }
+
+        $applicationReport = ApplicationReport::create([
+            'application_id' => $request->input('application_id'),
+            'report_text' => $request->input('report_text'),
+            'period' => $request->input('period'),
+            'status' => 'submitted',
+        ]);
+
+        if ($request->hasFile('report_document')) {
+            foreach ($request->file('report_document') as $file) {
+                $applicationReport->addMedia($file)->toMediaCollection('report_document');
+            }
+        }
 
         foreach ($request->input('report_document', []) as $file) {
+            if (! is_string($file)) {
+                continue;
+            }
             $filePath = storage_path('tmp/uploads/' . basename($file));
+            if (! is_file($filePath)) {
+                continue;
+            }
             $applicationReport->addMedia($filePath)
                 ->usingFileName($applicationReport->generateCustomFileName($filePath, 'report_document'))
                 ->toMediaCollection('report_document');
@@ -83,7 +105,8 @@ class ApplicationReportController extends Controller
             Media::whereIn('id', $media)->update(['model_id' => $applicationReport->id]);
         }
 
-        return redirect()->route('frontend.application-reports.index');
+        return redirect()->route('frontend.application-reports.index')
+            ->with('success', 'Laporan kendala berhasil dikirim.');
     }
 
     public function edit(ApplicationReport $applicationReport)
