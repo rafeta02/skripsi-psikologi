@@ -182,7 +182,14 @@ class DashboardController extends Controller
         $activeApplication = $phaseData['application'] ?? null;
 
         if ($activeApplication) {
-            $activeApplication->load(['assignments.lecturer', 'skripsiRegistration', 'mbkmRegistration']);
+            $activeApplication->load([
+                'assignments.lecturer',
+                'skripsiRegistration',
+                'mbkmRegistration',
+                'skripsiSeminar',
+                'skripsiDefense',
+                'mbkmSeminar',
+            ]);
         }
 
         // Statistics
@@ -266,7 +273,14 @@ class DashboardController extends Controller
         $currentPhase = $phaseData['phase'];
 
         $applications = Application::where('mahasiswa_id', $mahasiswa->id)
-            ->with(['assignments.lecturer', 'skripsiRegistration', 'mbkmRegistration'])
+            ->with([
+                'assignments.lecturer',
+                'skripsiRegistration',
+                'mbkmRegistration',
+                'skripsiSeminar',
+                'skripsiDefense',
+                'mbkmSeminar',
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
         

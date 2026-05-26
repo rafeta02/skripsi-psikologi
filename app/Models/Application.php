@@ -116,6 +116,59 @@ class Application extends Model implements HasMedia
         return $this->hasOne(MbkmRegistration::class);
     }
 
+    public function skripsiSeminar()
+    {
+        return $this->hasOne(SkripsiSeminar::class);
+    }
+
+    public function skripsiDefense()
+    {
+        return $this->hasOne(SkripsiDefense::class);
+    }
+
+    public function mbkmSeminar()
+    {
+        return $this->hasOne(MbkmSeminar::class);
+    }
+
+    /**
+     * Detail page URL for the current stage (seminar, defense, registration, etc.).
+     */
+    public function stageDetailUrl(): string
+    {
+        if ($this->type === 'skripsi') {
+            return match ($this->stage) {
+                'registration' => $this->skripsiRegistration
+                    ? route('frontend.skripsi-registrations.show', $this->skripsiRegistration->id)
+                    : route('frontend.skripsi-registrations.index'),
+                'seminar' => $this->skripsiSeminar
+                    ? route('frontend.skripsi-seminars.show', $this->skripsiSeminar->id)
+                    : route('frontend.skripsi-seminars.index'),
+                'defense' => $this->skripsiDefense
+                    ? route('frontend.skripsi-defenses.show', $this->skripsiDefense->id)
+                    : route('frontend.skripsi-defenses.index'),
+                default => route('frontend.applications.show', $this->id),
+            };
+        }
+
+        if ($this->type === 'mbkm') {
+            return match ($this->stage) {
+                'registration' => $this->mbkmRegistration
+                    ? route('frontend.mbkm-registrations.show', $this->mbkmRegistration->id)
+                    : route('frontend.mbkm-registrations.index'),
+                'seminar' => $this->mbkmSeminar
+                    ? route('frontend.mbkm-seminars.show', $this->mbkmSeminar->id)
+                    : route('frontend.mbkm-seminars.index'),
+                'defense' => $this->skripsiDefense
+                    ? route('frontend.skripsi-defenses.show', $this->skripsiDefense->id)
+                    : route('frontend.skripsi-defenses.index'),
+                default => route('frontend.applications.show', $this->id),
+            };
+        }
+
+        return route('frontend.applications.show', $this->id);
+    }
+
     public function assignments()
     {
         return $this->hasMany(ApplicationAssignment::class, 'application_id');

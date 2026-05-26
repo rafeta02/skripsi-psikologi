@@ -472,8 +472,8 @@
                         @endif
 
                         <div class="mt-4">
-                            <a href="{{ route('frontend.applications.show', $activeApplication->id) }}" class="btn-modern btn-modern-primary">
-                                <i class="fas fa-eye"></i> Lihat Detail Aplikasi
+                            <a href="{{ $activeApplication->stageDetailUrl() }}" class="btn-modern btn-modern-primary">
+                                <i class="fas fa-eye"></i> Lihat Detail
                             </a>
                         </div>
                     </div>
