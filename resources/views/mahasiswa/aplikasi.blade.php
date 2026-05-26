@@ -229,8 +229,40 @@
                             </small>
                         </div>
                         <div>
-                            <a href="{{ route('frontend.applications.show', $app->id) }}" class="btn btn-primary">
-                                <i class="fas fa-eye"></i> Lihat Detail
+                            @php
+                                $primaryUrl = route('frontend.applications.show', $app->id);
+                                $primaryLabel = 'Lihat Detail';
+
+                                if ($app->type === 'skripsi') {
+                                    if ($app->stage === 'registration') {
+                                        $primaryUrl = route('frontend.skripsi-registrations.index');
+                                        $primaryLabel = 'Kelola Pendaftaran Skripsi';
+                                    } elseif ($app->stage === 'seminar') {
+                                        $primaryUrl = route('frontend.skripsi-seminars.index');
+                                        $primaryLabel = 'Kelola Seminar / Reviewer';
+                                    } elseif ($app->stage === 'defense') {
+                                        $primaryUrl = route('frontend.skripsi-defenses.index');
+                                        $primaryLabel = 'Kelola Sidang Skripsi';
+                                    }
+                                } elseif ($app->type === 'mbkm') {
+                                    if ($app->stage === 'registration') {
+                                        $primaryUrl = route('frontend.mbkm-registrations.index');
+                                        $primaryLabel = 'Kelola Pendaftaran MBKM';
+                                    } elseif ($app->stage === 'seminar') {
+                                        $primaryUrl = route('frontend.mbkm-seminars.index');
+                                        $primaryLabel = 'Kelola Seminar MBKM';
+                                    } elseif ($app->stage === 'defense') {
+                                        $primaryUrl = route('frontend.skripsi-defenses.index');
+                                        $primaryLabel = 'Kelola Sidang Skripsi';
+                                    }
+                                }
+                            @endphp
+
+                            <a href="{{ $primaryUrl }}" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt"></i> {{ $primaryLabel }}
+                            </a>
+                            <a href="{{ route('frontend.applications.show', $app->id) }}" class="btn btn-outline-secondary ml-1">
+                                <i class="fas fa-eye"></i> Detail Aplikasi
                             </a>
                             @if($app->status == 'revision')
                                 @if($app->type == 'mbkm')
