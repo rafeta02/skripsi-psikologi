@@ -82,6 +82,7 @@
                     <h4 class="font-weight-bold mb-3">Dokumen</h4>
                     
                     <div class="row">
+                        {{-- Dokumen utama --}}
                         @if($skripsiDefense->defence_document)
                             <div class="col-md-6 mb-3">
                                 <div class="card h-100 border">
@@ -96,27 +97,13 @@
                             </div>
                         @endif
 
-                        @if($skripsiDefense->approval_document)
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-file-pdf fa-3x text-success mb-3"></i>
-                                        <h6 class="mb-2">Persetujuan Pembimbing</h6>
-                                        <a href="{{ $skripsiDefense->approval_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-                        @if($skripsiDefense->plagiarism_document)
+                        @if($skripsiDefense->plagiarism_report)
                             <div class="col-md-6 mb-3">
                                 <div class="card h-100 border">
                                     <div class="card-body text-center">
                                         <i class="fas fa-file-pdf fa-3x text-info mb-3"></i>
-                                        <h6 class="mb-2">Plagiarism Check Final</h6>
-                                        <a href="{{ $skripsiDefense->plagiarism_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                        <h6 class="mb-2">Laporan Plagiarisme</h6>
+                                        <a href="{{ $skripsiDefense->plagiarism_report->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
                                             <i class="fas fa-download"></i> Download
                                         </a>
                                     </div>
@@ -124,13 +111,13 @@
                             </div>
                         @endif
 
-                        @if($skripsiDefense->revision_document)
+                        @if($skripsiDefense->publication_statement)
                             <div class="col-md-6 mb-3">
                                 <div class="card h-100 border">
                                     <div class="card-body text-center">
-                                        <i class="fas fa-file-pdf fa-3x text-warning mb-3"></i>
-                                        <h6 class="mb-2">Bukti Revisi</h6>
-                                        <a href="{{ $skripsiDefense->revision_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-file-pdf fa-3x text-success mb-3"></i>
+                                        <h6 class="mb-2">Pernyataan Publikasi</h6>
+                                        <a href="{{ $skripsiDefense->publication_statement->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
                                             <i class="fas fa-download"></i> Download
                                         </a>
                                     </div>
@@ -138,7 +125,88 @@
                             </div>
                         @endif
 
-                        @if(!$skripsiDefense->defence_document && !$skripsiDefense->approval_document && !$skripsiDefense->plagiarism_document && !$skripsiDefense->revision_document)
+                        {{-- Dokumen administrasi --}}
+                        @if($skripsiDefense->spp_receipt)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-invoice-dollar fa-3x text-warning mb-3"></i>
+                                        <h6 class="mb-2">Bukti Pembayaran SPP</h6>
+                                        <a href="{{ $skripsiDefense->spp_receipt->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($skripsiDefense->krs_latest)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-alt fa-3x text-primary mb-3"></i>
+                                        <h6 class="mb-2">KRS Terbaru</h6>
+                                        <a href="{{ $skripsiDefense->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($skripsiDefense->eap_certificate)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-certificate fa-3x text-success mb-3"></i>
+                                        <h6 class="mb-2">Sertifikat EAP</h6>
+                                        <a href="{{ $skripsiDefense->eap_certificate->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($skripsiDefense->transcript)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-alt fa-3x text-secondary mb-3"></i>
+                                        <h6 class="mb-2">Transkrip Nilai</h6>
+                                        <a href="{{ $skripsiDefense->transcript->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($skripsiDefense->siakad_supervisor_screenshot)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-desktop fa-3x text-info mb-3"></i>
+                                        <h6 class="mb-2">Screenshot Pembimbing SIAKAD</h6>
+                                        <a href="{{ $skripsiDefense->siakad_supervisor_screenshot->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Jika benar-benar tidak ada dokumen --}}
+                        @if(
+                            !$skripsiDefense->defence_document &&
+                            !$skripsiDefense->plagiarism_report &&
+                            !$skripsiDefense->publication_statement &&
+                            !$skripsiDefense->spp_receipt &&
+                            !$skripsiDefense->krs_latest &&
+                            !$skripsiDefense->eap_certificate &&
+                            !$skripsiDefense->transcript &&
+                            !$skripsiDefense->siakad_supervisor_screenshot
+                        )
                             <div class="col-12 text-center text-muted py-4">
                                 <i class="fas fa-folder-open fa-3x mb-3"></i>
                                 <p>Tidak ada dokumen terlampir</p>
