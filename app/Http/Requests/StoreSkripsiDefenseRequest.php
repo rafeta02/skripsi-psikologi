@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests;
 
-use App\Models\SkripsiDefense;
 use Gate;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Response;
 
 class StoreSkripsiDefenseRequest extends FormRequest
 {
@@ -16,89 +14,74 @@ class StoreSkripsiDefenseRequest extends FormRequest
 
     public function rules()
     {
+        if ($this->hasFile('defence_document')) {
+            return $this->directUploadRules();
+        }
+
+        return $this->dropzoneRules();
+    }
+
+    protected function directUploadRules(): array
+    {
+        $pdf = 'file|mimes:pdf|max:20480';
+        $pdf10 = 'file|mimes:pdf|max:10240';
+        $screenshot = 'file|mimes:pdf,jpg,jpeg,png|max:10240';
+
         return [
-            'application_id' => [
-                'required',
-                'exists:applications,id',
-            ],
-            'title' => [
-                'required',
-                'string',
-            ],
-            'abstract' => [
-                'required',
-                'string',
-            ],
-            // Required single file documents
-            'defence_document' => [
-                'required',
-            ],
-            'plagiarism_report' => [
-                'required',
-            ],
-            'publication_statement' => [
-                'required',
-            ],
-            'spp_receipt' => [
-                'required',
-            ],
-            'krs_latest' => [
-                'required',
-            ],
-            'eap_certificate' => [
-                'required',
-            ],
-            'transcript' => [
-                'required',
-            ],
-            'siakad_supervisor_screenshot' => [
-                'required',
-            ],
-            // Optional single file documents
-            'mbkm_recommendation_letter' => [
-                'nullable',
-            ],
-            // Required multiple file documents
-            'ethics_statement' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'research_instruments' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'data_collection_letter' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'research_module' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'defense_approval_page' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'research_poster' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'supervision_logbook' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            // Optional multiple file documents
-            'mbkm_report' => [
-                'nullable',
-                'array',
-            ],
+            'application_id' => ['required', 'exists:applications,id'],
+            'title' => ['required', 'string'],
+            'abstract' => ['required', 'string'],
+            'defence_document' => ['required', $pdf],
+            'plagiarism_report' => ['required', $pdf10],
+            'publication_statement' => ['required', $pdf10],
+            'spp_receipt' => ['required', $pdf10],
+            'krs_latest' => ['required', $pdf10],
+            'eap_certificate' => ['required', $pdf10],
+            'transcript' => ['required', $pdf10],
+            'siakad_supervisor_screenshot' => ['required', $screenshot],
+            'mbkm_recommendation_letter' => ['nullable', $pdf10],
+            'ethics_statement' => ['required', 'array', 'min:1'],
+            'ethics_statement.*' => ['required', $pdf10],
+            'research_instruments' => ['required', 'array', 'min:1'],
+            'research_instruments.*' => ['required', $pdf10],
+            'data_collection_letter' => ['required', 'array', 'min:1'],
+            'data_collection_letter.*' => ['required', $pdf10],
+            'research_module' => ['required', 'array', 'min:1'],
+            'research_module.*' => ['required', $pdf10],
+            'defense_approval_page' => ['required', 'array', 'min:1'],
+            'defense_approval_page.*' => ['required', $pdf10],
+            'research_poster' => ['required', 'array', 'min:1'],
+            'research_poster.*' => ['required', $pdf10],
+            'supervision_logbook' => ['required', 'array', 'min:1'],
+            'supervision_logbook.*' => ['required', $pdf10],
+            'mbkm_report' => ['nullable', 'array'],
+            'mbkm_report.*' => ['nullable', $pdf10],
+        ];
+    }
+
+    protected function dropzoneRules(): array
+    {
+        return [
+            'application_id' => ['required', 'exists:applications,id'],
+            'title' => ['required', 'string'],
+            'abstract' => ['required', 'string'],
+            'defence_document' => ['required'],
+            'plagiarism_report' => ['required'],
+            'publication_statement' => ['required'],
+            'spp_receipt' => ['required'],
+            'krs_latest' => ['required'],
+            'eap_certificate' => ['required'],
+            'transcript' => ['required'],
+            'siakad_supervisor_screenshot' => ['required'],
+            'mbkm_recommendation_letter' => ['nullable'],
+            'ethics_statement' => ['required', 'array', 'min:1'],
+            'research_instruments' => ['required', 'array', 'min:1'],
+            'data_collection_letter' => ['required', 'array', 'min:1'],
+            'research_module' => ['required', 'array', 'min:1'],
+            'defense_approval_page' => ['required', 'array', 'min:1'],
+            'research_poster' => ['required', 'array', 'min:1'],
+            'supervision_logbook' => ['required', 'array', 'min:1'],
+            'mbkm_report' => ['nullable', 'array'],
         ];
     }
 
@@ -123,6 +106,8 @@ class StoreSkripsiDefenseRequest extends FormRequest
             'research_poster.required' => 'Poster penelitian harus diupload minimal 1 file',
             'siakad_supervisor_screenshot.required' => 'Screenshot pembimbing SIAKAD harus diupload',
             'supervision_logbook.required' => 'Logbook bimbingan harus diupload minimal 1 file',
+            '*.mimes' => 'File harus berformat PDF (kecuali screenshot SIAKAD: PDF/gambar).',
+            '*.max' => 'Ukuran file melebihi batas yang diizinkan.',
         ];
     }
 }

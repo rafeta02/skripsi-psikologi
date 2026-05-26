@@ -75,96 +75,15 @@ class SkripsiDefenseController extends Controller
             'submitted_at' => now()->format('d-m-Y H:i:s'),
         ]);
 
-        // Create Skripsi Defense with defense application
-        $data = $request->all();
-        $data['application_id'] = $defenseApplication->id;
-        
-        $skripsiDefense = SkripsiDefense::create($data);
+        $skripsiDefense = SkripsiDefense::create([
+            'application_id' => $defenseApplication->id,
+            'title' => $request->input('title'),
+            'abstract' => $request->input('abstract'),
+            'status' => 'pending',
+            'created_by_id' => auth()->id(),
+        ]);
 
-        if ($request->input('defence_document', false)) {
-            $filePath = storage_path('tmp/uploads/' . basename($request->input('defence_document')));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'defence_document');
-        }
-
-        if ($request->input('plagiarism_report', false)) {
-            $filePath = storage_path('tmp/uploads/' . basename($request->input('plagiarism_report')));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'plagiarism_report');
-        }
-
-        foreach ($request->input('ethics_statement', []) as $file) {
-            $filePath = storage_path('tmp/uploads/' . basename($file));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'ethics_statement');
-        }
-
-        foreach ($request->input('research_instruments', []) as $file) {
-            $filePath = storage_path('tmp/uploads/' . basename($file));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'research_instruments');
-        }
-
-        foreach ($request->input('data_collection_letter', []) as $file) {
-            $filePath = storage_path('tmp/uploads/' . basename($file));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'data_collection_letter');
-        }
-
-        foreach ($request->input('research_module', []) as $file) {
-            $filePath = storage_path('tmp/uploads/' . basename($file));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'research_module');
-        }
-
-        if ($request->input('mbkm_recommendation_letter', false)) {
-            $filePath = storage_path('tmp/uploads/' . basename($request->input('mbkm_recommendation_letter')));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'mbkm_recommendation_letter');
-        }
-
-        if ($request->input('publication_statement', false)) {
-            $filePath = storage_path('tmp/uploads/' . basename($request->input('publication_statement')));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'publication_statement');
-        }
-
-        foreach ($request->input('defense_approval_page', []) as $file) {
-            $filePath = storage_path('tmp/uploads/' . basename($file));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'defense_approval_page');
-        }
-
-        if ($request->input('spp_receipt', false)) {
-            $filePath = storage_path('tmp/uploads/' . basename($request->input('spp_receipt')));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'spp_receipt');
-        }
-
-        if ($request->input('krs_latest', false)) {
-            $filePath = storage_path('tmp/uploads/' . basename($request->input('krs_latest')));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'krs_latest');
-        }
-
-        if ($request->input('eap_certificate', false)) {
-            $filePath = storage_path('tmp/uploads/' . basename($request->input('eap_certificate')));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'eap_certificate');
-        }
-
-        if ($request->input('transcript', false)) {
-            $filePath = storage_path('tmp/uploads/' . basename($request->input('transcript')));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'transcript');
-        }
-
-        foreach ($request->input('mbkm_report', []) as $file) {
-            $filePath = storage_path('tmp/uploads/' . basename($file));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'mbkm_report');
-        }
-
-        foreach ($request->input('research_poster', []) as $file) {
-            $filePath = storage_path('tmp/uploads/' . basename($file));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'research_poster');
-        }
-
-        if ($request->input('siakad_supervisor_screenshot', false)) {
-            $filePath = storage_path('tmp/uploads/' . basename($request->input('siakad_supervisor_screenshot')));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'siakad_supervisor_screenshot');
-        }
-
-        foreach ($request->input('supervision_logbook', []) as $file) {
-            $filePath = storage_path('tmp/uploads/' . basename($file));
-            $skripsiDefense->addMediaWithCustomName($filePath, 'supervision_logbook');
-        }
+        $this->attachDefenseDocuments($skripsiDefense, $request);
 
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $skripsiDefense->id]);
@@ -458,5 +377,64 @@ class SkripsiDefenseController extends Controller
         $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
+    }
+
+    protected function attachDefenseDocuments(SkripsiDefense $skripsiDefense, Request $request): void
+    {
+        $singleCollections = [
+            'defence_document',
+            'plagiarism_report',
+            'publication_statement',
+            'spp_receipt',
+            'krs_latest',
+            'eap_certificate',
+            'transcript',
+            'siakad_supervisor_screenshot',
+            'mbkm_recommendation_letter',
+        ];
+
+        $multipleCollections = [
+            'ethics_statement',
+            'research_instruments',
+            'data_collection_letter',
+            'research_module',
+            'defense_approval_page',
+            'research_poster',
+            'supervision_logbook',
+            'mbkm_report',
+        ];
+
+        foreach ($singleCollections as $collection) {
+            if ($request->hasFile($collection)) {
+                $skripsiDefense->addMedia($request->file($collection))->toMediaCollection($collection);
+                continue;
+            }
+
+            if ($request->input($collection)) {
+                $filePath = storage_path('tmp/uploads/' . basename($request->input($collection)));
+                if (is_file($filePath)) {
+                    $skripsiDefense->addMediaWithCustomName($filePath, $collection);
+                }
+            }
+        }
+
+        foreach ($multipleCollections as $collection) {
+            if ($request->hasFile($collection)) {
+                foreach ($request->file($collection) as $file) {
+                    $skripsiDefense->addMedia($file)->toMediaCollection($collection);
+                }
+                continue;
+            }
+
+            foreach ($request->input($collection, []) as $file) {
+                if (! is_string($file)) {
+                    continue;
+                }
+                $filePath = storage_path('tmp/uploads/' . basename($file));
+                if (is_file($filePath)) {
+                    $skripsiDefense->addMediaWithCustomName($filePath, $collection);
+                }
+            }
+        }
     }
 }
