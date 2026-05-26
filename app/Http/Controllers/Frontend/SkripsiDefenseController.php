@@ -342,7 +342,9 @@ class SkripsiDefenseController extends Controller
     {
         abort_if(Gate::denies('skripsi_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $skripsiDefense->load('application', 'created_by');
+        $skripsiDefense->load('application', 'created_by', 'examiner1.dosen', 'examiner2.dosen');
+
+        $skripsiDefense->syncApplicationStatus();
 
         return view('frontend.skripsiDefenses.show', compact('skripsiDefense'));
     }

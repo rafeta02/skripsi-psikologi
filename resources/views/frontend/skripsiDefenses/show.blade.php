@@ -224,41 +224,56 @@
                 <div class="card-modern-body">
                     <h5 class="font-weight-bold mb-3">Status</h5>
                     
-                    @if($skripsiDefense->application)
-                        @if($skripsiDefense->application->status == 'submitted')
-                            <div class="alert alert-warning">
-                                <i class="fas fa-clock"></i> <strong>Menunggu Review</strong>
-                                <p class="mb-0 mt-2 small">Pendaftaran sedang dalam proses review</p>
-                            </div>
-                        @elseif($skripsiDefense->application->status == 'approved')
-                            <div class="alert alert-success">
-                                <i class="fas fa-check-circle"></i> <strong>Disetujui</strong>
-                                <p class="mb-0 mt-2 small">Pendaftaran disetujui. Lanjutkan ke penjadwalan sidang.</p>
-                            </div>
-                        @elseif($skripsiDefense->application->status == 'scheduled')
-                            <div class="alert alert-info">
-                                <i class="fas fa-calendar-check"></i> <strong>Terjadwal</strong>
-                                <p class="mb-0 mt-2 small">Sidang telah dijadwalkan</p>
-                            </div>
-                        @elseif($skripsiDefense->application->status == 'revision')
-                            <div class="alert alert-warning">
-                                <i class="fas fa-edit"></i> <strong>Revisi</strong>
-                                <p class="mb-0 mt-2 small">Silakan lakukan revisi sesuai catatan</p>
-                            </div>
-                        @elseif($skripsiDefense->application->status == 'rejected')
-                            <div class="alert alert-danger">
-                                <i class="fas fa-times-circle"></i> <strong>Ditolak</strong>
-                                <p class="mb-0 mt-2 small">Pendaftaran tidak dapat disetujui</p>
-                            </div>
-                        @elseif($skripsiDefense->application->status == 'done')
-                            <div class="alert alert-secondary">
-                                <i class="fas fa-flag-checkered"></i> <strong>Selesai</strong>
-                                <p class="mb-0 mt-2 small">Sidang telah selesai dilaksanakan</p>
+                    @php
+                        $defenseStatus = $skripsiDefense->validationStatus();
+                    @endphp
+                    @if($defenseStatus === 'pending')
+                        <div class="alert alert-warning">
+                            <i class="fas fa-clock"></i> <strong>Menunggu Validasi Admin</strong>
+                            <p class="mb-0 mt-2 small">Pendaftaran sidang sedang ditinjau oleh admin.</p>
+                        </div>
+                    @elseif($defenseStatus === 'accepted')
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> <strong>Diterima</strong>
+                            <p class="mb-0 mt-2 small">Pendaftaran sidang diterima. Lanjutkan ke penjadwalan sidang.</p>
+                        </div>
+                        @if($skripsiDefense->examiner1?->dosen || $skripsiDefense->examiner2?->dosen)
+                            <div class="mt-3 small text-muted">
+                                <strong>Penguji:</strong>
+                                <ul class="mb-0 pl-3">
+                                    @if($skripsiDefense->examiner1?->dosen)
+                                        <li>Penguji 1: {{ $skripsiDefense->examiner1->dosen->nama }}</li>
+                                    @endif
+                                    @if($skripsiDefense->examiner2?->dosen)
+                                        <li>Penguji 2: {{ $skripsiDefense->examiner2->dosen->nama }}</li>
+                                    @endif
+                                </ul>
                             </div>
                         @endif
+                    @elseif($defenseStatus === 'rejected')
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i> <strong>Ditolak</strong>
+                            <p class="mb-0 mt-2 small">
+                                @if($skripsiDefense->admin_note)
+                                    {{ $skripsiDefense->admin_note }}
+                                @else
+                                    Pendaftaran sidang ditolak. Silakan perbaiki dan ajukan kembali.
+                                @endif
+                            </p>
+                        </div>
+                    @elseif($skripsiDefense->application?->status == 'scheduled')
+                        <div class="alert alert-info">
+                            <i class="fas fa-calendar-check"></i> <strong>Terjadwal</strong>
+                            <p class="mb-0 mt-2 small">Sidang telah dijadwalkan</p>
+                        </div>
+                    @elseif($skripsiDefense->application?->status == 'done')
+                        <div class="alert alert-secondary">
+                            <i class="fas fa-flag-checkered"></i> <strong>Selesai</strong>
+                            <p class="mb-0 mt-2 small">Sidang telah selesai dilaksanakan</p>
+                        </div>
                     @else
                         <div class="alert alert-secondary">
-                            <i class="fas fa-info-circle"></i> Status tidak tersedia
+                            <i class="fas fa-info-circle"></i> Status: {{ ucfirst($skripsiDefense->application->status ?? '-') }}
                         </div>
                     @endif
                 </div>

@@ -8,11 +8,13 @@ use App\Http\Requests\MassDestroySkripsiDefenseRequest;
 use App\Http\Requests\StoreSkripsiDefenseRequest;
 use App\Http\Requests\UpdateSkripsiDefenseRequest;
 use App\Models\Application;
+use App\Models\ApplicationAction;
 use App\Models\Dosen;
 use App\Models\SkripsiDefense;
 use App\Models\SkripsiDefenseExaminer;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
@@ -60,14 +62,26 @@ class SkripsiDefenseController extends Controller
             });
 
             $table->addColumn('application_status', function ($row) {
-                if (!$row->application) return '';
+                if (!$row->application) {
+                    return '';
+                }
+
                 $status = $row->application->status;
-                $badgeClass = $status === 'approved' ? 'badge-success' : ($status === 'submitted' ? 'badge-warning' : 'badge-info');
+                if ($row->application->stage === 'defense') {
+                    $status = match ($row->status ?? 'pending') {
+                        'accepted' => 'approved',
+                        'rejected' => 'rejected',
+                        default => 'submitted',
+                    };
+                }
+
+                $badgeClass = $status === 'approved' ? 'badge-success' : ($status === 'submitted' ? 'badge-warning' : ($status === 'rejected' ? 'badge-danger' : 'badge-info'));
+
                 return '<span class="badge ' . $badgeClass . '">' . ucfirst($status) . '</span>';
             });
 
             $table->editColumn('status', function ($row) {
-                $status = $row->status ?? 'pending';
+                $status = $row->validationStatus();
                 if ($status === 'accepted') {
                     return '<span class="badge badge-success badge-lg"><i class="fas fa-check-circle"></i> Diterima</span>';
                 } elseif ($status === 'rejected') {
@@ -536,6 +550,8 @@ class SkripsiDefenseController extends Controller
             'examiner2.dosen'
         );
 
+        $skripsiDefense->syncApplicationStatus();
+
         $dosens = Dosen::orderBy('nama')->get();
 
         return view('admin.skripsiDefenses.show', compact('skripsiDefense', 'dosens'));
@@ -572,52 +588,119 @@ class SkripsiDefenseController extends Controller
     {
         abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $skripsiDefense->load('application', 'examiner1', 'examiner2');
+
         $validated = $request->validate([
-            'examiner_1_id' => ['required', 'exists:dosens,id'],
-            'examiner_2_id' => ['required', 'exists:dosens,id', 'different:examiner_1_id'],
+            'examiner_1_id' => ['nullable', 'exists:dosens,id'],
+            'examiner_2_id' => ['nullable', 'exists:dosens,id'],
             'admin_note' => ['nullable', 'string'],
-        ], [
-            'examiner_1_id.required' => 'Penguji 1 wajib dipilih.',
-            'examiner_2_id.required' => 'Penguji 2 wajib dipilih.',
-            'examiner_2_id.different' => 'Penguji 1 dan Penguji 2 tidak boleh sama.',
         ]);
 
-        SkripsiDefenseExaminer::updateOrCreate(
-            ['skripsi_defense_id' => $skripsiDefense->id, 'role' => 'examiner_1'],
-            ['dosen_id' => $validated['examiner_1_id']]
-        );
+        $examiner1Id = $validated['examiner_1_id'] ?? $skripsiDefense->examiner1?->dosen_id;
+        $examiner2Id = $validated['examiner_2_id'] ?? $skripsiDefense->examiner2?->dosen_id;
 
-        SkripsiDefenseExaminer::updateOrCreate(
-            ['skripsi_defense_id' => $skripsiDefense->id, 'role' => 'examiner_2'],
-            ['dosen_id' => $validated['examiner_2_id']]
-        );
+        if (!$examiner1Id || !$examiner2Id) {
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->withErrors([
+                    'examiner_1_id' => 'Penguji 1 dan Penguji 2 wajib ditetapkan sebelum menerima pendaftaran.',
+                ])
+                ->withInput();
+        }
 
-        $skripsiDefense->update([
-            'status' => 'accepted',
-            'admin_note' => $validated['admin_note'] ?? null,
-        ]);
+        if ((int) $examiner1Id === (int) $examiner2Id) {
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->withErrors([
+                    'examiner_2_id' => 'Penguji 1 dan Penguji 2 tidak boleh sama.',
+                ])
+                ->withInput();
+        }
 
-        return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
-            ->with('message', 'Pendaftaran sidang skripsi berhasil diterima.');
+        try {
+            DB::transaction(function () use ($skripsiDefense, $validated, $examiner1Id, $examiner2Id) {
+                SkripsiDefenseExaminer::updateOrCreate(
+                    ['skripsi_defense_id' => $skripsiDefense->id, 'role' => 'examiner_1'],
+                    ['dosen_id' => $examiner1Id]
+                );
+
+                SkripsiDefenseExaminer::updateOrCreate(
+                    ['skripsi_defense_id' => $skripsiDefense->id, 'role' => 'examiner_2'],
+                    ['dosen_id' => $examiner2Id]
+                );
+
+                $skripsiDefense->update([
+                    'status' => 'accepted',
+                    'admin_note' => $validated['admin_note'] ?? null,
+                ]);
+
+                $skripsiDefense->syncApplicationStatus();
+
+                if ($skripsiDefense->application_id) {
+                    ApplicationAction::create([
+                        'application_id' => $skripsiDefense->application_id,
+                        'action_type' => 'defense_approved',
+                        'action_by' => auth()->id(),
+                        'notes' => $validated['admin_note'] ?? 'Pendaftaran sidang skripsi diterima',
+                        'metadata' => [
+                            'skripsi_defense_id' => $skripsiDefense->id,
+                            'examiner_1_id' => $examiner1Id,
+                            'examiner_2_id' => $examiner2Id,
+                        ],
+                    ]);
+                }
+            });
+
+            $skripsiDefense->refresh();
+
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('message', 'Pendaftaran sidang skripsi berhasil diterima.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function reject(Request $request, SkripsiDefense $skripsiDefense)
     {
         abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $request->validate([
+        $validated = $request->validate([
             'admin_note' => 'required|string',
         ], [
             'admin_note.required' => 'Alasan penolakan harus diisi.',
         ]);
 
-        $skripsiDefense->update([
-            'status' => 'rejected',
-            'admin_note' => $request->input('admin_note'),
-        ]);
+        try {
+            DB::transaction(function () use ($skripsiDefense, $validated) {
+                $skripsiDefense->update([
+                    'status' => 'rejected',
+                    'admin_note' => $validated['admin_note'],
+                ]);
 
-        return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
-            ->with('message', 'Pendaftaran sidang skripsi berhasil ditolak.');
+                $skripsiDefense->syncApplicationStatus();
+
+                if ($skripsiDefense->application_id) {
+                    ApplicationAction::create([
+                        'application_id' => $skripsiDefense->application_id,
+                        'action_type' => 'defense_rejected',
+                        'action_by' => auth()->id(),
+                        'notes' => $validated['admin_note'],
+                        'metadata' => [
+                            'skripsi_defense_id' => $skripsiDefense->id,
+                        ],
+                    ]);
+                }
+            });
+
+            $skripsiDefense->refresh();
+
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('message', 'Pendaftaran sidang skripsi berhasil ditolak.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function destroy(SkripsiDefense $skripsiDefense)

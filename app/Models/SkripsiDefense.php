@@ -181,4 +181,50 @@ class SkripsiDefense extends Model implements HasMedia
             ->where('role', 'examiner_2')
             ->with('dosen');
     }
+
+    /**
+     * Admin validation status for defense registration (pending / accepted / rejected).
+     */
+    public function validationStatus(): string
+    {
+        $status = $this->status ?? 'pending';
+
+        return in_array($status, ['pending', 'accepted', 'rejected'], true) ? $status : 'pending';
+    }
+
+    public function isPendingValidation(): bool
+    {
+        return $this->validationStatus() === 'pending';
+    }
+
+    public function isAccepted(): bool
+    {
+        return $this->validationStatus() === 'accepted';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->validationStatus() === 'rejected';
+    }
+
+    /**
+     * Align applications.status with defense admin validation (mahasiswa UI uses application status).
+     */
+    public function syncApplicationStatus(): void
+    {
+        if (!$this->application) {
+            return;
+        }
+
+        $status = match ($this->validationStatus()) {
+            'accepted' => 'approved',
+            'rejected' => 'rejected',
+            default => 'submitted',
+        };
+
+        if ($this->application->status !== $status) {
+            $this->application->update(['status' => $status]);
+            $this->application->refresh();
+        }
+    }
 }

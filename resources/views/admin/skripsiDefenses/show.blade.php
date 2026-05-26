@@ -12,14 +12,14 @@
                         <small>Review dan validasi dokumen sidang skripsi mahasiswa</small>
                     </div>
                     <div>
-                        @if($skripsiDefense->status === 'pending')
+                        @if($skripsiDefense->isPendingValidation())
                             <button type="button" class="btn btn-success btn-lg" data-toggle="modal" data-target="#acceptModal">
                                 <i class="fas fa-check-circle mr-1"></i> Terima
                             </button>
                             <button type="button" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#rejectModal">
                                 <i class="fas fa-times-circle mr-1"></i> Tolak
                             </button>
-                        @elseif($skripsiDefense->status === 'accepted')
+                        @elseif($skripsiDefense->isAccepted())
                             <span class="badge badge-success" style="font-size: 1.2rem; padding: 10px 20px;">
                                 <i class="fas fa-check-circle mr-1"></i> Diterima
                             </span>
@@ -73,16 +73,16 @@
 
             <!-- Status Validasi -->
             <div class="card mt-3">
-                <div class="card-header {{ $skripsiDefense->status === 'accepted' ? 'bg-success' : ($skripsiDefense->status === 'rejected' ? 'bg-danger' : 'bg-warning') }} text-white">
+                <div class="card-header {{ $skripsiDefense->isAccepted() ? 'bg-success' : ($skripsiDefense->isRejected() ? 'bg-danger' : 'bg-warning') }} text-white">
                     <h5 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Status Validasi</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>Status:</strong> 
-                                @if($skripsiDefense->status === 'pending')
+                                @if($skripsiDefense->isPendingValidation())
                                     <span class="badge badge-warning badge-lg">Menunggu Validasi</span>
-                                @elseif($skripsiDefense->status === 'accepted')
+                                @elseif($skripsiDefense->isAccepted())
                                     <span class="badge badge-success badge-lg">Diterima</span>
                                 @else
                                     <span class="badge badge-danger badge-lg">Ditolak</span>
@@ -668,7 +668,7 @@
 
                     <div class="alert alert-warning">
                         <i class="fas fa-user-check mr-1"></i>
-                        Penetapan <strong>2 dosen penguji</strong> wajib dilakukan saat menerima.
+                        Penetapan <strong>2 dosen penguji</strong> wajib. Jika sudah ditetapkan di form bawah, penguji tersebut akan dipakai otomatis.
                     </div>
 
                     <div class="row">
@@ -823,6 +823,14 @@ $(document).ready(function() {
     $('#previewModal').on('hidden.bs.modal', function () {
         $('#pdfViewer').attr('src', '');
     });
+
+    @if($errors->has('examiner_1_id') || $errors->has('examiner_2_id'))
+        $('#acceptModal').modal('show');
+    @endif
+
+    @if($errors->has('admin_note') && !$errors->has('examiner_1_id'))
+        $('#rejectModal').modal('show');
+    @endif
 });
 </script>
 @endsection
