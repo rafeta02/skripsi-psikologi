@@ -28,17 +28,13 @@
                     <div class="mb-4">
                         <label class="text-muted mb-1">Status Kelulusan</label>
                         <h5 class="font-weight-semibold">
-                            @if($applicationResultDefense->result === 'passed_with_honor')
-                                <span class="badge badge-warning badge-lg">
-                                    <i class="fas fa-trophy"></i> Lulus Cumlaude
-                                </span>
-                            @elseif($applicationResultDefense->result === 'passed')
+                            @if($applicationResultDefense->result === 'passed')
                                 <span class="badge badge-success badge-lg">
                                     <i class="fas fa-check-circle"></i> Lulus
                                 </span>
-                            @elseif($applicationResultDefense->result === 'passed_with_revision')
-                                <span class="badge badge-info badge-lg">
-                                    <i class="fas fa-edit"></i> Lulus dengan Revisi
+                            @elseif($applicationResultDefense->result === 'revision')
+                                <span class="badge badge-warning badge-lg">
+                                    <i class="fas fa-edit"></i> Revisi
                                 </span>
                             @elseif($applicationResultDefense->result === 'failed')
                                 <span class="badge badge-danger badge-lg">

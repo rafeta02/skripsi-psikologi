@@ -383,6 +383,14 @@
                             </a>
                         </li>
                         @endif
+
+                        @if(($allowedForms['defense_result']['allowed'] ?? false))
+                        <li class="nav-item">
+                            <a href="{{ route('frontend.application-result-defenses.index') }}" class="nav-link {{ request()->routeIs('frontend.application-result-defenses.*') ? 'active' : '' }}">
+                                <i class="fas fa-award"></i> Hasil Sidang
+                            </a>
+                        </li>
+                        @endif
                         
                         {{-- Profile - Always visible --}}
                         <li class="nav-item">

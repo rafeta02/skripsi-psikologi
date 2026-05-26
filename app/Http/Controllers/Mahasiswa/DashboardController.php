@@ -357,7 +357,7 @@ class DashboardController extends Controller
         $applicationIds = Application::where('mahasiswa_id', $mahasiswa->id)->pluck('id');
         
         $schedules = ApplicationSchedule::whereIn('application_id', $applicationIds)
-            ->with(['application', 'ruang'])
+            ->with(['application.resultDefense', 'ruang'])
             ->orderBy('waktu', 'desc')
             ->get();
 

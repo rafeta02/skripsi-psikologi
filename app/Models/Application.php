@@ -136,6 +136,11 @@ class Application extends Model implements HasMedia
         return $this->hasMany(ApplicationSchedule::class);
     }
 
+    public function resultDefense()
+    {
+        return $this->hasOne(ApplicationResultDefense::class);
+    }
+
     /**
      * Detail page URL for the current stage (seminar, defense, registration, etc.).
      */

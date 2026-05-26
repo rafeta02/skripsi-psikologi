@@ -49,10 +49,9 @@
                                 <label class="form-label-modern required">Hasil Sidang</label>
                                 <select name="result" class="form-control-modern @error('result') is-invalid @enderror" required>
                                     <option value="">-- Pilih Hasil Sidang --</option>
-                                    <option value="passed_with_honor" {{ old('result') == 'passed_with_honor' ? 'selected' : '' }}>🏆 Lulus Cumlaude</option>
-                                    <option value="passed" {{ old('result') == 'passed' ? 'selected' : '' }}>✅ Lulus</option>
-                                    <option value="passed_with_revision" {{ old('result') == 'passed_with_revision' ? 'selected' : '' }}>📝 Lulus dengan Revisi</option>
-                                    <option value="failed" {{ old('result') == 'failed' ? 'selected' : '' }}>❌ Tidak Lulus</option>
+                                    <option value="passed" {{ old('result') == 'passed' ? 'selected' : '' }}>Lulus</option>
+                                    <option value="revision" {{ old('result') == 'revision' ? 'selected' : '' }}>Revisi</option>
+                                    <option value="failed" {{ old('result') == 'failed' ? 'selected' : '' }}>Tidak Lulus</option>
                                 </select>
                                 @error('result')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -62,9 +61,9 @@
                             <!-- Grade (Score) -->
                             <div class="form-group">
                                 <label class="form-label-modern">Nilai Akhir</label>
-                                <input type="number" name="grade" class="form-control-modern @error('grade') is-invalid @enderror" value="{{ old('grade') }}" min="0" max="100" step="0.01">
+                                <input type="number" name="final_grade" class="form-control-modern @error('final_grade') is-invalid @enderror" value="{{ old('final_grade') }}" min="0" max="100" step="0.01">
                                 <small class="form-text text-muted">Nilai akhir sidang (0-100)</small>
-                                @error('grade')
+                                @error('final_grade')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -82,18 +81,18 @@
                             <!-- Notes -->
                             <div class="form-group">
                                 <label class="form-label-modern">Catatan Penguji</label>
-                                <textarea name="notes" class="form-control-modern @error('notes') is-invalid @enderror" rows="4">{{ old('notes') }}</textarea>
+                                <textarea name="note" class="form-control-modern @error('note') is-invalid @enderror" rows="4">{{ old('note') }}</textarea>
                                 <small class="form-text text-muted">Komentar atau saran dari tim penguji</small>
-                                @error('notes')
+                                @error('note')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <!-- Report Documents -->
                             <div class="form-group">
-                                <label class="form-label-modern">Berita Acara Sidang (PDF)</label>
+                                <label class="form-label-modern required">Berita Acara Sidang (PDF)</label>
                                 <div class="custom-file">
-                                    <input type="file" name="report_document[]" class="custom-file-input @error('report_document') is-invalid @enderror" id="reportDocument" accept=".pdf" multiple>
+                                    <input type="file" name="report_document[]" class="custom-file-input @error('report_document') is-invalid @enderror" id="reportDocument" accept=".pdf" multiple required>
                                     <label class="custom-file-label" for="reportDocument">Pilih file...</label>
                                 </div>
                                 <small class="form-text text-muted">Upload berita acara sidang (Max: 10MB per file, multiple files allowed)</small>
@@ -104,9 +103,9 @@
 
                             <!-- Attendance Document -->
                             <div class="form-group">
-                                <label class="form-label-modern">Daftar Hadir Sidang (PDF)</label>
+                                <label class="form-label-modern required">Daftar Hadir Sidang (PDF)</label>
                                 <div class="custom-file">
-                                    <input type="file" name="attendance_document" class="custom-file-input @error('attendance_document') is-invalid @enderror" id="attendanceDocument" accept=".pdf">
+                                    <input type="file" name="attendance_document" class="custom-file-input @error('attendance_document') is-invalid @enderror" id="attendanceDocument" accept=".pdf" required>
                                     <label class="custom-file-label" for="attendanceDocument">Pilih file...</label>
                                 </div>
                                 <small class="form-text text-muted">Upload daftar hadir (opsional, Max: 10MB)</small>
@@ -130,7 +129,7 @@
 
                             <!-- Action Buttons -->
                             <div class="d-flex justify-content-between mt-4">
-                                <a href="{{ route('mahasiswa.dashboard') }}" class="btn btn-secondary">
+                                <a href="{{ route('frontend.application-result-defenses.index') }}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Kembali
                                 </a>
                                 <button type="submit" class="btn btn-success btn-lg">
@@ -162,7 +161,7 @@ $(document).ready(function() {
     
     // Show/hide revision deadline based on result
     $('select[name="result"]').on('change', function() {
-        if ($(this).val() === 'passed_with_revision') {
+        if ($(this).val() === 'revision') {
             $('#revisionDeadlineField').show().find('input').prop('required', true);
         } else {
             $('#revisionDeadlineField').hide().find('input').prop('required', false);

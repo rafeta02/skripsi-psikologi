@@ -9,6 +9,7 @@ use App\Http\Requests\StoreApplicationResultDefenseRequest;
 use App\Http\Requests\UpdateApplicationResultDefenseRequest;
 use App\Models\Application;
 use App\Models\ApplicationResultDefense;
+use App\Services\FormAccessService;
 use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -22,128 +23,105 @@ class ApplicationResultDefenseController extends Controller
     {
         abort_if(Gate::denies('application_result_defense_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationResultDefenses = ApplicationResultDefense::with(['application', 'media'])->get();
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        if (!$mahasiswaId) {
+            return redirect()->route('mahasiswa.dashboard')->with('error', 'Profil mahasiswa tidak ditemukan.');
+        }
 
-        return view('frontend.applicationResultDefenses.index', compact('applicationResultDefenses'));
+        $applicationIds = Application::where('mahasiswa_id', $mahasiswaId)->pluck('id');
+
+        $applicationResultDefenses = ApplicationResultDefense::with(['application'])
+            ->whereIn('application_id', $applicationIds)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $formAccessService = new FormAccessService();
+        $canCreate = $formAccessService->canAccessDefenseResult($mahasiswaId);
+
+        return view('frontend.applicationResultDefenses.index', compact('applicationResultDefenses', 'canCreate'));
     }
 
     public function create()
     {
         abort_if(Gate::denies('application_result_defense_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // Get current mahasiswa's active application
-        $user = auth()->user();
-        $mahasiswa = $user->mahasiswa;
-        
-        if (!$mahasiswa) {
-            return redirect()->back()->with('error', 'Profil mahasiswa tidak ditemukan');
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        if (!$mahasiswaId) {
+            return redirect()->route('mahasiswa.dashboard')->with('error', 'Profil mahasiswa tidak ditemukan.');
         }
 
-        $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
-            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
-            ->orderBy('created_at', 'desc')
-            ->first();
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessDefenseResult($mahasiswaId);
 
-        if (!$activeApplication) {
-            return redirect()->back()->with('error', 'Tidak ada aplikasi aktif. Silakan buat aplikasi terlebih dahulu.');
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.application-result-defenses.index')
+                ->with('error', $access['message']);
         }
+
+        $activeApplication = $access['application'];
 
         return view('frontend.applicationResultDefenses.create', compact('activeApplication'));
     }
 
-    public function store(StoreApplicationResultDefenseRequest $request)
+    public function store(Request $request)
     {
-        $applicationResultDefense = ApplicationResultDefense::create($request->all());
+        abort_if(Gate::denies('application_result_defense_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        foreach ($request->input('documentation', []) as $file) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($file)),
-                'documentation'
-            );
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessDefenseResult($mahasiswaId);
+
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.application-result-defenses.index')
+                ->with('error', $access['message']);
         }
 
-        foreach ($request->input('invitation_document', []) as $file) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($file)),
-                'invitation_document'
-            );
+        $validated = $request->validate([
+            'application_id' => 'required|exists:applications,id',
+            'result' => 'required|in:passed,revision,failed',
+            'note' => 'nullable|string|max:5000',
+            'revision_deadline' => 'nullable|date',
+            'final_grade' => 'nullable|numeric|min:0|max:100',
+            'report_document' => 'required|array|min:1',
+            'report_document.*' => 'file|mimes:pdf|max:10240',
+            'attendance_document' => 'required|file|mimes:pdf|max:10240',
+            'form_document' => 'nullable|array',
+            'form_document.*' => 'file|mimes:pdf|max:10240',
+            'latest_script' => 'nullable|file|mimes:pdf|max:20480',
+        ]);
+
+        if ((int) $validated['application_id'] !== (int) $access['application']->id) {
+            abort(403, 'Aplikasi tidak valid.');
         }
 
-        foreach ($request->input('feedback_document', []) as $file) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($file)),
-                'feedback_document'
-            );
+        $applicationResultDefense = ApplicationResultDefense::create([
+            'application_id' => $validated['application_id'],
+            'result' => $validated['result'],
+            'note' => $validated['note'] ?? null,
+            'revision_deadline' => $validated['revision_deadline'] ?? null,
+            'final_grade' => $validated['final_grade'] ?? null,
+        ]);
+
+        foreach ($request->file('report_document', []) as $file) {
+            $applicationResultDefense->addMedia($file)->toMediaCollection('report_document');
         }
 
-        if ($request->input('minutes_document', false)) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('minutes_document'))),
-                'minutes_document'
-            );
+        $applicationResultDefense->addMedia($request->file('attendance_document'))
+            ->toMediaCollection('attendance_document');
+
+        if ($request->hasFile('form_document')) {
+            foreach ($request->file('form_document') as $file) {
+                $applicationResultDefense->addMedia($file)->toMediaCollection('form_document');
+            }
         }
 
-        if ($request->input('latest_script', false)) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
-                'latest_script'
-            );
+        if ($request->hasFile('latest_script')) {
+            $applicationResultDefense->addMedia($request->file('latest_script'))
+                ->toMediaCollection('latest_script');
         }
 
-        if ($request->input('approval_page', false)) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('approval_page'))),
-                'approval_page'
-            );
-        }
-
-        foreach ($request->input('report_document', []) as $file) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($file)),
-                'report_document'
-            );
-        }
-
-        foreach ($request->input('revision_approval_sheet', []) as $file) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($file)),
-                'revision_approval_sheet'
-            );
-        }
-
-        if ($request->input('attendance_document', false)) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('attendance_document'))),
-                'attendance_document'
-            );
-        }
-
-        if ($request->input('form_document', false)) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('form_document'))),
-                'form_document'
-            );
-        }
-
-        if ($request->input('certificate_document', false)) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('certificate_document'))),
-                'certificate_document'
-            );
-        }
-
-        if ($request->input('publication_document', false)) {
-            $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('publication_document'))),
-                'publication_document'
-            );
-        }
-
-        if ($media = $request->input('ck-media', false)) {
-            Media::whereIn('id', $media)->update(['model_id' => $applicationResultDefense->id]);
-        }
-
-        return redirect()->route('frontend.application-result-defenses.index');
+        return redirect()->route('frontend.application-result-defenses.index')
+            ->with('success', 'Laporan hasil sidang berhasil dikirim.');
     }
 
     public function edit(ApplicationResultDefense $applicationResultDefense)
@@ -350,6 +328,11 @@ class ApplicationResultDefenseController extends Controller
         abort_if(Gate::denies('application_result_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $applicationResultDefense->load('application');
+
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        if ($mahasiswaId && $applicationResultDefense->application?->mahasiswa_id !== $mahasiswaId) {
+            abort(Response::HTTP_FORBIDDEN, '403 Forbidden');
+        }
 
         return view('frontend.applicationResultDefenses.show', compact('applicationResultDefense'));
     }

@@ -342,6 +342,12 @@ Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['
     Route::resource('application-schedules', 'ApplicationScheduleController')->only([
         'index', 'create', 'store', 'show', 'edit', 'update', 'destroy',
     ]);
+
+    // Hasil sidang skripsi / MBKM (tahap 15)
+    Route::post('application-result-defenses/media', 'ApplicationResultDefenseController@storeMedia')->name('application-result-defenses.storeMedia');
+    Route::resource('application-result-defenses', 'ApplicationResultDefenseController')->only([
+        'index', 'create', 'store', 'show',
+    ]);
 });
 
 Route::group(['prefix' => 'dosen', 'as' => 'dosen.', 'namespace' => 'Dosen', 'middleware' => ['auth']], function () {

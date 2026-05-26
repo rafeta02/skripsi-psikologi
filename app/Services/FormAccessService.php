@@ -499,6 +499,88 @@ class FormAccessService
     }
 
     /**
+     * Mahasiswa dapat melaporkan hasil sidang setelah jadwal sidang diverifikasi admin.
+     */
+    public function canAccessDefenseResult($mahasiswaId): array
+    {
+        $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', 'defense')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$defenseApp) {
+            return [
+                'allowed' => false,
+                'message' => 'Tidak ada aplikasi tahap sidang.',
+                'application' => null,
+            ];
+        }
+
+        $defense = SkripsiDefense::where('application_id', $defenseApp->id)->first();
+
+        if (!$defense || !$defense->isAccepted()) {
+            return [
+                'allowed' => false,
+                'message' => 'Pendaftaran sidang harus diterima admin terlebih dahulu.',
+                'application' => $defenseApp,
+            ];
+        }
+
+        $schedule = ApplicationSchedule::where('application_id', $defenseApp->id)->first();
+
+        if (!$schedule) {
+            return [
+                'allowed' => false,
+                'message' => 'Ajukan jadwal sidang dan tunggu verifikasi admin sebelum melaporkan hasil sidang.',
+                'application' => $defenseApp,
+            ];
+        }
+
+        if (!$schedule->isApprovedByAdmin() && $defenseApp->status !== 'scheduled') {
+            return [
+                'allowed' => false,
+                'message' => 'Jadwal sidang belum diverifikasi admin.',
+                'application' => $defenseApp,
+            ];
+        }
+
+        if (ApplicationResultDefense::where('application_id', $defenseApp->id)->exists()) {
+            return [
+                'allowed' => false,
+                'message' => 'Hasil sidang sudah dilaporkan.',
+                'application' => $defenseApp,
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'message' => null,
+            'application' => $defenseApp,
+        ];
+    }
+
+    /**
+     * Tampilkan menu hasil sidang jika sudah bisa lapor atau sudah pernah lapor.
+     */
+    public function canShowDefenseResultShortcut($mahasiswaId): array
+    {
+        $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', 'defense')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$defenseApp) {
+            return ['allowed' => false, 'message' => null];
+        }
+
+        if (ApplicationResultDefense::where('application_id', $defenseApp->id)->exists()) {
+            return ['allowed' => true, 'message' => null];
+        }
+
+        return $this->canAccessDefenseResult($mahasiswaId);
+    }
+
+    /**
      * Get allowed forms for a student
      */
     public function getAllowedForms($mahasiswaId)
@@ -511,6 +593,7 @@ class FormAccessService
             'application_result_seminar' => $this->canShowApplicationResultSeminarShortcut($mahasiswaId),
             'skripsi_defense' => $this->canAccessSkripsiDefense($mahasiswaId),
             'defense_schedule' => $this->canAccessDefenseSchedule($mahasiswaId),
+            'defense_result' => $this->canShowDefenseResultShortcut($mahasiswaId),
         ];
     }
 
