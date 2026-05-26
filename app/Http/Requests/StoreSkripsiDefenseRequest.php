@@ -23,39 +23,44 @@ class StoreSkripsiDefenseRequest extends FormRequest
 
     protected function directUploadRules(): array
     {
-        $pdf = 'file|mimes:pdf|max:20480';
-        $pdf10 = 'file|mimes:pdf|max:10240';
-        $screenshot = 'file|mimes:pdf,jpg,jpeg,png|max:10240';
-
         return [
             'application_id' => ['required', 'exists:applications,id'],
             'title' => ['required', 'string'],
             'abstract' => ['required', 'string'],
-            'defence_document' => ['required', $pdf],
-            'plagiarism_report' => ['required', $pdf10],
-            'publication_statement' => ['required', $pdf10],
-            'spp_receipt' => ['required', $pdf10],
-            'krs_latest' => ['required', $pdf10],
-            'eap_certificate' => ['required', $pdf10],
-            'transcript' => ['required', $pdf10],
-            'siakad_supervisor_screenshot' => ['required', $screenshot],
-            'mbkm_recommendation_letter' => ['nullable', $pdf10],
+            // Single file (PDF)
+            'defence_document' => ['required', 'file', 'mimes:pdf', 'max:20480'],
+            'plagiarism_report' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'publication_statement' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'spp_receipt' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'krs_latest' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'eap_certificate' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'transcript' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+
+            // Screenshot (PDF or image)
+            'siakad_supervisor_screenshot' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+
+            // Optional single PDF
+            'mbkm_recommendation_letter' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+
+            // Multi file: each item is a PDF
             'ethics_statement' => ['required', 'array', 'min:1'],
-            'ethics_statement.*' => ['required', $pdf10],
+            'ethics_statement.*' => ['required', 'file', 'mimes:pdf', 'max:10240'],
             'research_instruments' => ['required', 'array', 'min:1'],
-            'research_instruments.*' => ['required', $pdf10],
+            'research_instruments.*' => ['required', 'file', 'mimes:pdf', 'max:10240'],
             'data_collection_letter' => ['required', 'array', 'min:1'],
-            'data_collection_letter.*' => ['required', $pdf10],
+            'data_collection_letter.*' => ['required', 'file', 'mimes:pdf', 'max:10240'],
             'research_module' => ['required', 'array', 'min:1'],
-            'research_module.*' => ['required', $pdf10],
+            'research_module.*' => ['required', 'file', 'mimes:pdf', 'max:10240'],
             'defense_approval_page' => ['required', 'array', 'min:1'],
-            'defense_approval_page.*' => ['required', $pdf10],
+            'defense_approval_page.*' => ['required', 'file', 'mimes:pdf', 'max:10240'],
             'research_poster' => ['required', 'array', 'min:1'],
-            'research_poster.*' => ['required', $pdf10],
+            'research_poster.*' => ['required', 'file', 'mimes:pdf', 'max:10240'],
             'supervision_logbook' => ['required', 'array', 'min:1'],
-            'supervision_logbook.*' => ['required', $pdf10],
+            'supervision_logbook.*' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+
+            // Optional multi PDF
             'mbkm_report' => ['nullable', 'array'],
-            'mbkm_report.*' => ['nullable', $pdf10],
+            'mbkm_report.*' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
         ];
     }
 
