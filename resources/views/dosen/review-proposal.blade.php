@@ -11,7 +11,11 @@
                         <i class="fas fa-clipboard-check mr-2"></i> Review Proposal
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Tinjau pendaftaran skripsi dan berikan keputusan beserta feedback
+                        @if($assignment->application?->type === 'mbkm')
+                            Tinjau pendaftaran Skripsi MBKM dan berikan keputusan beserta feedback
+                        @else
+                            Tinjau pendaftaran Skripsi Reguler dan berikan keputusan beserta feedback
+                        @endif
                     </p>
                 </div>
             </div>
@@ -23,58 +27,80 @@
         <div class="col-lg-12">
             <div class="card-modern">
                 <div class="card-modern-body">
+                    @php
+                        $app = $assignment->application;
+                        $mhs = $app?->mahasiswa;
+                    @endphp
+
                     <h5 class="font-weight-bold mb-3">Informasi Mahasiswa & Proposal</h5>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">Nama Mahasiswa</label>
-                            <p class="font-weight-semibold">
-                                @if($assignment->application && $assignment->application->mahasiswa)
-                                    {{ $assignment->application->mahasiswa->nama }}
-                                @else
-                                    -
-                                @endif
-                            </p>
+                            <p class="font-weight-semibold mb-0">{{ $mhs->nama ?? '-' }}</p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">NIM</label>
-                            <p class="font-weight-semibold">
-                                @if($assignment->application && $assignment->application->mahasiswa)
-                                    {{ $assignment->application->mahasiswa->nim }}
+                            <p class="font-weight-semibold mb-0">{{ $mhs->nim ?? '-' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">Program Studi</label>
+                            <p class="font-weight-semibold mb-0">{{ $mhs->prodi->name ?? '-' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">Jenjang</label>
+                            <p class="font-weight-semibold mb-0">{{ $mhs->jenjang->name ?? '-' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">Jalur / Tipe</label>
+                            <p class="mb-0">
+                                @if($app?->type === 'mbkm')
+                                    <span class="badge badge-success">Skripsi MBKM</span>
+                                @elseif($app?->type === 'skripsi')
+                                    <span class="badge badge-primary">Skripsi Reguler</span>
                                 @else
-                                    -
-                                @endif
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted mb-1">Tipe</label>
-                            <p class="font-weight-semibold text-uppercase">
-                                @if($assignment->application)
-                                    <span class="badge badge-primary">{{ $assignment->application->type }}</span>
+                                    <span class="badge badge-secondary">{{ $app->type ?? '-' }}</span>
                                 @endif
                             </p>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="text-muted mb-1">Tahap</label>
-                            <p class="font-weight-semibold text-capitalize">
-                                @if($assignment->application)
-                                    <span class="badge badge-info">{{ $assignment->application->stage }}</span>
-                                @endif
+                            <label class="text-muted mb-1">Tahap & Status Aplikasi</label>
+                            <p class="mb-0">
+                                <span class="badge badge-info text-capitalize">{{ $app->stage ?? '-' }}</span>
+                                <span class="badge badge-secondary text-capitalize">{{ $app->status ?? '-' }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">Peran Anda</label>
+                            <p class="font-weight-semibold mb-0 text-capitalize">{{ $assignment->role ?? '-' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">Tanggal Penugasan</label>
+                            <p class="font-weight-semibold mb-0">
+                                {{ $assignment->assigned_at ? \Carbon\Carbon::parse($assignment->assigned_at)->format('d M Y H:i') : '-' }}
                             </p>
                         </div>
                     </div>
 
-                    @if($assignment->application && $assignment->application->type == 'skripsi')
-                        @php
-                            $registration = $assignment->application->skripsiRegistration;
-                        @endphp
+                    <hr class="my-3">
+
+                    @if($app && $app->type === 'skripsi')
+                        @php $registration = $app->skripsiRegistration; @endphp
                         @if($registration)
-                            <div class="mb-3">
-                                <label class="text-muted mb-1">Tema Keilmuan</label>
-                                <p class="font-weight-semibold mb-0">{{ $registration->theme->name ?? '-' }}</p>
+                            <h6 class="font-weight-bold text-primary mb-3"><i class="fas fa-file-alt mr-1"></i> Data Pendaftaran Skripsi Reguler</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Bidang Keilmuan</label>
+                                    <p class="font-weight-semibold mb-0">{{ $registration->theme->name ?? '-' }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Preferensi Dosen Pembimbing</label>
+                                    <p class="font-weight-semibold mb-0">{{ $registration->preference_supervision->nama ?? '-' }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Dosen TPS</label>
+                                    <p class="font-weight-semibold mb-0">{{ $registration->tps_lecturer->nama ?? '-' }}</p>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="text-muted mb-1">Judul Skripsi</label>
@@ -84,22 +110,88 @@
                                 <label class="text-muted mb-1">Abstrak</label>
                                 <div class="p-3 rounded" style="background: #f8f9fa; white-space: pre-wrap;">{{ $registration->abstract ?? '-' }}</div>
                             </div>
+                        @else
+                            <div class="alert alert-warning mb-0">Data pendaftaran skripsi belum tersedia.</div>
                         @endif
-                    @elseif($assignment->application && $assignment->application->type == 'mbkm')
-                        @php
-                            $registration = $assignment->application->mbkmRegistration;
-                        @endphp
+                    @elseif($app && $app->type === 'mbkm')
+                        @php $registration = $app->mbkmRegistration; @endphp
                         @if($registration)
-                            <div class="mb-3">
-                                <label class="text-muted mb-1">Judul MBKM</label>
-                                <h6 class="font-weight-semibold">{{ $registration->mbkm_title ?? '-' }}</h6>
+                            <h6 class="font-weight-bold text-success mb-3"><i class="fas fa-users mr-1"></i> Data Pendaftaran Skripsi MBKM</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Research Group</label>
+                                    <p class="font-weight-semibold mb-0">{{ $registration->research_group->name ?? '-' }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Bidang Keilmuan</label>
+                                    <p class="font-weight-semibold mb-0">{{ $registration->theme->name ?? '-' }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Preferensi Dosen Pembimbing</label>
+                                    <p class="font-weight-semibold mb-0">{{ $registration->preference_supervision->nama ?? '-' }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Total SKS Diambil</label>
+                                    <p class="font-weight-semibold mb-0">{{ $registration->total_sks_taken ?? '-' }}</p>
+                                </div>
                             </div>
-                            @if($registration->mbkm_description)
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Judul Kegiatan MBKM</label>
+                                    <h6 class="font-weight-semibold mb-0">{{ $registration->title_mbkm ?? '-' }}</h6>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Judul Skripsi</label>
+                                    <h6 class="font-weight-semibold mb-0">{{ $registration->title ?? '-' }}</h6>
+                                </div>
+                            </div>
+                            @if($registration->note)
                                 <div class="mb-3">
-                                    <label class="text-muted mb-1">Deskripsi</label>
-                                    <p>{{ Str::limit($registration->mbkm_description, 300) }}</p>
+                                    <label class="text-muted mb-1">Catatan Mahasiswa</label>
+                                    <div class="p-3 rounded" style="background: #f8f9fa; white-space: pre-wrap;">{{ $registration->note }}</div>
                                 </div>
                             @endif
+                            @php
+                                $nilaiRows = array_filter([
+                                    'MK Kuantitatif' => $registration->nilai_mk_kuantitatif,
+                                    'MK Kualitatif' => $registration->nilai_mk_kualitatif,
+                                    'Statistika Dasar' => $registration->nilai_mk_statistika_dasar,
+                                    'Statistika Lanjutan' => $registration->nilai_mk_statistika_lanjutan,
+                                    'Konstruksi Tes' => $registration->nilai_mk_konstruksi_tes,
+                                    'TPS' => $registration->nilai_mk_tps,
+                                ], fn ($v) => $v !== null && $v !== '');
+                            @endphp
+                            @if(count($nilaiRows) > 0)
+                                <div class="mb-3">
+                                    <label class="text-muted mb-2 d-block">Nilai Mata Kuliah</label>
+                                    <div class="row">
+                                        @foreach($nilaiRows as $label => $nilai)
+                                            <div class="col-md-4 col-6 mb-2">
+                                                <span class="text-muted small">{{ $label }}</span>
+                                                <p class="font-weight-semibold mb-0">{{ $nilai }}</p>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                            @if($registration->groupMembers && $registration->groupMembers->count() > 0)
+                                <div class="mb-3">
+                                    <label class="text-muted mb-2 d-block">Anggota Kelompok MBKM</label>
+                                    <ul class="list-group list-group-flush border rounded">
+                                        @foreach($registration->groupMembers as $member)
+                                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                                <span>
+                                                    <strong>{{ $member->mahasiswa->nama ?? '-' }}</strong>
+                                                    <small class="text-muted ml-2">{{ $member->mahasiswa->nim ?? '' }}</small>
+                                                </span>
+                                                <span class="badge badge-light text-capitalize">{{ $member->role ?? 'anggota' }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        @else
+                            <div class="alert alert-warning mb-0">Data pendaftaran MBKM belum tersedia.</div>
                         @endif
                     @endif
 

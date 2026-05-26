@@ -60,16 +60,11 @@ class ApplicationResultSeminarController extends Controller
             });
 
             $table->addColumn('application_status', function ($row) {
-                if (!$row->application) return '';
-                
-                $status = $row->application->status;
-                $badges = [
-                    'submitted' => '<span class="badge badge-info">Menunggu</span>',
-                    'approved' => '<span class="badge badge-success">Disetujui</span>',
-                    'rejected' => '<span class="badge badge-danger">Ditolak</span>',
-                ];
-                
-                return $badges[$status] ?? '<span class="badge badge-secondary">Unknown</span>';
+                if (!$row->application) {
+                    return '';
+                }
+
+                return $row->adminValidationStatusHtml();
             });
 
             $table->editColumn('report_document', function ($row) {
@@ -219,6 +214,7 @@ class ApplicationResultSeminarController extends Controller
         abort_if(Gate::denies('application_result_seminar_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $applicationResultSeminar->load('application.mahasiswa.prodi', 'application.mahasiswa.jenjang', 'application.actions');
+        $applicationResultSeminar->syncApplicationStatus();
 
         return view('admin.applicationResultSeminars.show', compact('applicationResultSeminar'));
     }
@@ -251,12 +247,6 @@ class ApplicationResultSeminarController extends Controller
 
         try {
             DB::transaction(function () use ($resultSeminar, $request) {
-                // Update application status
-                $resultSeminar->application->update([
-                    'status' => 'approved',
-                ]);
-
-                // Log action
                 ApplicationAction::create([
                     'application_id' => $resultSeminar->application_id,
                     'action_type' => 'result_seminar_approved',
@@ -267,6 +257,8 @@ class ApplicationResultSeminarController extends Controller
                         'result' => $resultSeminar->result,
                     ],
                 ]);
+
+                $resultSeminar->syncApplicationStatus();
             });
 
             return response()->json([
@@ -294,13 +286,10 @@ class ApplicationResultSeminarController extends Controller
 
         try {
             DB::transaction(function () use ($resultSeminar, $request) {
-                // Update application status
                 $resultSeminar->application->update([
-                    'status' => 'rejected',
                     'notes' => $request->reason,
                 ]);
 
-                // Log action
                 ApplicationAction::create([
                     'application_id' => $resultSeminar->application_id,
                     'action_type' => 'result_seminar_rejected',
@@ -311,6 +300,8 @@ class ApplicationResultSeminarController extends Controller
                         'result' => $resultSeminar->result,
                     ],
                 ]);
+
+                $resultSeminar->syncApplicationStatus();
             });
 
             return response()->json([

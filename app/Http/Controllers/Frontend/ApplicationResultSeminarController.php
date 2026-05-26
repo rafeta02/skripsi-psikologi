@@ -120,12 +120,7 @@ class ApplicationResultSeminarController extends Controller
             }
         }
 
-        $status = match ($validated['result']) {
-            'passed' => 'submitted',
-            'revision' => 'revision',
-            default => 'rejected',
-        };
-        Application::where('id', $validated['application_id'])->update(['status' => $status]);
+        $applicationResultSeminar->syncApplicationStatus();
 
         $message = $validated['result'] === 'passed'
             ? 'Laporan hasil lulus berhasil dikirim. Menunggu validasi admin sebelum Anda dapat mendaftar sidang skripsi.'
@@ -142,6 +137,7 @@ class ApplicationResultSeminarController extends Controller
         $this->authorizeOwnership($applicationResultSeminar);
 
         $applicationResultSeminar->load('application');
+        $applicationResultSeminar->syncApplicationStatus();
 
         $formAccessService = new FormAccessService();
         $canAccessDefense = $formAccessService->canAccessSkripsiDefense(auth()->user()->mahasiswa_id);

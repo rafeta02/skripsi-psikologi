@@ -73,6 +73,60 @@ class ApplicationResultSeminar extends Model implements HasMedia
             ->exists();
     }
 
+    public function isRejectedByAdmin(): bool
+    {
+        return ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'result_seminar_rejected')
+            ->exists();
+    }
+
+    /**
+     * Keep applications.status aligned with laporan hasil (not seminar registration approval).
+     */
+    public function syncApplicationStatus(): void
+    {
+        if (!$this->application) {
+            return;
+        }
+
+        if ($this->isRejectedByAdmin()) {
+            $status = 'rejected';
+        } else {
+            $status = match ($this->result) {
+                'passed' => $this->isValidatedByAdmin() ? 'approved' : 'submitted',
+                'revision' => 'revision',
+                'failed' => 'rejected',
+                default => $this->application->status,
+            };
+        }
+
+        if ($this->application->status !== $status) {
+            $this->application->update(['status' => $status]);
+            $this->application->refresh();
+        }
+    }
+
+    public function adminValidationStatusHtml(): string
+    {
+        if ($this->isRejectedByAdmin()) {
+            return '<span class="badge badge-danger badge-lg">Ditolak Admin</span>';
+        }
+
+        if ($this->result !== 'passed') {
+            return match ($this->result) {
+                'revision' => '<span class="badge badge-warning badge-lg">Revisi</span>',
+                'failed' => '<span class="badge badge-danger badge-lg">Tidak Lulus</span>',
+                default => '<span class="badge badge-secondary badge-lg">-</span>',
+            };
+        }
+
+        if ($this->isValidatedByAdmin()) {
+            return '<span class="badge badge-success badge-lg">Divalidasi Admin</span>';
+        }
+
+        return '<span class="badge badge-warning badge-lg">Menunggu Validasi Admin</span>';
+    }
+
     public function getRevisionDeadlineAttribute($value)
     {
         return $value ? Carbon::parse($value)->format(config('panel.date_format')) : null;

@@ -241,29 +241,17 @@
 
         <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Status Card -->
+            <!-- Status Validasi Laporan -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Status Aplikasi</h5>
+                    <h5 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Status Validasi Laporan</h5>
                 </div>
                 <div class="card-body text-center">
+                    <h3 class="mb-3">
+                        {!! $applicationResultSeminar->adminValidationStatusHtml() !!}
+                    </h3>
                     @if($applicationResultSeminar->application)
-                        @php
-                            $statusBadges = [
-                                'submitted' => 'badge-info',
-                                'approved' => 'badge-success',
-                                'rejected' => 'badge-danger',
-                            ];
-                            $statusClass = $statusBadges[$applicationResultSeminar->application->status] ?? 'badge-secondary';
-                        @endphp
-                        <h3 class="mb-3">
-                            <span class="badge {{ $statusClass }} badge-lg px-4 py-3" style="font-size: 1.2rem;">
-                                {{ ucfirst($applicationResultSeminar->application->status) }}
-                            </span>
-                        </h3>
-                        <p class="text-muted">Stage: <strong>{{ ucfirst($applicationResultSeminar->application->stage) }}</strong></p>
-                    @else
-                        <p class="text-muted">Status tidak tersedia</p>
+                        <p class="text-muted mb-0">Stage: <strong>{{ ucfirst($applicationResultSeminar->application->stage) }}</strong></p>
                     @endif
                 </div>
             </div>
@@ -293,7 +281,7 @@
                                 <i class="fas fa-check mr-1"></i> Validasi Hasil Lulus
                             </button>
                         @endif
-                        @if($applicationResultSeminar->application->status !== 'approved' || $applicationResultSeminar->result !== 'passed')
+                        @if($applicationResultSeminar->result !== 'passed' || !$adminValidated)
                             <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#rejectModal">
                                 <i class="fas fa-times mr-1"></i> Tolak Laporan
                             </button>

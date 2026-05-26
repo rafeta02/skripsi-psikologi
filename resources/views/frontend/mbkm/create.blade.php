@@ -672,16 +672,3 @@
 })();
 </script>
 @endpush
-                    text: 'Anda harus menyetujui pernyataan di atas sebelum submit!',
-                });
-                return false;
-            }
-            
-            $('#loadingSpinner').show();
-        });
-        
-        console.log('Initializing to step 1');
-        showStep(1);
-    });
-</script>
-@endpush

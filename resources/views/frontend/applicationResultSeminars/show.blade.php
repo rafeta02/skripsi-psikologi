@@ -189,23 +189,9 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="text-muted mb-1">Status</label>
-                            <p class="font-weight-semibold text-capitalize">
-                                @if($applicationResultSeminar->application->status == 'submitted')
-                                    <span class="badge badge-warning">Submitted</span>
-                                @elseif($applicationResultSeminar->application->status == 'approved')
-                                    <span class="badge badge-success">Approved</span>
-                                @elseif($applicationResultSeminar->application->status == 'scheduled')
-                                    <span class="badge badge-info">Scheduled</span>
-                                @elseif($applicationResultSeminar->application->status == 'revision')
-                                    <span class="badge badge-warning">Revision</span>
-                                @elseif($applicationResultSeminar->application->status == 'rejected')
-                                    <span class="badge badge-danger">Rejected</span>
-                                @elseif($applicationResultSeminar->application->status == 'done')
-                                    <span class="badge badge-secondary">Done</span>
-                                @else
-                                    <span class="badge badge-secondary">{{ $applicationResultSeminar->application->status }}</span>
-                                @endif
+                            <label class="text-muted mb-1">Status Validasi</label>
+                            <p class="font-weight-semibold">
+                                {!! $applicationResultSeminar->adminValidationStatusHtml() !!}
                             </p>
                         </div>
                     </div>

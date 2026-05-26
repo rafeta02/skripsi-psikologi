@@ -248,8 +248,15 @@ class DashboardController extends Controller
     {
         $assignment = ApplicationAssignment::with([
             'application.mahasiswa.user',
+            'application.mahasiswa.prodi',
+            'application.mahasiswa.jenjang',
             'application.skripsiRegistration.theme',
-            'application.mbkmRegistration'
+            'application.skripsiRegistration.preference_supervision',
+            'application.skripsiRegistration.tps_lecturer',
+            'application.mbkmRegistration.theme',
+            'application.mbkmRegistration.research_group',
+            'application.mbkmRegistration.preference_supervision',
+            'application.mbkmRegistration.groupMembers.mahasiswa',
         ])->findOrFail($assignmentId);
 
         $this->authorizeAssignmentOwnership($assignment);
