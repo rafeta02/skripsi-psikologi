@@ -107,11 +107,11 @@
             <div class="card-body text-center py-5">
                 <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
                 <h3>Belum Ada Jadwal</h3>
-                <p class="text-muted mb-4">Anda belum memiliki jadwal. Setelah pendaftaran sidang diterima admin, ajukan jadwal sidang; admin akan memverifikasi.</p>
-                @if(($allowedForms['defense_schedule']['allowed'] ?? false))
+                <p class="text-muted mb-4">Anda belum memiliki jadwal. Setelah seminar MBKM/skripsi disetujui atau pendaftaran sidang diterima admin, ajukan jadwal dan tunggu verifikasi admin.</p>
+                @if(($allowedForms['application_schedule']['allowed'] ?? false))
                     @can('application_schedule_create')
                         <a href="{{ route('frontend.application-schedules.create') }}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-calendar-plus"></i> Ajukan Jadwal Sidang
+                            <i class="fas fa-calendar-plus"></i> Ajukan Jadwal
                         </a>
                     @endcan
                 @endif

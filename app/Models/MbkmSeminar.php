@@ -33,6 +33,8 @@ class MbkmSeminar extends Model implements HasMedia
 
     protected $fillable = [
         'application_id',
+        'reviewer_1_id',
+        'reviewer_2_id',
         'title',
         'created_at',
         'updated_at',
@@ -74,5 +76,15 @@ class MbkmSeminar extends Model implements HasMedia
     public function created_by()
     {
         return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    public function reviewer1()
+    {
+        return $this->belongsTo(Dosen::class, 'reviewer_1_id');
+    }
+
+    public function reviewer2()
+    {
+        return $this->belongsTo(Dosen::class, 'reviewer_2_id');
     }
 }

@@ -108,6 +108,26 @@
                         <label class="font-weight-bold">Tanggal Pengajuan Seminar:</label>
                         <p>{{ $mbkmSeminar->created_at->format('d M Y H:i') }}</p>
                     </div>
+
+                    @if($mbkmSeminar->reviewer1 || $mbkmSeminar->reviewer2)
+                    <div class="alert alert-info mt-3">
+                        <h5 class="alert-heading"><i class="fas fa-users mr-2"></i>Reviewer yang Ditugaskan</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-0">
+                                    <label class="font-weight-bold">Reviewer 1:</label>
+                                    <p class="mb-0">{{ $mbkmSeminar->reviewer1->nama ?? 'Belum ditugaskan' }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-0">
+                                    <label class="font-weight-bold">Reviewer 2:</label>
+                                    <p class="mb-0">{{ $mbkmSeminar->reviewer2->nama ?? 'Belum ditugaskan' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
 
@@ -464,13 +484,19 @@
                 <div class="card-body">
                     <div class="timeline">
                         @foreach($mbkmSeminar->application->actions->sortByDesc('created_at') as $action)
+                            @php
+                                $isApproved = in_array($action->action_type, ['approved', 'seminar_approved']);
+                                $isRejected = in_array($action->action_type, ['rejected', 'seminar_rejected']);
+                                $actionColor = $isApproved ? 'success' : ($isRejected ? 'danger' : 'warning');
+                                $actionIcon = $isApproved ? 'check' : ($isRejected ? 'times' : 'edit');
+                            @endphp
                             <div class="time-label">
-                                <span class="bg-{{ $action->action_type === 'approved' ? 'success' : ($action->action_type === 'rejected' ? 'danger' : 'warning') }}">
+                                <span class="bg-{{ $actionColor }}">
                                     {{ $action->created_at->format('d M Y H:i') }}
                                 </span>
                             </div>
                             <div>
-                                <i class="fas fa-{{ $action->action_type === 'approved' ? 'check' : ($action->action_type === 'rejected' ? 'times' : 'edit') }} bg-{{ $action->action_type === 'approved' ? 'success' : ($action->action_type === 'rejected' ? 'danger' : 'warning') }}"></i>
+                                <i class="fas fa-{{ $actionIcon }} bg-{{ $actionColor }}"></i>
                                 <div class="timeline-item">
                                     <span class="time"><i class="fas fa-user mr-1"></i> {{ $action->actionBy->name ?? 'System' }}</span>
                                     <h3 class="timeline-header">{{ ucfirst(str_replace('_', ' ', $action->action_type)) }}</h3>
@@ -603,7 +629,7 @@
                     <div class="d-grid gap-2">
                         <button type="button" class="btn btn-success btn-lg btn-block mb-2" 
                                 onclick="showApproveModal({{ $mbkmSeminar->id }})">
-                            <i class="fas fa-check-circle mr-2"></i> Setujui Seminar
+                            <i class="fas fa-check-circle mr-2"></i> Setujui & Tugaskan Reviewer
                         </button>
                         
                         <button type="button" class="btn btn-danger btn-lg btn-block" 
@@ -672,10 +698,33 @@
             </div>
             <form id="approveForm">
                 <div class="modal-body">
-                    <div class="alert alert-info">
+                    <div class="alert alert-success">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Seminar MBKM akan disetujui dan mahasiswa dapat melanjutkan ke tahap berikutnya.
+                        Seminar MBKM akan disetujui dan 2 reviewer akan ditugaskan.
                     </div>
+
+                    <div class="form-group">
+                        <label for="reviewer_1_id">Reviewer 1 <span class="text-danger">*</span></label>
+                        <select class="form-control" id="reviewer_1_id" name="reviewer_1_id" required>
+                            <option value="">-- Pilih Reviewer 1 --</option>
+                            @foreach(\App\Models\Dosen::orderBy('nama')->get() as $dosen)
+                                <option value="{{ $dosen->id }}">{{ $dosen->nama }}</option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">Pilih dosen pertama sebagai reviewer</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reviewer_2_id">Reviewer 2 <span class="text-danger">*</span></label>
+                        <select class="form-control" id="reviewer_2_id" name="reviewer_2_id" required>
+                            <option value="">-- Pilih Reviewer 2 --</option>
+                            @foreach(\App\Models\Dosen::orderBy('nama')->get() as $dosen)
+                                <option value="{{ $dosen->id }}">{{ $dosen->nama }}</option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">Pilih dosen kedua sebagai reviewer (harus berbeda dari reviewer 1)</small>
+                    </div>
+
                     <div class="form-group">
                         <label for="approve_notes">Catatan (Opsional)</label>
                         <textarea class="form-control" id="approve_notes" name="notes" rows="3" 
@@ -685,7 +734,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check mr-1"></i> Setujui
+                        <i class="fas fa-check mr-1"></i> Setujui & Tugaskan Reviewer
                     </button>
                 </div>
             </form>
@@ -758,34 +807,65 @@ function showRejectModal(id) {
 $('#approveForm').on('submit', function(e) {
     e.preventDefault();
     
+    const reviewer1Id = $('#reviewer_1_id').val();
+    const reviewer2Id = $('#reviewer_2_id').val();
+    
+    if (!reviewer1Id || !reviewer2Id) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian',
+            text: 'Silakan pilih kedua reviewer'
+        });
+        return;
+    }
+    
+    if (reviewer1Id === reviewer2Id) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian',
+            text: 'Reviewer 1 dan Reviewer 2 harus berbeda'
+        });
+        return;
+    }
+    
     const submitBtn = $(this).find('button[type="submit"]');
     submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
     
     $.ajax({
         url: `/admin/mbkm-seminars/${currentSeminarId}/approve`,
         method: 'POST',
-        data: $(this).serialize(),
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        data: {
+            reviewer_1_id: reviewer1Id,
+            reviewer_2_id: reviewer2Id,
+            notes: $('#approve_notes').val(),
+            _token: '{{ csrf_token() }}'
         },
         success: function(response) {
-            $('#approveModal').modal('hide');
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: response.message || 'Seminar MBKM berhasil disetujui',
-                timer: 2000
-            }).then(() => {
-                location.reload();
-            });
+            if (response.success) {
+                $('#approveModal').modal('hide');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: response.message || 'Seminar MBKM berhasil disetujui',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    location.reload();
+                });
+            }
         },
         error: function(xhr) {
+            let message = 'Terjadi kesalahan';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                message = xhr.responseJSON.message;
+            } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+            }
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal!',
-                text: xhr.responseJSON?.message || 'Terjadi kesalahan'
+                text: message
             });
-            submitBtn.prop('disabled', false).html('<i class="fas fa-check mr-1"></i> Setujui');
+            submitBtn.prop('disabled', false).html('<i class="fas fa-check mr-1"></i> Setujui & Tugaskan Reviewer');
         }
     });
 });

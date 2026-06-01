@@ -424,9 +424,9 @@ class DashboardController extends Controller
         $formAccessService = new FormAccessService();
         $allowedForms = $formAccessService->getAllowedForms($mahasiswa->id);
 
-        $defenseScheduleAccess = $formAccessService->canAccessDefenseSchedule($mahasiswa->id);
+        $scheduleAccess = $formAccessService->canAccessApplicationSchedule($mahasiswa->id);
 
-        return view('mahasiswa.jadwal', compact('mahasiswa', 'schedules', 'currentPhase', 'allowedForms', 'defenseScheduleAccess'));
+        return view('mahasiswa.jadwal', compact('mahasiswa', 'schedules', 'currentPhase', 'allowedForms', 'scheduleAccess'));
     }
 
     public function dokumen()

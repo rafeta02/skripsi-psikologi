@@ -25,10 +25,10 @@
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle"></i> <strong>Perhatian!</strong>
                     <p class="mb-0 mt-2">
-                        @if($defenseScheduleAccess['message'] ?? null)
-                            {{ $defenseScheduleAccess['message'] }}
+                        @if($scheduleAccess['message'] ?? null)
+                            {{ $scheduleAccess['message'] }}
                         @else
-                            Anda belum memiliki aplikasi yang disetujui untuk dijadwalkan. Pastikan pendaftaran sidang sudah <strong>diterima admin</strong> terlebih dahulu.
+                            Anda belum memiliki aplikasi seminar/sidang yang dapat dijadwalkan.
                         @endif
                     </p>
                 </div>

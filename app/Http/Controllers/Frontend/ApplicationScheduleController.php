@@ -49,29 +49,16 @@ class ApplicationScheduleController extends Controller
 
         $mahasiswa = auth()->user()->mahasiswa;
         $formAccessService = new FormAccessService();
-        $defenseScheduleAccess = $mahasiswa
-            ? $formAccessService->canAccessDefenseSchedule($mahasiswa->id)
+        $scheduleAccess = $mahasiswa
+            ? $formAccessService->canAccessApplicationSchedule($mahasiswa->id)
             : ['allowed' => false, 'message' => 'Profil mahasiswa tidak ditemukan.'];
 
         $activeApplication = null;
         $scheduleContext = null;
 
-        if ($mahasiswa) {
-            if ($defenseScheduleAccess['allowed']) {
-                $activeApplication = $defenseScheduleAccess['application'];
-                $scheduleContext = 'defense';
-            } else {
-                $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
-                    ->where('stage', 'seminar')
-                    ->where('status', 'approved')
-                    ->whereDoesntHave('schedules')
-                    ->orderByDesc('created_at')
-                    ->first();
-
-                if ($activeApplication) {
-                    $scheduleContext = 'seminar';
-                }
-            }
+        if ($mahasiswa && ($scheduleAccess['allowed'] ?? false)) {
+            $activeApplication = $scheduleAccess['application'] ?? null;
+            $scheduleContext = $scheduleAccess['context'] ?? null;
         }
 
         $ruangs = Ruang::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
@@ -79,7 +66,7 @@ class ApplicationScheduleController extends Controller
         return view('frontend.applicationSchedules.create', compact(
             'activeApplication',
             'ruangs',
-            'defenseScheduleAccess',
+            'scheduleAccess',
             'scheduleContext'
         ));
     }

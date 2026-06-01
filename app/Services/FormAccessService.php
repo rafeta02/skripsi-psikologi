@@ -544,6 +544,46 @@ class FormAccessService
     }
 
     /**
+     * Mahasiswa dapat mengajukan jadwal untuk seminar (MBKM/Skripsi) yang approved
+     * atau sidang skripsi yang pendaftarannya sudah diterima admin.
+     */
+    public function canAccessApplicationSchedule($mahasiswaId): array
+    {
+        $defenseAccess = $this->canAccessDefenseSchedule($mahasiswaId);
+        if ($defenseAccess['allowed']) {
+            return [
+                'allowed' => true,
+                'message' => null,
+                'application' => $defenseAccess['application'],
+                'context' => 'defense',
+            ];
+        }
+
+        $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', 'seminar')
+            ->where('status', 'approved')
+            ->whereDoesntHave('schedules')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($seminarApp) {
+            return [
+                'allowed' => true,
+                'message' => null,
+                'application' => $seminarApp,
+                'context' => 'seminar',
+            ];
+        }
+
+        return [
+            'allowed' => false,
+            'message' => 'Belum ada pendaftaran seminar/sidang yang memenuhi syarat pengajuan jadwal.',
+            'application' => null,
+            'context' => null,
+        ];
+    }
+
+    /**
      * Mahasiswa dapat melaporkan hasil sidang setelah jadwal sidang diverifikasi admin.
      */
     public function canAccessDefenseResult($mahasiswaId): array
@@ -638,6 +678,7 @@ class FormAccessService
             'application_result_seminar' => $this->canShowApplicationResultSeminarShortcut($mahasiswaId),
             'skripsi_defense' => $this->canAccessSkripsiDefense($mahasiswaId),
             'defense_schedule' => $this->canAccessDefenseSchedule($mahasiswaId),
+            'application_schedule' => $this->canAccessApplicationSchedule($mahasiswaId),
             'defense_result' => $this->canShowDefenseResultShortcut($mahasiswaId),
         ];
     }

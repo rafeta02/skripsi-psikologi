@@ -8,9 +8,11 @@ use App\Http\Requests\MassDestroyMbkmSeminarRequest;
 use App\Http\Requests\StoreMbkmSeminarRequest;
 use App\Http\Requests\UpdateMbkmSeminarRequest;
 use App\Models\Application;
+use App\Models\ApplicationAction;
 use App\Models\MbkmSeminar;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
@@ -157,7 +159,7 @@ class MbkmSeminarController extends Controller
     {
         abort_if(Gate::denies('mbkm_seminar_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $mbkmSeminar->load('application', 'created_by');
+        $mbkmSeminar->load('application.mahasiswa.prodi', 'application.actions', 'created_by', 'reviewer1', 'reviewer2');
 
         return view('admin.mbkmSeminars.show', compact('mbkmSeminar'));
     }
@@ -198,37 +200,53 @@ class MbkmSeminarController extends Controller
     {
         abort_if(Gate::denies('mbkm_seminar_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $request->validate([
+            'reviewer_1_id' => 'required|exists:dosens,id',
+            'reviewer_2_id' => 'required|exists:dosens,id|different:reviewer_1_id',
+            'notes' => 'nullable|string',
+        ]);
+
+        $seminar = MbkmSeminar::with('application')->findOrFail($mbkmSeminar->id);
+
+        if (!$seminar->application) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aplikasi tidak ditemukan',
+            ], 404);
+        }
+
         try {
-            $application = $mbkmSeminar->application;
-            
-            if (!$application) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Aplikasi tidak ditemukan'
-                ], 404);
-            }
+            DB::transaction(function () use ($seminar, $request) {
+                $seminar->update([
+                    'reviewer_1_id' => $request->reviewer_1_id,
+                    'reviewer_2_id' => $request->reviewer_2_id,
+                ]);
 
-            // Update application status
-            $application->update([
-                'status' => 'approved'
-            ]);
+                $seminar->application->update([
+                    'status' => 'approved',
+                ]);
 
-            // Create action history
-            \App\Models\ApplicationAction::create([
-                'application_id' => $application->id,
-                'action_type' => 'approved',
-                'action_by_id' => auth()->id(),
-                'notes' => $request->input('notes'),
-            ]);
+                ApplicationAction::create([
+                    'application_id' => $seminar->application_id,
+                    'action_type' => 'seminar_approved',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->notes ?? 'Seminar MBKM disetujui',
+                    'metadata' => [
+                        'reviewer_1_id' => $request->reviewer_1_id,
+                        'reviewer_2_id' => $request->reviewer_2_id,
+                        'seminar_type' => 'mbkm',
+                    ],
+                ]);
+            });
 
             return response()->json([
                 'success' => true,
-                'message' => 'Seminar MBKM berhasil disetujui'
+                'message' => 'Seminar MBKM berhasil disetujui dan reviewer telah ditugaskan',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -251,18 +269,22 @@ class MbkmSeminarController extends Controller
                 ], 404);
             }
 
-            // Update application status
-            $application->update([
-                'status' => 'rejected'
-            ]);
+            DB::transaction(function () use ($application, $request, $mbkmSeminar) {
+                $application->update([
+                    'status' => 'rejected',
+                    'notes' => $request->reason,
+                ]);
 
-            // Create action history
-            \App\Models\ApplicationAction::create([
-                'application_id' => $application->id,
-                'action_type' => 'rejected',
-                'action_by_id' => auth()->id(),
-                'notes' => $request->input('reason'),
-            ]);
+                ApplicationAction::create([
+                    'application_id' => $application->id,
+                    'action_type' => 'seminar_rejected',
+                    'action_by' => auth()->id(),
+                    'notes' => $request->reason,
+                    'metadata' => [
+                        'mbkm_seminar_id' => $mbkmSeminar->id,
+                    ],
+                ]);
+            });
 
             return response()->json([
                 'success' => true,
