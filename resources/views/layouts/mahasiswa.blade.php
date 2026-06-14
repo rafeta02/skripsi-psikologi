@@ -384,6 +384,14 @@
                         </li>
                         @endif
 
+                        @if(($allowedForms['skripsi_defense']['allowed'] ?? false))
+                        <li class="nav-item">
+                            <a href="{{ route('frontend.skripsi-defenses.index') }}" class="nav-link {{ request()->routeIs('frontend.skripsi-defenses.*') ? 'active' : '' }}">
+                                <i class="fas fa-graduation-cap"></i> Pendaftaran Sidang
+                            </a>
+                        </li>
+                        @endif
+
                         @if(($allowedForms['defense_result']['allowed'] ?? false))
                         <li class="nav-item">
                             <a href="{{ route('frontend.application-result-defenses.index') }}" class="nav-link {{ request()->routeIs('frontend.application-result-defenses.*') ? 'active' : '' }}">

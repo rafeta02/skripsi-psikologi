@@ -104,6 +104,22 @@
                                 <a href="{{ route('frontend.mbkm-seminars.index') }}" class="btn btn-outline-primary text-left mb-2">
                                     <i class="fas fa-file-upload"></i> Upload Dokumen Seminar MBKM
                                 </a>
+                                @if($allowedForms['application_result_seminar']['allowed'] ?? false)
+                                <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn btn-outline-danger text-left mb-2">
+                                    <i class="fas fa-clipboard-check"></i> Laporan Hasil Seminar MBKM
+                                </a>
+                                @endif
+                                @if($allowedForms['skripsi_defense']['allowed'] ?? false)
+                                <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn btn-outline-primary text-left mb-2">
+                                    <i class="fas fa-graduation-cap"></i> Pendaftaran Sidang Skripsi
+                                </a>
+                                @elseif($allowedForms['skripsi_defense']['message'] ?? null)
+                                <p class="small text-muted mb-2">{{ $allowedForms['skripsi_defense']['message'] }}</p>
+                                @endif
+                            @elseif($app->stage == 'defense')
+                                <a href="{{ route('frontend.skripsi-defenses.index') }}" class="btn btn-outline-primary text-left mb-2">
+                                    <i class="fas fa-file-upload"></i> Upload Dokumen Sidang
+                                </a>
                             @endif
                         @endif
 
