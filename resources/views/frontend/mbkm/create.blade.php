@@ -202,6 +202,19 @@
         overflow-x: hidden;
         overflow-y: auto;
     }
+    
+    .form-control.is-invalid,
+    .form-control-file.is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .select2-container.is-invalid .select2-selection {
+        border-color: #dc3545 !important;
+    }
+    
+    .custom-control-input.is-invalid ~ .custom-control-label {
+        color: #dc3545;
+    }
 </style>
 @endpush
 
@@ -237,7 +250,19 @@
             </div>
         </div>
         
-        <form action="{{ route('frontend.mbkm.store', $application->id) }}" method="POST" enctype="multipart/form-data" id="mbkmForm">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <strong>Terjadi kesalahan:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('frontend.mbkm.store', $application->id) }}" method="POST" enctype="multipart/form-data" id="mbkmForm" novalidate>
             @csrf
             
             <!-- Step 1: Research Group & Pembimbing -->
@@ -505,6 +530,90 @@
         $('html, body').animate({ scrollTop: 0 }, 300);
     }
     
+    function getFieldLabel(field) {
+        const group = field.closest('.form-group');
+        const label = group ? group.querySelector('label') : null;
+        if (label) {
+            return label.textContent.replace(/\*/g, '').trim();
+        }
+        return field.name || 'Field';
+    }
+    
+    function isFieldValid(field) {
+        if (field.disabled) {
+            return true;
+        }
+        
+        if (field.type === 'checkbox') {
+            return field.checked;
+        }
+        
+        if (field.type === 'file') {
+            return field.files && field.files.length > 0;
+        }
+        
+        if (field.tagName === 'SELECT') {
+            return field.value !== '' && field.value !== null;
+        }
+        
+        return String(field.value).trim() !== '';
+    }
+    
+    function setFieldValidState(field, isValid) {
+        field.classList.toggle('is-invalid', !isValid);
+        
+        if (field.tagName === 'SELECT' && $(field).hasClass('select2-hidden-accessible')) {
+            $(field).next('.select2-container').toggleClass('is-invalid', !isValid);
+        }
+    }
+    
+    function validateStep(step) {
+        const section = document.querySelector(`.form-section[data-section="${step}"]`);
+        if (!section) {
+            return { valid: true, missing: [], firstInvalid: null, step: step };
+        }
+        
+        const fields = section.querySelectorAll('input[required], select[required], textarea[required]');
+        const missing = [];
+        let firstInvalid = null;
+        
+        fields.forEach(function(field) {
+            const valid = isFieldValid(field);
+            setFieldValidState(field, valid);
+            
+            if (!valid) {
+                missing.push(getFieldLabel(field));
+                if (!firstInvalid) {
+                    firstInvalid = field;
+                }
+            }
+        });
+        
+        return {
+            valid: missing.length === 0,
+            missing: missing,
+            firstInvalid: firstInvalid,
+            step: step
+        };
+    }
+    
+    function showValidationWarning(missing) {
+        const list = missing.map(function(label) {
+            return '• ' + label;
+        }).join('<br>');
+        
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Form Belum Lengkap',
+                html: 'Mohon lengkapi field berikut:<br><br>' + list,
+                confirmButtonColor: '#22004C'
+            });
+        } else {
+            alert('Mohon lengkapi field berikut:\n\n' + missing.join('\n'));
+        }
+    }
+    
     function updateSummary() {
         const researchGroup = $('#research_group_id option:selected').text() || '-';
         const supervisor = $('#preference_supervision_id option:selected').text() || '-';
@@ -611,12 +720,27 @@
         btnNext.off('click');
         btnPrev.off('click');
         form.off('submit');
+        form.off('input change', 'input, select, textarea');
+        
+        // Clear invalid state when user fills a field
+        form.on('input change', 'input, select, textarea', function() {
+            setFieldValidState(this, isFieldValid(this));
+        });
         
         // Next button
         btnNext.on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             console.log('[MBKM Wizard] Next clicked, step:', currentStep);
+            
+            const result = validateStep(currentStep);
+            if (!result.valid) {
+                showValidationWarning(result.missing);
+                if (result.firstInvalid) {
+                    result.firstInvalid.focus();
+                }
+                return false;
+            }
             
             if (currentStep < totalSteps) {
                 showStep(currentStep + 1);
@@ -642,8 +766,31 @@
         form.on('submit', function(e) {
             console.log('[MBKM Wizard] Form submit triggered');
             
+            let allMissing = [];
+            let firstInvalidStep = null;
+            
+            for (let step = 1; step <= 4; step++) {
+                const result = validateStep(step);
+                if (!result.valid) {
+                    allMissing = allMissing.concat(result.missing);
+                    if (!firstInvalidStep) {
+                        firstInvalidStep = step;
+                    }
+                }
+            }
+            
+            if (allMissing.length > 0) {
+                e.preventDefault();
+                showValidationWarning(allMissing);
+                if (firstInvalidStep) {
+                    showStep(firstInvalidStep);
+                }
+                return false;
+            }
+            
             if (!$('#agreement').is(':checked')) {
                 e.preventDefault();
+                $('#agreement').addClass('is-invalid');
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'warning',
@@ -656,6 +803,8 @@
                 }
                 return false;
             }
+            
+            $('#agreement').removeClass('is-invalid');
             
             // Show loading
             if ($('#loadingSpinner').length) {

@@ -291,6 +291,68 @@ class FormAccessService
      */
     public function canAccessApplicationResultSeminar($mahasiswaId, bool $forCreate = true)
     {
+        $mbkmSeminar = MbkmSeminar::whereHas('application', function ($query) use ($mahasiswaId) {
+            $query->where('mahasiswa_id', $mahasiswaId)
+                ->where('type', 'mbkm')
+                ->where('stage', 'seminar')
+                ->whereIn('status', ['approved', 'scheduled']);
+        })
+            ->whereNotNull('reviewer_1_id')
+            ->whereNotNull('reviewer_2_id')
+            ->with('application')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($mbkmSeminar) {
+            $mbkmSchedule = ApplicationSchedule::where('application_id', $mbkmSeminar->application_id)
+                ->whereIn('schedule_type', ['mbkm_seminar', 'seminar'])
+                ->orderByDesc('waktu')
+                ->first();
+
+            if (!$mbkmSchedule) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Ajukan jadwal seminar MBKM terlebih dahulu sebelum melaporkan hasil seminar.',
+                    'application' => $mbkmSeminar->application,
+                ];
+            }
+
+            if (!$mbkmSchedule->isApprovedByAdmin()) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Jadwal seminar MBKM masih menunggu verifikasi admin.',
+                    'application' => $mbkmSeminar->application,
+                ];
+            }
+
+            $seminarAlreadyHeld = ApplicationSchedule::where('id', $mbkmSchedule->id)
+                ->where('waktu', '<=', now())
+                ->exists();
+
+            if (!$seminarAlreadyHeld) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Pelaporan hasil seminar MBKM tersedia setelah seminar dilaksanakan sesuai jadwal.',
+                    'application' => $mbkmSeminar->application,
+                ];
+            }
+
+            $existingMbkm = ApplicationResultSeminar::where('application_id', $mbkmSeminar->application_id)->exists();
+            if ($forCreate && $existingMbkm) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Laporan hasil seminar MBKM sudah pernah dikirim.',
+                    'application' => $mbkmSeminar->application,
+                ];
+            }
+
+            return [
+                'allowed' => true,
+                'message' => null,
+                'application' => $mbkmSeminar->application,
+            ];
+        }
+
         $seminar = SkripsiSeminar::whereHas('application', function ($query) use ($mahasiswaId) {
             $query->where('mahasiswa_id', $mahasiswaId)->where('type', 'skripsi');
         })
@@ -465,28 +527,29 @@ class FormAccessService
      */
     public function canShowApplicationResultSeminarShortcut($mahasiswaId): array
     {
-        $seminar = SkripsiSeminar::whereHas('application', function ($query) use ($mahasiswaId) {
-            $query->where('mahasiswa_id', $mahasiswaId)->where('type', 'skripsi');
-        })
-            ->whereNotNull('reviewer_1_id')
-            ->with('application')
+        $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', 'seminar')
             ->orderByDesc('created_at')
             ->first();
 
-        if (!$seminar) {
+        if (!$seminarApp) {
             return [
                 'allowed' => false,
                 'message' => null,
             ];
         }
 
-        $result = ApplicationResultSeminar::where('application_id', $seminar->application_id)->first();
+        $result = ApplicationResultSeminar::where('application_id', $seminarApp->id)->first();
 
         if (!$result) {
             return $this->canAccessApplicationResultSeminar($mahasiswaId, true);
         }
 
-        if ($result->result === 'passed' && $this->isSeminarResultValidatedByAdmin($seminar->application_id)) {
+        if (
+            $seminarApp->type === 'skripsi'
+            && $result->result === 'passed'
+            && $this->isSeminarResultValidatedByAdmin($seminarApp->id)
+        ) {
             return [
                 'allowed' => false,
                 'message' => 'Laporan hasil review sudah divalidasi admin.',
@@ -528,7 +591,7 @@ class FormAccessService
             ];
         }
 
-        if (ApplicationSchedule::where('application_id', $defenseApp->id)->exists()) {
+        if (ApplicationSchedule::hasBlockingScheduleFor($defenseApp->id)) {
             return [
                 'allowed' => false,
                 'message' => 'Jadwal sidang sudah diajukan. Pantau status di menu Jadwal.',
@@ -562,9 +625,9 @@ class FormAccessService
         $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
             ->where('stage', 'seminar')
             ->where('status', 'approved')
-            ->whereDoesntHave('schedules')
             ->orderByDesc('created_at')
-            ->first();
+            ->get()
+            ->first(fn ($app) => !ApplicationSchedule::hasBlockingScheduleFor($app->id));
 
         if ($seminarApp) {
             return [

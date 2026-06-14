@@ -83,11 +83,11 @@ class ApplicationScheduleController extends Controller
         if ($application->stage === 'defense') {
             $defense = SkripsiDefense::where('application_id', $application->id)->first();
             abort_if(!$defense || !$defense->isAccepted(), Response::HTTP_FORBIDDEN, 'Pendaftaran sidang belum diterima admin.');
+        }
 
-            if (ApplicationSchedule::where('application_id', $application->id)->exists()) {
-                return redirect()->route('frontend.application-schedules.index')
-                    ->with('error', 'Jadwal sidang sudah diajukan.');
-            }
+        if (ApplicationSchedule::hasBlockingScheduleFor($application->id)) {
+            return redirect()->route('frontend.application-schedules.index')
+                ->with('error', 'Jadwal masih dalam proses verifikasi. Pantau status di menu Jadwal.');
         }
 
         $applicationSchedule = ApplicationSchedule::create($request->only([

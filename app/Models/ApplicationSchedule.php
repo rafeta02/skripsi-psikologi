@@ -109,10 +109,54 @@ class ApplicationSchedule extends Model implements HasMedia
 
     public function isRejectedByAdmin(): bool
     {
-        return ApplicationAction::where('application_id', $this->application_id)
+        if ($this->isApprovedByAdmin()) {
+            return false;
+        }
+
+        $rejectActions = ApplicationAction::where('application_id', $this->application_id)
             ->where('action_type', 'schedule_rejected')
-            ->exists()
-            && !$this->isApprovedByAdmin();
+            ->orderByDesc('created_at')
+            ->get();
+
+        foreach ($rejectActions as $action) {
+            $scheduleId = $action->metadata['schedule_id'] ?? null;
+
+            if ($scheduleId !== null && (int) $scheduleId === (int) $this->id) {
+                return true;
+            }
+        }
+
+        $legacyReject = $rejectActions->first(fn ($action) => empty($action->metadata['schedule_id'] ?? null));
+
+        if (!$legacyReject) {
+            return false;
+        }
+
+        $mySubmission = ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'schedule_submitted')
+            ->where('metadata->schedule_id', $this->id)
+            ->first();
+
+        if ($mySubmission && $mySubmission->created_at > $legacyReject->created_at) {
+            return false;
+        }
+
+        return $this->created_at <= $legacyReject->created_at;
+    }
+
+    /**
+     * Jadwal masih aktif (menunggu verifikasi atau sudah disetujui) sehingga mahasiswa belum boleh ajukan baru.
+     */
+    public function blocksNewSubmission(): bool
+    {
+        return !$this->isRejectedByAdmin();
+    }
+
+    public static function hasBlockingScheduleFor(int $applicationId): bool
+    {
+        return static::where('application_id', $applicationId)
+            ->get()
+            ->contains(fn (self $schedule) => $schedule->blocksNewSubmission());
     }
 
     /**

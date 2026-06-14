@@ -172,37 +172,45 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
   - Setujui: seminar dilaksanakan
   - Tolak: reschedule/unggah ulang `ApplicationSchedule`
 
-7) Proses Skripsi Lanjutan
+7) Pelaporan Hasil Review Proposal
+- Peran: Mahasiswa
+- Form: `ApplicationResultSeminar` (hasil: `passed`/`revision`/`failed`, dokumen terkait)
+- Catatan: 
+  - Jika `revision`: mahasiswa melakukan revisi sesuai masukan reviewer, isi tenggat revisi
+  - Jika `failed`: `SkripsiSeminar` dibuka kembali; mahasiswa edit & unggah ulang dokumen; reviewer 1/2 direset; status kembali `submitted` menunggu admin
+  - Jika `passed`: status aplikasi `submitted` menunggu **validasi admin**; setelah admin menyetujui (`result_seminar_approved`), mahasiswa dapat mendaftar sidang (`SkripsiDefense`) dan melanjutkan penelitian
+
+8) Proses Skripsi Lanjutan
 - Peran: Mahasiswa
 - Kegiatan: mengerjakan skripsi sesuai judul/proposal MBKM
 - Kendala (opsional): `ApplicationReport`
 
-8) Pendaftaran Sidang Skripsi (akhir)
+9) Pendaftaran Sidang Skripsi (akhir)
 - Peran: Mahasiswa
 - Form: `SkripsiDefense`
 - Keputusan: Admin verifikasi
   - Setujui: penetapan penguji
   - Tolak: revisi/unggah ulang `SkripsiDefense`
 
-9) Penetapan Penguji Sidang
+10) Penetapan Penguji Sidang
 - Peran: Admin
 - Form: `ApplicationAssignment` (role=`examiner`, tipikal 2 penguji)
 
-10) Penjadwalan Sidang Skripsi
+11) Penjadwalan Sidang Skripsi
 - Peran: Mahasiswa
 - Form: `ApplicationSchedule` (schedule_type=`skripsi_defense`)
 - Keputusan: Admin verifikasi
   - Setujui: sidang dilaksanakan
   - Tolak: reschedule/unggah ulang `ApplicationSchedule`
 
-11) Unggah Hasil Sidang Skripsi
+12) Unggah Hasil Sidang Skripsi
 - Peran: Mahasiswa
 - Form: `ApplicationResultDefense`
 - Percabangan:
   - `failed`: ulang dari `SkripsiDefense`
   - `passed`/`revision`: unggah dokumen lengkap di `ApplicationResultDefense`
 
-12) Penilaian Akhir
+13) Penilaian Akhir
 - Peran: Admin (meng-assign dosen penguji), Dosen Penguji
 - Form: `ApplicationScore`
 - Output: Nilai akhir mahasiswa

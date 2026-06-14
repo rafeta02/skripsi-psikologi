@@ -11,7 +11,7 @@
                         <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Review Proposal
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Laporkan hasil review proposal dari reviewer (Skripsi Reguler)
+                        Laporkan hasil seminar proposal (Skripsi Reguler atau MBKM)
                     </p>
                 </div>
             </div>

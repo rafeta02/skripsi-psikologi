@@ -285,6 +285,9 @@ class ApplicationScheduleController extends Controller
                     'action_type' => 'schedule_rejected',
                     'action_by' => auth()->id(),
                     'notes' => $request->reason,
+                    'metadata' => [
+                        'schedule_id' => $schedule->id,
+                    ],
                 ]);
             });
 
