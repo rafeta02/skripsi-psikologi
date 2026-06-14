@@ -12,7 +12,7 @@
                                 <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Review Proposal
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                                Daftar laporan hasil seminar proposal Anda (Skripsi Reguler/MBKM)
+                                Daftar laporan hasil seminar proposal Anda (Skripsi Reguler/MBKM). Setelah jadwal seminar disetujui admin, menu ini akan tampil; kirim laporan setelah seminar dilaksanakan.
                             </p>
                         </div>
                         <div class="col-md-4 text-right">

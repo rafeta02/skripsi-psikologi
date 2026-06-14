@@ -167,6 +167,39 @@ class ApplicationSchedule extends Model implements HasMedia
     }
 
     /**
+     * Jadwal seminar/sidang sudah diverifikasi admin dan siap dilanjutkan ke pelaporan hasil.
+     */
+    public function isReadyForResultReport(): bool
+    {
+        if ($this->isApprovedByAdmin()) {
+            return true;
+        }
+
+        if ($this->application?->status !== 'scheduled') {
+            return false;
+        }
+
+        return (int) static::where('application_id', $this->application_id)
+            ->whereIn('schedule_type', ['mbkm_seminar', 'skripsi_seminar', 'seminar'])
+            ->orderByDesc('id')
+            ->value('id') === (int) $this->id;
+    }
+
+    /**
+     * Waktu pelaksanaan seminar/sidang sudah lewat.
+     */
+    public function isSeminarHeld(): bool
+    {
+        $rawWaktu = $this->getRawOriginal('waktu');
+
+        if (!$rawWaktu) {
+            return false;
+        }
+
+        return Carbon::parse($rawWaktu)->lte(now());
+    }
+
+    /**
      * Status validasi jadwal oleh admin (bukan status aplikasi tahap sebelumnya).
      */
     public function adminValidationStatus(): array

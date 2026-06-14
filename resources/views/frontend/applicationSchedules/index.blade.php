@@ -128,6 +128,14 @@
                                                 </a>
                                             @endcan
                                         @endif
+
+                                        @if(in_array($schedule->schedule_type, ['mbkm_seminar', 'skripsi_seminar']) && $schedule->isReadyForResultReport())
+                                            @can('application_result_seminar_access')
+                                                <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn-modern btn-modern-success">
+                                                    <i class="fas fa-clipboard-check"></i> Laporan Hasil Seminar
+                                                </a>
+                                            @endcan
+                                        @endif
                                     </div>
                                 </div>
                             </div>

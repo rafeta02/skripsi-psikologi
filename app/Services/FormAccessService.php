@@ -287,9 +287,9 @@ class FormAccessService
     }
 
     /**
-     * Check if student can submit/view laporan hasil review proposal (ApplicationResultSeminar).
+     * Konteks MBKM untuk pelaporan hasil seminar.
      */
-    public function canAccessApplicationResultSeminar($mahasiswaId, bool $forCreate = true)
+    private function findMbkmSeminarResultContext(int $mahasiswaId): ?array
     {
         $mbkmSeminar = MbkmSeminar::whereHas('application', function ($query) use ($mahasiswaId) {
             $query->where('mahasiswa_id', $mahasiswaId)
@@ -303,11 +303,32 @@ class FormAccessService
             ->orderByDesc('created_at')
             ->first();
 
-        if ($mbkmSeminar) {
-            $mbkmSchedule = ApplicationSchedule::where('application_id', $mbkmSeminar->application_id)
-                ->whereIn('schedule_type', ['mbkm_seminar', 'seminar'])
-                ->orderByDesc('waktu')
-                ->first();
+        if (!$mbkmSeminar) {
+            return null;
+        }
+
+        $schedule = ApplicationSchedule::where('application_id', $mbkmSeminar->application_id)
+            ->whereIn('schedule_type', ['mbkm_seminar', 'seminar'])
+            ->orderByDesc('id')
+            ->first();
+
+        return [
+            'seminar' => $mbkmSeminar,
+            'application' => $mbkmSeminar->application,
+            'schedule' => $schedule,
+        ];
+    }
+
+    /**
+     * Check if student can submit/view laporan hasil review proposal (ApplicationResultSeminar).
+     */
+    public function canAccessApplicationResultSeminar($mahasiswaId, bool $forCreate = true)
+    {
+        $mbkmContext = $this->findMbkmSeminarResultContext($mahasiswaId);
+
+        if ($mbkmContext) {
+            $mbkmSeminar = $mbkmContext['seminar'];
+            $mbkmSchedule = $mbkmContext['schedule'];
 
             if (!$mbkmSchedule) {
                 return [
@@ -317,7 +338,7 @@ class FormAccessService
                 ];
             }
 
-            if (!$mbkmSchedule->isApprovedByAdmin()) {
+            if (!$mbkmSchedule->isReadyForResultReport()) {
                 return [
                     'allowed' => false,
                     'message' => 'Jadwal seminar MBKM masih menunggu verifikasi admin.',
@@ -325,11 +346,7 @@ class FormAccessService
                 ];
             }
 
-            $seminarAlreadyHeld = ApplicationSchedule::where('id', $mbkmSchedule->id)
-                ->where('waktu', '<=', now())
-                ->exists();
-
-            if (!$seminarAlreadyHeld) {
+            if ($forCreate && !$mbkmSchedule->isSeminarHeld()) {
                 return [
                     'allowed' => false,
                     'message' => 'Pelaporan hasil seminar MBKM tersedia setelah seminar dilaksanakan sesuai jadwal.',
@@ -541,25 +558,41 @@ class FormAccessService
 
         $result = ApplicationResultSeminar::where('application_id', $seminarApp->id)->first();
 
-        if (!$result) {
-            return $this->canAccessApplicationResultSeminar($mahasiswaId, true);
-        }
+        if ($result) {
+            if (
+                $seminarApp->type === 'skripsi'
+                && $result->result === 'passed'
+                && $this->isSeminarResultValidatedByAdmin($seminarApp->id)
+            ) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Laporan hasil review sudah divalidasi admin.',
+                ];
+            }
 
-        if (
-            $seminarApp->type === 'skripsi'
-            && $result->result === 'passed'
-            && $this->isSeminarResultValidatedByAdmin($seminarApp->id)
-        ) {
             return [
-                'allowed' => false,
-                'message' => 'Laporan hasil review sudah divalidasi admin.',
+                'allowed' => true,
+                'message' => null,
             ];
         }
 
-        return [
-            'allowed' => true,
-            'message' => null,
-        ];
+        if ($seminarApp->type === 'mbkm') {
+            $mbkmContext = $this->findMbkmSeminarResultContext($mahasiswaId);
+
+            if ($mbkmContext && $mbkmContext['schedule']?->isReadyForResultReport()) {
+                return [
+                    'allowed' => true,
+                    'message' => null,
+                ];
+            }
+
+            return [
+                'allowed' => false,
+                'message' => null,
+            ];
+        }
+
+        return $this->canAccessApplicationResultSeminar($mahasiswaId, true);
     }
 
     /**

@@ -93,6 +93,14 @@
                                         <i class="fas fa-eye"></i> Lihat Hasil Sidang
                                     </a>
                                 @endif
+
+                                @if(in_array($schedule->schedule_type, ['mbkm_seminar', 'skripsi_seminar']) && $schedule->isReadyForResultReport())
+                                    @can('application_result_seminar_access')
+                                        <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn btn-success btn-sm btn-block mt-2">
+                                            <i class="fas fa-clipboard-check"></i> Laporan Hasil Seminar
+                                        </a>
+                                    @endcan
+                                @endif
                             </div>
                         </div>
                         <div class="card-footer text-muted small">
