@@ -42,8 +42,8 @@ class ApplicationScheduleController extends Controller
                         $q->where('status', 'scheduled');
                     });
                 } elseif ($statusFilter === 'rejected') {
-                    $query->whereHas('application', function($q) {
-                        $q->where('status', 'rejected');
+                    $query->whereHas('application.actions', function ($q) {
+                        $q->where('action_type', 'schedule_rejected');
                     });
                 }
             }
@@ -112,8 +112,21 @@ class ApplicationScheduleController extends Controller
             });
 
             $table->addColumn('rejection_reason', function ($row) {
-                if (!$row->application || $row->application->status !== 'rejected') return '-';
-                $notes = $row->application->notes;
+                if (!$row->isRejectedByAdmin()) {
+                    return '-';
+                }
+
+                $rejectAction = ApplicationAction::where('application_id', $row->application_id)
+                    ->where('action_type', 'schedule_rejected')
+                    ->where(function ($q) use ($row) {
+                        $q->where('metadata->schedule_id', $row->id)
+                            ->orWhereNull('metadata');
+                    })
+                    ->orderByDesc('created_at')
+                    ->first();
+
+                $notes = $rejectAction?->notes ?: ($row->application->notes ?? null);
+
                 return $notes ? (strlen($notes) > 50 ? substr($notes, 0, 50) . '...' : $notes) : '-';
             });
 
@@ -274,12 +287,11 @@ class ApplicationScheduleController extends Controller
 
         try {
             DB::transaction(function () use ($schedule, $request) {
-                // Update application notes with rejection reason
                 $schedule->application->update([
                     'notes' => $request->reason,
+                    'status' => 'approved',
                 ]);
 
-                // Log action
                 ApplicationAction::create([
                     'application_id' => $schedule->application_id,
                     'action_type' => 'schedule_rejected',

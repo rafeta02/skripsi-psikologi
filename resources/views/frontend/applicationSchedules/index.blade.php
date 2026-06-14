@@ -120,6 +120,14 @@
                                                 </a>
                                             @endif
                                         @endcan
+
+                                        @if($schedule->isRejectedByAdmin() && ($scheduleAccess['allowed'] ?? false))
+                                            @can('application_schedule_create')
+                                                <a href="{{ route('frontend.application-schedules.create') }}" class="btn-modern btn-modern-primary">
+                                                    <i class="fas fa-calendar-plus"></i> Ajukan Jadwal Baru
+                                                </a>
+                                            @endcan
+                                        @endif
                                     </div>
                                 </div>
                             </div>

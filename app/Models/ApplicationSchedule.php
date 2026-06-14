@@ -97,10 +97,6 @@ class ApplicationSchedule extends Model implements HasMedia
 
     public function isApprovedByAdmin(): bool
     {
-        if ($this->application?->status === 'scheduled') {
-            return true;
-        }
-
         return ApplicationAction::where('application_id', $this->application_id)
             ->where('action_type', 'schedule_approved')
             ->where('metadata->schedule_id', $this->id)
@@ -113,35 +109,35 @@ class ApplicationSchedule extends Model implements HasMedia
             return false;
         }
 
-        $rejectActions = ApplicationAction::where('application_id', $this->application_id)
+        if (ApplicationAction::where('application_id', $this->application_id)
             ->where('action_type', 'schedule_rejected')
-            ->orderByDesc('created_at')
-            ->get();
-
-        foreach ($rejectActions as $action) {
-            $scheduleId = $action->metadata['schedule_id'] ?? null;
-
-            if ($scheduleId !== null && (int) $scheduleId === (int) $this->id) {
-                return true;
-            }
+            ->where('metadata->schedule_id', $this->id)
+            ->exists()) {
+            return true;
         }
 
-        $legacyReject = $rejectActions->first(fn ($action) => empty($action->metadata['schedule_id'] ?? null));
+        $legacyReject = ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'schedule_rejected')
+            ->orderByDesc('created_at')
+            ->get()
+            ->first(fn ($action) => blank(data_get($action->metadata, 'schedule_id')));
 
         if (!$legacyReject) {
             return false;
         }
 
-        $mySubmission = ApplicationAction::where('application_id', $this->application_id)
-            ->where('action_type', 'schedule_submitted')
-            ->where('metadata->schedule_id', $this->id)
-            ->first();
-
-        if ($mySubmission && $mySubmission->created_at > $legacyReject->created_at) {
-            return false;
+        if (static::where('application_id', $this->application_id)
+            ->where('id', '>', $this->id)
+            ->exists()) {
+            return true;
         }
 
-        return $this->created_at <= $legacyReject->created_at;
+        $rejectedScheduleId = static::where('application_id', $this->application_id)
+            ->where('created_at', '<=', $legacyReject->created_at)
+            ->orderByDesc('id')
+            ->value('id');
+
+        return (int) $rejectedScheduleId === (int) $this->id;
     }
 
     /**
@@ -154,9 +150,20 @@ class ApplicationSchedule extends Model implements HasMedia
 
     public static function hasBlockingScheduleFor(int $applicationId): bool
     {
-        return static::where('application_id', $applicationId)
-            ->get()
-            ->contains(fn (self $schedule) => $schedule->blocksNewSubmission());
+        $latest = static::where('application_id', $applicationId)
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$latest) {
+            return false;
+        }
+
+        return $latest->blocksNewSubmission();
+    }
+
+    public static function applicationEligibleForNewSchedule(int $applicationId): bool
+    {
+        return !static::hasBlockingScheduleFor($applicationId);
     }
 
     /**

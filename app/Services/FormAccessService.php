@@ -563,15 +563,29 @@ class FormAccessService
     }
 
     /**
+     * Aplikasi seminar/sidang yang memenuhi syarat status untuk pengajuan jadwal.
+     */
+    private function findScheduleEligibleApplication($mahasiswaId, string $stage): ?Application
+    {
+        return Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', $stage)
+            ->where(function ($query) {
+                $query->whereIn('status', ['approved', 'scheduled'])
+                    ->orWhere(function ($rejectedQuery) {
+                        $rejectedQuery->where('status', 'rejected')
+                            ->whereHas('actions', fn ($action) => $action->where('action_type', 'schedule_rejected'));
+                    });
+            })
+            ->orderByDesc('created_at')
+            ->first();
+    }
+
+    /**
      * Mahasiswa dapat mengajukan jadwal sidang setelah pendaftaran sidang diterima admin.
      */
     public function canAccessDefenseSchedule($mahasiswaId)
     {
-        $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
-            ->where('stage', 'defense')
-            ->where('status', 'approved')
-            ->orderByDesc('created_at')
-            ->first();
+        $defenseApp = $this->findScheduleEligibleApplication($mahasiswaId, 'defense');
 
         if (!$defenseApp) {
             return [
@@ -594,7 +608,7 @@ class FormAccessService
         if (ApplicationSchedule::hasBlockingScheduleFor($defenseApp->id)) {
             return [
                 'allowed' => false,
-                'message' => 'Jadwal sidang sudah diajukan. Pantau status di menu Jadwal.',
+                'message' => 'Jadwal sidang masih menunggu verifikasi admin. Pantau status di menu Jadwal.',
                 'application' => $defenseApp,
             ];
         }
@@ -622,14 +636,9 @@ class FormAccessService
             ];
         }
 
-        $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
-            ->where('stage', 'seminar')
-            ->where('status', 'approved')
-            ->orderByDesc('created_at')
-            ->get()
-            ->first(fn ($app) => !ApplicationSchedule::hasBlockingScheduleFor($app->id));
+        $seminarApp = $this->findScheduleEligibleApplication($mahasiswaId, 'seminar');
 
-        if ($seminarApp) {
+        if ($seminarApp && ApplicationSchedule::applicationEligibleForNewSchedule($seminarApp->id)) {
             return [
                 'allowed' => true,
                 'message' => null,

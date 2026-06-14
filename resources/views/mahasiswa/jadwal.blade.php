@@ -102,6 +102,16 @@
                 </div>
             @endforeach
         </div>
+
+        @if(($scheduleAccess['allowed'] ?? false))
+            <div class="text-center mt-4 mb-4">
+                @can('application_schedule_create')
+                    <a href="{{ route('frontend.application-schedules.create') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-calendar-plus"></i> Ajukan Jadwal Baru
+                    </a>
+                @endcan
+            </div>
+        @endif
     @else
         <div class="card">
             <div class="card-body text-center py-5">

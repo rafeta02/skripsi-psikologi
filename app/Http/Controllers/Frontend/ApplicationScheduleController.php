@@ -40,7 +40,12 @@ class ApplicationScheduleController extends Controller
             $applicationSchedules = collect();
         }
 
-        return view('frontend.applicationSchedules.index', compact('applicationSchedules'));
+        $formAccessService = new FormAccessService();
+        $scheduleAccess = $mahasiswa
+            ? $formAccessService->canAccessApplicationSchedule($mahasiswa->id)
+            : ['allowed' => false, 'message' => null];
+
+        return view('frontend.applicationSchedules.index', compact('applicationSchedules', 'scheduleAccess'));
     }
 
     public function create(Request $request)
@@ -87,7 +92,14 @@ class ApplicationScheduleController extends Controller
 
         if (ApplicationSchedule::hasBlockingScheduleFor($application->id)) {
             return redirect()->route('frontend.application-schedules.index')
-                ->with('error', 'Jadwal masih dalam proses verifikasi. Pantau status di menu Jadwal.');
+                ->with('error', 'Jadwal masih menunggu verifikasi admin. Jika jadwal ditolak, silakan ajukan jadwal baru.');
+        }
+
+        $formAccessService = new FormAccessService();
+        $scheduleAccess = $formAccessService->canAccessApplicationSchedule($mahasiswa->id);
+        if (!($scheduleAccess['allowed'] ?? false) || (int) ($scheduleAccess['application']->id ?? 0) !== (int) $application->id) {
+            return redirect()->route('frontend.application-schedules.create')
+                ->with('error', $scheduleAccess['message'] ?? 'Anda belum dapat mengajukan jadwal saat ini.');
         }
 
         $applicationSchedule = ApplicationSchedule::create($request->only([

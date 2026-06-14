@@ -190,20 +190,13 @@
                 </div>
                 <div class="card-body">
                     @php
-                        $status = $applicationSchedule->application->status ?? 'unknown';
-                        $statusConfig = [
-                            'submitted' => ['badge' => 'info', 'icon' => 'clock', 'text' => 'Menunggu Review'],
-                            'approved' => ['badge' => 'warning', 'icon' => 'calendar-plus', 'text' => 'Menunggu Jadwal'],
-                            'scheduled' => ['badge' => 'success', 'icon' => 'check-circle', 'text' => 'Jadwal Disetujui'],
-                            'rejected' => ['badge' => 'danger', 'icon' => 'times-circle', 'text' => 'Ditolak'],
-                        ];
-                        $config = $statusConfig[$status] ?? ['badge' => 'secondary', 'icon' => 'question', 'text' => 'Unknown'];
+                        $scheduleStatus = $applicationSchedule->adminValidationStatus();
                     @endphp
                     
                     <div class="text-center mb-3">
-                        <span class="badge badge-{{ $config['badge'] }} p-3" style="font-size: 1.2rem;">
-                            <i class="fas fa-{{ $config['icon'] }} mr-2"></i>
-                            {{ $config['text'] }}
+                        <span class="badge badge-{{ $scheduleStatus['badge'] === 'success' ? 'success' : ($scheduleStatus['badge'] === 'danger' ? 'danger' : 'warning') }} p-3" style="font-size: 1.2rem;">
+                            <i class="fas fa-{{ $scheduleStatus['icon'] }} mr-2"></i>
+                            {{ $scheduleStatus['label'] }}
                         </span>
                     </div>
 
@@ -222,9 +215,14 @@
                     </tr>
             </table>
 
-                    @if($applicationSchedule->application && $applicationSchedule->application->notes)
-                        <div class="alert alert-{{ $status === 'rejected' ? 'danger' : 'info' }} mt-3">
-                            <strong><i class="fas fa-{{ $status === 'rejected' ? 'exclamation-triangle' : 'info-circle' }} mr-2"></i>Catatan:</strong>
+                    @if($applicationSchedule->isRejectedByAdmin() && $applicationSchedule->application?->notes)
+                        <div class="alert alert-danger mt-3">
+                            <strong><i class="fas fa-exclamation-triangle mr-2"></i>Alasan Penolakan:</strong>
+                            <p class="mb-0 mt-2">{{ $applicationSchedule->application->notes }}</p>
+                        </div>
+                    @elseif($applicationSchedule->application && $applicationSchedule->application->notes)
+                        <div class="alert alert-info mt-3">
+                            <strong><i class="fas fa-info-circle mr-2"></i>Catatan:</strong>
                             <p class="mb-0 mt-2">{{ $applicationSchedule->application->notes }}</p>
                         </div>
                     @endif
@@ -232,7 +230,7 @@
             </div>
 
             <!-- Action Buttons Card -->
-            @if($applicationSchedule->application && $applicationSchedule->application->status !== 'scheduled' && $applicationSchedule->application->status !== 'rejected')
+            @if(!$applicationSchedule->isApprovedByAdmin() && !$applicationSchedule->isRejectedByAdmin())
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h3 class="card-title mb-0">
