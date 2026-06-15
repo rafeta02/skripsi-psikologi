@@ -18,7 +18,8 @@
     </div>
 
     @php
-        $app = $applicationScore->application_result_defence->application ?? null;
+        $app = $applicationScore->application
+            ?? $applicationScore->application_result_defence?->application;
         $mahasiswa = $app->mahasiswa ?? null;
         $defense = $app->skripsiDefense ?? null;
     @endphp
@@ -61,35 +62,12 @@
                         @csrf
                         @method('PUT')
 
-                        @php
-                            $fields = [
-                                'penulisan' => 'Penulisan',
-                                'isi' => 'Isi',
-                                'analisis' => 'Analisis',
-                                'teoritis' => 'Teoritis',
-                                'faktual' => 'Faktual',
-                                'pemecahan_masalah' => 'Pemecahan Masalah',
-                                'penyampaian' => 'Penyampaian',
-                            ];
-                        @endphp
-
                         <div class="row">
-                            @foreach($fields as $name => $label)
-                                <div class="col-md-6 col-lg-4 mb-3">
-                                    <label class="form-label-modern required" for="{{ $name }}">{{ $label }}</label>
-                                    <input type="number"
-                                           name="{{ $name }}"
-                                           id="{{ $name }}"
-                                           class="form-control-modern score-input @error($name) is-invalid @enderror"
-                                           value="{{ old($name, $applicationScore->$name) }}"
-                                           min="0"
-                                           max="100"
-                                           required>
-                                    @error($name)
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            @endforeach
+                            @include('partials.application-score-component-fields', [
+                                'scoreRecord' => $applicationScore,
+                                'colClass' => 'col-12',
+                                'inputClass' => 'form-control-modern score-input',
+                            ])
                         </div>
 
                         <div class="alert alert-light border mt-3">

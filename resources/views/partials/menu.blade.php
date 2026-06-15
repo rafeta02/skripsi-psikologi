@@ -382,6 +382,15 @@
                                 </a>
                             </li>
                         @endcan
+
+                        @can('application_result_review_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.application-result-reviews.index") }}" class="nav-link {{ request()->is("admin/application-result-reviews") || request()->is("admin/application-result-reviews/*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-clipboard-list"></i>
+                                    <p>Hasil Review Proposal</p>
+                                </a>
+                            </li>
+                        @endcan
                         
                         @can('application_result_defense_access')
                             <li class="nav-item">

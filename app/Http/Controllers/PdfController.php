@@ -54,7 +54,7 @@ class PdfController extends Controller
             ->exists();
 
         if (!$finalized) {
-            abort(403, 'Surat keterangan lulus belum tersedia. Tunggu finalisasi kelulusan oleh admin.');
+            abort(403, 'Rekap nilai belum tersedia. Tunggu finalisasi kelulusan oleh admin.');
         }
     }
 

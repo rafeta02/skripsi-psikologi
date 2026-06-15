@@ -4,14 +4,11 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\MediaUploadingTrait;
-use App\Http\Requests\MassDestroyApplicationResultReviewRequest;
-use App\Http\Requests\StoreApplicationResultReviewRequest;
-use App\Http\Requests\UpdateApplicationResultReviewRequest;
 use App\Models\Application;
 use App\Models\ApplicationResultReview;
+use App\Services\FormAccessService;
 use Gate;
 use Illuminate\Http\Request;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApplicationResultReviewController extends Controller
@@ -22,162 +19,136 @@ class ApplicationResultReviewController extends Controller
     {
         abort_if(Gate::denies('application_result_review_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationResultReviews = ApplicationResultReview::with(['application', 'media'])->get();
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        if (!$mahasiswaId) {
+            return redirect()->route('mahasiswa.dashboard')->with('error', 'Profil mahasiswa tidak ditemukan.');
+        }
 
-        return view('frontend.applicationResultReviews.index', compact('applicationResultReviews'));
+        $applicationIds = Application::where('mahasiswa_id', $mahasiswaId)->pluck('id');
+
+        $applicationResultReviews = ApplicationResultReview::with(['application'])
+            ->whereIn('application_id', $applicationIds)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $formAccessService = new FormAccessService();
+        $canCreate = $formAccessService->canAccessApplicationResultReview($mahasiswaId, true);
+
+        return view('frontend.applicationResultReviews.index', compact('applicationResultReviews', 'canCreate'));
     }
 
     public function create()
     {
         abort_if(Gate::denies('application_result_review_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // Get current mahasiswa's active application
-        $user = auth()->user();
-        $mahasiswa = $user->mahasiswa;
-        
-        if (!$mahasiswa) {
-            return redirect()->back()->with('error', 'Profil mahasiswa tidak ditemukan');
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        if (!$mahasiswaId) {
+            return redirect()->route('mahasiswa.dashboard')->with('error', 'Profil mahasiswa tidak ditemukan.');
         }
 
-        $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)
-            ->whereIn('status', ['submitted', 'approved', 'scheduled'])
-            ->orderBy('created_at', 'desc')
-            ->first();
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessApplicationResultReview($mahasiswaId, true);
 
-        if (!$activeApplication) {
-            return redirect()->back()->with('error', 'Tidak ada aplikasi aktif. Silakan buat aplikasi terlebih dahulu.');
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.application-result-reviews.index')
+                ->with('error', $access['message']);
         }
+
+        $activeApplication = $access['application'];
 
         return view('frontend.applicationResultReviews.create', compact('activeApplication'));
     }
 
-    public function store(StoreApplicationResultReviewRequest $request)
+    public function store(Request $request)
     {
-        $applicationResultReview = ApplicationResultReview::create($request->all());
+        abort_if(Gate::denies('application_result_review_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        foreach ($request->input('form_document', []) as $file) {
-            $applicationResultReview->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($file)),
-                'form_document',
-                'FORM_PENILAIAN'
-            );
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        $formAccessService = new FormAccessService();
+        $access = $formAccessService->canAccessApplicationResultReview($mahasiswaId, true);
+
+        if (!$access['allowed']) {
+            return redirect()->route('frontend.application-result-reviews.index')
+                ->with('error', $access['message']);
         }
 
-        if ($request->input('latest_script', false)) {
-            $applicationResultReview->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
-                'latest_script',
-                'NASKAH'
-            );
+        $validated = $request->validate([
+            'application_id' => 'required|exists:applications,id',
+            'result' => 'required|in:passed,revision,failed',
+            'note' => 'nullable|string',
+            'revision_deadline' => 'nullable|date',
+            'form_document' => 'nullable|array',
+            'form_document.*' => 'file|mimes:pdf|max:10240',
+            'latest_script' => 'nullable|file|mimes:pdf|max:10240',
+        ]);
+
+        if ((int) $validated['application_id'] !== (int) $access['application']->id) {
+            abort(403, 'Aplikasi tidak valid.');
         }
 
-        if ($media = $request->input('ck-media', false)) {
-            Media::whereIn('id', $media)->update(['model_id' => $applicationResultReview->id]);
+        $ownsApplication = Application::where('id', $validated['application_id'])
+            ->where('mahasiswa_id', $mahasiswaId)
+            ->exists();
+
+        if (!$ownsApplication) {
+            abort(403, 'Unauthorized');
         }
 
-        // Update the application stage and status
-        if ($request->input('application_id')) {
-            Application::where('id', $request->input('application_id'))->update([
-                'stage' => 'review',
-                'status' => 'result',
-                'submitted_at' => now(),
-            ]);
+        $applicationResultReview = ApplicationResultReview::create([
+            'application_id' => $validated['application_id'],
+            'result' => $validated['result'],
+            'note' => $validated['note'] ?? null,
+            'revision_deadline' => $validated['revision_deadline'] ?? null,
+        ]);
+
+        if ($request->hasFile('form_document')) {
+            foreach ($request->file('form_document') as $file) {
+                $applicationResultReview->addMedia($file)->toMediaCollection('form_document');
+            }
         }
+
+        if ($request->hasFile('latest_script')) {
+            $applicationResultReview->addMedia($request->file('latest_script'))
+                ->toMediaCollection('latest_script');
+        }
+
+        $applicationResultReview->syncApplicationStatus();
+
+        $message = $validated['result'] === 'passed'
+            ? 'Laporan hasil lulus berhasil dikirim. Menunggu validasi admin sebelum Anda dapat mendaftar sidang skripsi.'
+            : 'Laporan hasil review proposal berhasil dikirim!';
 
         return redirect()->route('frontend.application-result-reviews.index')
-            ->with('success', 'Hasil review proposal berhasil disimpan!');
-    }
-
-    public function edit(ApplicationResultReview $applicationResultReview)
-    {
-        abort_if(Gate::denies('application_result_review_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $applicationResultReview->load('application');
-
-        return view('frontend.applicationResultReviews.edit', compact('applicationResultReview'));
-    }
-
-    public function update(UpdateApplicationResultReviewRequest $request, ApplicationResultReview $applicationResultReview)
-    {
-        $applicationResultReview->update($request->all());
-
-        if (count($applicationResultReview->form_document) > 0) {
-            foreach ($applicationResultReview->form_document as $media) {
-                if (! in_array($media->file_name, $request->input('form_document', []))) {
-                    $media->delete();
-                }
-            }
-        }
-        $media = $applicationResultReview->form_document->pluck('file_name')->toArray();
-        foreach ($request->input('form_document', []) as $file) {
-            if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultReview->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($file)),
-                    'form_document',
-                    'FORM_PENILAIAN'
-                );
-            }
-        }
-
-        if ($request->input('latest_script', false)) {
-            if (! $applicationResultReview->latest_script || $request->input('latest_script') !== $applicationResultReview->latest_script->file_name) {
-                if ($applicationResultReview->latest_script) {
-                    $applicationResultReview->latest_script->delete();
-                }
-                $applicationResultReview->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
-                    'latest_script',
-                    'NASKAH'
-                );
-            }
-        } elseif ($applicationResultReview->latest_script) {
-            $applicationResultReview->latest_script->delete();
-        }
-
-        return redirect()->route('frontend.application-result-reviews.index')
-            ->with('success', 'Hasil review proposal berhasil diperbarui!');
+            ->with('success', $message);
     }
 
     public function show(ApplicationResultReview $applicationResultReview)
     {
         abort_if(Gate::denies('application_result_review_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $this->authorizeOwnership($applicationResultReview);
+
         $applicationResultReview->load('application');
+        $applicationResultReview->syncApplicationStatus();
 
-        return view('frontend.applicationResultReviews.show', compact('applicationResultReview'));
+        $formAccessService = new FormAccessService();
+        $canAccessDefense = $formAccessService->canAccessSkripsiDefense(auth()->user()->mahasiswa_id);
+
+        return view('frontend.applicationResultReviews.show', compact(
+            'applicationResultReview',
+            'canAccessDefense'
+        ));
     }
 
-    public function destroy(ApplicationResultReview $applicationResultReview)
+    protected function authorizeOwnership(ApplicationResultReview $applicationResultReview): void
     {
-        abort_if(Gate::denies('application_result_review_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $mahasiswaId = auth()->user()->mahasiswa_id;
+        $owns = Application::where('id', $applicationResultReview->application_id)
+            ->where('mahasiswa_id', $mahasiswaId)
+            ->exists();
 
-        $applicationResultReview->delete();
-
-        return back()->with('success', 'Hasil review berhasil dihapus!');
-    }
-
-    public function massDestroy(MassDestroyApplicationResultReviewRequest $request)
-    {
-        $applicationResultReviews = ApplicationResultReview::find(request('ids'));
-
-        foreach ($applicationResultReviews as $applicationResultReview) {
-            $applicationResultReview->delete();
+        if (!$owns) {
+            abort(403, 'Unauthorized');
         }
-
-        return response(null, Response::HTTP_NO_CONTENT);
-    }
-
-    public function storeCKEditorImages(Request $request)
-    {
-        abort_if(Gate::denies('application_result_review_create') && Gate::denies('application_result_review_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $model         = new ApplicationResultReview();
-        $model->id     = $request->input('crud_id', 0);
-        $model->exists = true;
-        $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
-
-        return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
     }
 }
-
-

@@ -153,6 +153,9 @@ class SkripsiDefenseController extends Controller
             $table->editColumn('publication_statement', function ($row) {
                 return $row->publication_statement ? '<a href="' . $row->publication_statement->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
             });
+            $table->editColumn('signed_scientific_publication_statement', function ($row) {
+                return $row->signed_scientific_publication_statement ? '<a href="' . $row->signed_scientific_publication_statement->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
+            });
             $table->editColumn('defense_approval_page', function ($row) {
                 if (! $row->defense_approval_page) {
                     return '';
@@ -213,7 +216,7 @@ class SkripsiDefenseController extends Controller
                 return implode(', ', $links);
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'status', 'application_status', 'defence_document', 'plagiarism_report', 'ethics_statement', 'research_instruments', 'data_collection_letter', 'research_module', 'mbkm_recommendation_letter', 'publication_statement', 'defense_approval_page', 'spp_receipt', 'krs_latest', 'eap_certificate', 'transcript', 'mbkm_report', 'research_poster', 'siakad_supervisor_screenshot', 'supervision_logbook']);
+            $table->rawColumns(['actions', 'placeholder', 'application', 'status', 'application_status', 'defence_document', 'plagiarism_report', 'ethics_statement', 'research_instruments', 'data_collection_letter', 'research_module', 'mbkm_recommendation_letter', 'publication_statement', 'signed_scientific_publication_statement', 'defense_approval_page', 'spp_receipt', 'krs_latest', 'eap_certificate', 'transcript', 'mbkm_report', 'research_poster', 'siakad_supervisor_screenshot', 'supervision_logbook']);
 
             return $table->make(true);
         }
@@ -264,6 +267,10 @@ class SkripsiDefenseController extends Controller
 
         if ($request->input('publication_statement', false)) {
             $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('publication_statement'))))->toMediaCollection('publication_statement');
+        }
+
+        if ($request->input('signed_scientific_publication_statement', false)) {
+            $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('signed_scientific_publication_statement'))))->toMediaCollection('signed_scientific_publication_statement');
         }
 
         foreach ($request->input('defense_approval_page', []) as $file) {
@@ -422,6 +429,17 @@ class SkripsiDefenseController extends Controller
             }
         } elseif ($skripsiDefense->publication_statement) {
             $skripsiDefense->publication_statement->delete();
+        }
+
+        if ($request->input('signed_scientific_publication_statement', false)) {
+            if (! $skripsiDefense->signed_scientific_publication_statement || $request->input('signed_scientific_publication_statement') !== $skripsiDefense->signed_scientific_publication_statement->file_name) {
+                if ($skripsiDefense->signed_scientific_publication_statement) {
+                    $skripsiDefense->signed_scientific_publication_statement->delete();
+                }
+                $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('signed_scientific_publication_statement'))))->toMediaCollection('signed_scientific_publication_statement');
+            }
+        } elseif ($skripsiDefense->signed_scientific_publication_statement) {
+            $skripsiDefense->signed_scientific_publication_statement->delete();
         }
 
         if (count($skripsiDefense->defense_approval_page) > 0) {

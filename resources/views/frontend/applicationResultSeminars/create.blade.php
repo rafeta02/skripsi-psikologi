@@ -8,10 +8,10 @@
             <div class="card-modern" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: none;">
                 <div class="card-modern-body" style="padding: 2rem;">
                     <h2 class="mb-1 text-white font-weight-bold">
-                        <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Review Proposal
+                        <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Seminar MBKM
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Laporkan hasil seminar proposal (Skripsi Reguler atau MBKM)
+                        Laporkan hasil seminar MBKM setelah seminar dilaksanakan
                     </p>
                 </div>
             </div>

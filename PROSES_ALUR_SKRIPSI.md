@@ -20,7 +20,7 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 - Admin menetapkan reviewer via `ApplicationAssignment`
 - Mahasiswa mengirim laporan proposal yang sudah disetujui pembimbing ke reviewer
 - Reviewer menilai secara **individual** (tidak ada penjadwalan/seminar bersama)
-- Mahasiswa melaporkan hasil review via `ApplicationResultSeminar`
+- Mahasiswa melaporkan hasil review via `ApplicationResultReview`
 
 ### Skripsi MBKM
 - **ADA seminar MBKM formal**
@@ -84,11 +84,11 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 
 9) Pelaporan Hasil Review Proposal
 - Peran: Mahasiswa
-- Form: `ApplicationResultSeminar` (hasil: `passed`/`revision`/`failed`, dokumen terkait)
+- Form: `ApplicationResultReview` (hasil: `passed`/`revision`/`failed`, dokumen terkait)
 - Catatan: 
   - Jika `revision`: mahasiswa melakukan revisi sesuai masukan reviewer, isi tenggat revisi
   - Jika `failed`: `SkripsiSeminar` dibuka kembali; mahasiswa edit & unggah ulang dokumen; reviewer 1/2 direset; status kembali `submitted` menunggu admin
-  - Jika `passed`: status aplikasi `submitted` menunggu **validasi admin**; setelah admin menyetujui (`result_seminar_approved`), mahasiswa dapat mendaftar sidang (`SkripsiDefense`) dan melanjutkan penelitian
+  - Jika `passed`: status aplikasi `submitted` menunggu **validasi admin**; setelah admin menyetujui (`result_review_approved`), mahasiswa dapat mendaftar sidang (`SkripsiDefense`) dan melanjutkan penelitian
 
 10) Proses Penelitian
 - Peran: Mahasiswa
@@ -102,7 +102,7 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 
 12) Pendaftaran Sidang Skripsi
 - Peran: Mahasiswa
-- Prasyarat: `ApplicationResultSeminar` hasil `passed` sudah divalidasi admin
+- Prasyarat: `ApplicationResultReview` hasil `passed` sudah divalidasi admin
 - Form: `SkripsiDefense` (unggah seluruh persyaratan: draft skripsi, bukti bimbingan, dll.)
 - Keputusan: Admin verifikasi
   - Setujui: lanjut penetapan penguji
@@ -120,17 +120,33 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
   - Setujui: sidang dilaksanakan
   - Tolak: reschedule/unggah ulang `ApplicationSchedule`
 
-15) Pelaksanaan dan Unggah Hasil Sidang Skripsi
-- Peran: Mahasiswa
-- Form: `ApplicationResultDefense` (hasil: `passed`/`revision`/`failed`, berita acara, naskah final, lampiran lengkap)
-- Percabangan:
-  - `failed`: ulang dari pendaftaran `SkripsiDefense`
-  - `revision`/`passed`: lengkapi semua dokumen di `ApplicationResultDefense`
+15) Pelaksanaan Sidang Skripsi
+- Peran: Mahasiswa, Dosen Penguji, Dosen Pembimbing
+- Kegiatan: Sidang skripsi dilaksanakan sesuai jadwal yang disetujui admin
 
 16) Penilaian Sidang
-- Peran: Admin (trigger/assign dosen mengisi nilai), Dosen Penguji + Pembimbing
-- Form: `ApplicationScore` (tautan ke `ApplicationResultDefense`, isi skor dan catatan)
+- Peran: Dosen Penguji + Dosen Pembimbing
+- Form: `ApplicationScore` (isi skor dan catatan)
+- Prasyarat: Jadwal sidang sudah disetujui admin dan waktu sidang sudah lewat
+- Output: Nilai dari setiap penilai tersimpan; mahasiswa dapat melanjutkan setelah semua penilai selesai
+
+17) Pelaporan Hasil Sidang Skripsi
+- Peran: Mahasiswa
+- Prasyarat: Semua dosen pembimbing dan penguji telah menyelesaikan penilaian (`ApplicationScore`)
+- Form: `ApplicationResultDefense` (hasil sidang skripsi):
+  - `passed` — Lulus tanpa revisi
+  - `revision` — Lulus dengan revisi
+  - `failed` — Tidak Lulus
+- Lampiran: berita acara, daftar hadir, naskah final, dll.
+- Percabangan:
+  - `failed`: ulang dari pendaftaran `SkripsiDefense`
+  - `revision`/`passed`: lengkapi dokumen; admin validasi laporan hasil
+
+18) Finalisasi Kelulusan
+- Peran: Admin
+- Kegiatan: Validasi laporan hasil sidang dan finalisasi kelulusan
 - Output: Nilai akhir mahasiswa tersimpan dan proses skripsi selesai
+- Nomor dokumen rekap nilai: `PSI/TA/{urut per tahun}/{bulan}/{2 digit tahun}` (contoh: `PSI/TA/001/06/25`)
 ---
 
 ## Alur 2 — Skripsi MBKM

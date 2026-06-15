@@ -53,39 +53,81 @@
                             </div>
 
                             <h5 class="section-title">1. Hasil Sidang <span class="text-danger">*</span></h5>
+                            <p class="text-muted small mb-2">Isi setelah semua dosen menyelesaikan penilaian sidang.</p>
                             <div class="form-group">
                                 <select name="result" id="resultSelect" class="form-control-modern @error('result') is-invalid @enderror" required>
                                     <option value="">-- Pilih Hasil Sidang --</option>
-                                    <option value="passed" {{ old('result') == 'passed' ? 'selected' : '' }}>Lulus</option>
-                                    <option value="revision" {{ old('result') == 'revision' ? 'selected' : '' }}>Revisi</option>
+                                    <option value="passed" {{ old('result') == 'passed' ? 'selected' : '' }}>Lulus tanpa revisi</option>
+                                    <option value="revision" {{ old('result') == 'revision' ? 'selected' : '' }}>Lulus dengan revisi</option>
                                     <option value="failed" {{ old('result') == 'failed' ? 'selected' : '' }}>Tidak Lulus</option>
                                 </select>
                                 @error('result')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
 
                             <div class="section-divider">
-                                <h5 class="section-title required-docs">2. Dokumen Wajib</h5>
+                                <h5 class="section-title required-docs">2. Data &amp; Dokumen Wajib</h5>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label-modern required">Berita Acara Sidang (PDF)</label>
-                                <input type="file" name="report_document[]" class="form-control-file @error('report_document') is-invalid @enderror" accept=".pdf" multiple required>
-                                <small class="text-muted">Bisa lebih dari satu file. Maks. 10 MB per file.</small>
-                                @error('report_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                <label class="form-label-modern required">Judul Akhir Skripsi</label>
+                                <input type="text" name="final_title" class="form-control-modern @error('final_title') is-invalid @enderror" value="{{ old('final_title') }}" required maxlength="500">
+                                @error('final_title')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label-modern required">Daftar Hadir Sidang (PDF)</label>
-                                <input type="file" name="attendance_document" class="form-control-file @error('attendance_document') is-invalid @enderror" accept=".pdf" required>
+                                <label class="form-label-modern">Form Penggantian Judul Skripsi (PDF)</label>
+                                <input type="file" name="title_change_form" class="form-control-file @error('title_change_form') is-invalid @enderror" accept=".pdf">
+                                <small class="text-muted">Opsional — unggah jika ada pergantian judul. Maks. 10 MB.</small>
+                                @error('title_change_form')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">Berita Acara dan Lampirannya (PDF)</label>
+                                <input type="file" name="minutes_document" class="form-control-file @error('minutes_document') is-invalid @enderror" accept=".pdf" required>
                                 <small class="text-muted">Maks. 10 MB.</small>
-                                @error('attendance_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                @error('minutes_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">Naskah Skripsi yang Telah Direvisi dan Disahkan (PDF)</label>
+                                <input type="file" name="latest_script" class="form-control-file @error('latest_script') is-invalid @enderror" accept=".pdf" required>
+                                <small class="text-muted">Maks. 20 MB.</small>
+                                @error('latest_script')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">Dokumentasi Sidang (PDF/Gambar)</label>
+                                <input type="file" name="documentation[]" class="form-control-file @error('documentation') is-invalid @enderror" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                                <small class="text-muted">Bisa lebih dari satu file. Maks. 10 MB per file.</small>
+                                @error('documentation')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">Lembar Pengesahan (PDF)</label>
+                                <input type="file" name="approval_page" class="form-control-file @error('approval_page') is-invalid @enderror" accept=".pdf" required>
+                                <small class="text-muted">Maks. 10 MB.</small>
+                                @error('approval_page')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">Berkas Undangan Sidang (PDF)</label>
+                                <input type="file" name="invitation_document[]" class="form-control-file @error('invitation_document') is-invalid @enderror" accept=".pdf" multiple required>
+                                <small class="text-muted">Bisa lebih dari satu file. Maks. 10 MB per file.</small>
+                                @error('invitation_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">Umpan Balik Sidang Semua Pembimbing dan Penguji (PDF)</label>
+                                <input type="file" name="feedback_document[]" class="form-control-file @error('feedback_document') is-invalid @enderror" accept=".pdf" multiple required>
+                                <small class="text-muted">Bisa lebih dari satu file. Maks. 10 MB per file.</small>
+                                @error('feedback_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
 
                             <div id="revisionDocsSection" class="d-none">
                                 <div class="form-group">
-                                    <label class="form-label-modern required">Lembar Persetujuan Revisi (PDF)</label>
-                                    <input type="file" name="revision_approval_sheet[]" id="revisionApprovalSheet" class="form-control-file @error('revision_approval_sheet') is-invalid @enderror" accept=".pdf" multiple>
-                                    <small class="text-muted">Wajib jika hasil sidang Revisi.</small>
+                                    <label class="form-label-modern required">Lembar Persetujuan Hasil Revisi (PDF)</label>
+                                    <input type="file" name="revision_approval_sheet" id="revisionApprovalSheet" class="form-control-file @error('revision_approval_sheet') is-invalid @enderror" accept=".pdf">
+                                    <small class="text-muted">Wajib jika hasil sidang lulus dengan revisi.</small>
                                     @error('revision_approval_sheet')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                 </div>
                             </div>
@@ -104,43 +146,6 @@
                                 <label class="form-label-modern required">Batas Waktu Revisi</label>
                                 <input type="date" name="revision_deadline" class="form-control-modern @error('revision_deadline') is-invalid @enderror" value="{{ old('revision_deadline') }}" min="{{ date('Y-m-d') }}">
                                 @error('revision_deadline')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="section-divider">
-                                <h5 class="section-title optional-docs">4. Dokumen Tambahan (Opsional)</h5>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label-modern">Naskah Skripsi Final (PDF)</label>
-                                <input type="file" name="latest_script" class="form-control-file @error('latest_script') is-invalid @enderror" accept=".pdf">
-                                <small class="text-muted">Naskah setelah sidang. Maks. 20 MB.</small>
-                                @error('latest_script')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label-modern">Form Penilaian Penguji (PDF)</label>
-                                <input type="file" name="form_document[]" class="form-control-file @error('form_document') is-invalid @enderror" accept=".pdf" multiple>
-                                <small class="text-muted">Form penilaian dari masing-masing penguji.</small>
-                                @error('form_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label-modern">Dokumentasi Sidang (PDF/Gambar)</label>
-                                <input type="file" name="documentation[]" class="form-control-file @error('documentation') is-invalid @enderror" accept=".pdf,.jpg,.jpeg,.png" multiple>
-                                <small class="text-muted">Foto atau lampiran dokumentasi pelaksanaan sidang.</small>
-                                @error('documentation')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label-modern">Lembar Pengesahan / Sertifikat (PDF)</label>
-                                <input type="file" name="certificate_document" class="form-control-file @error('certificate_document') is-invalid @enderror" accept=".pdf">
-                                @error('certificate_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label-modern">Bukti Publikasi / Pernyataan Publikasi (PDF)</label>
-                                <input type="file" name="publication_document" class="form-control-file @error('publication_document') is-invalid @enderror" accept=".pdf">
-                                @error('publication_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
 
                             <div class="d-flex justify-content-between mt-4">

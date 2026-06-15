@@ -164,18 +164,30 @@ class ApplicationResultReviewController extends Controller
     {
         $resultReview = ApplicationResultReview::with('application')->findOrFail($id);
 
+        if ($resultReview->result !== 'passed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi admin hanya untuk laporan dengan hasil lulus (passed).',
+            ], 422);
+        }
+
+        $alreadyValidated = ApplicationAction::where('application_id', $resultReview->application_id)
+            ->where('action_type', 'result_review_approved')
+            ->exists();
+
+        if ($alreadyValidated) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Laporan hasil review ini sudah divalidasi.',
+            ], 422);
+        }
+
         $request->validate([
             'notes' => 'nullable|string',
         ]);
 
         try {
             DB::transaction(function () use ($resultReview, $request) {
-                // Update application status
-                $resultReview->application->update([
-                    'status' => 'approved',
-                ]);
-
-                // Log action
                 ApplicationAction::create([
                     'application_id' => $resultReview->application_id,
                     'action_type' => 'result_review_approved',
@@ -186,6 +198,8 @@ class ApplicationResultReviewController extends Controller
                         'result' => $resultReview->result,
                     ],
                 ]);
+
+                $resultReview->syncApplicationStatus();
             });
 
             return response()->json([
@@ -213,13 +227,10 @@ class ApplicationResultReviewController extends Controller
 
         try {
             DB::transaction(function () use ($resultReview, $request) {
-                // Update application status
                 $resultReview->application->update([
-                    'status' => 'rejected',
                     'notes' => $request->reason,
                 ]);
 
-                // Log action
                 ApplicationAction::create([
                     'application_id' => $resultReview->application_id,
                     'action_type' => 'result_review_rejected',
@@ -230,6 +241,8 @@ class ApplicationResultReviewController extends Controller
                         'result' => $resultReview->result,
                     ],
                 ]);
+
+                $resultReview->syncApplicationStatus();
             });
 
             return response()->json([

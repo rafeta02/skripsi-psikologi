@@ -31,62 +31,12 @@
                             {{ $applicationScore->examiner->nama ?? '' }}
                         </td>
                     </tr>
+                    @foreach(\App\Models\ApplicationScore::scoreComponentLabels() as $field => $label)
                     <tr>
-                        <th>
-                            Penulisan
-                        </th>
-                        <td>
-                            {{ $applicationScore->penulisan }}
-                        </td>
+                        <th>{{ $label }}</th>
+                        <td>{{ $applicationScore->$field }}</td>
                     </tr>
-                    <tr>
-                        <th>
-                            Isi
-                        </th>
-                        <td>
-                            {{ $applicationScore->isi }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            Analisis
-                        </th>
-                        <td>
-                            {{ $applicationScore->analisis }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            Teoritis
-                        </th>
-                        <td>
-                            {{ $applicationScore->teoritis }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            Faktual
-                        </th>
-                        <td>
-                            {{ $applicationScore->faktual }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            Pemecahan Masalah
-                        </th>
-                        <td>
-                            {{ $applicationScore->pemecahan_masalah }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            Penyampaian
-                        </th>
-                        <td>
-                            {{ $applicationScore->penyampaian }}
-                        </td>
-                    </tr>
+                    @endforeach
                     <tr>
                         <th>
                             Sum

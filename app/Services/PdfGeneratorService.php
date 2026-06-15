@@ -16,6 +16,11 @@ use Carbon\Carbon;
 
 class PdfGeneratorService
 {
+    public function __construct(
+        private readonly ThesisTranscriptDocumentNumberService $transcriptDocumentNumberService
+    ) {
+    }
+
     /**
      * Generate Surat Tugas (Assignment Letter) PDF
      * For Pembimbing, Reviewer, or Examiner
@@ -289,32 +294,51 @@ class PdfGeneratorService
      */
     public function generateTranskripNilai(Application $application)
     {
-        $defenseResult = ApplicationResultDefense::where('application_id', $application->id)
-            ->with(['scores.examiner'])
-            ->first();
-
-        $scores = $defenseResult ? $defenseResult->scores->filter(fn ($s) => $s->score !== null) : collect();
+        $defenseResult = ApplicationResultDefense::where('application_id', $application->id)->first();
 
         $averageScore = $defenseResult ? (float) $defenseResult->final_score : 0;
-        $finalGrade = $defenseResult ? (string) ($defenseResult->final_grade_letter ?? $this->calculateGradeLetter($averageScore)) : $this->calculateGradeLetter($averageScore);
 
         $pembimbing = $this->resolveSupervisorForMahasiswa($application);
+
+        $application->loadMissing('assignments.lecturer');
+
+        $examiners = $application->assignments
+            ->where('role', 'examiner')
+            ->take(2)
+            ->pluck('lecturer')
+            ->filter()
+            ->values();
 
         // Get defense info
         $defense = SkripsiDefense::where('application_id', $application->id)->first();
 
+        $defenseSchedule = ApplicationSchedule::where('application_id', $application->id)
+            ->where('schedule_type', 'skripsi_defense')
+            ->where('status', 'approved')
+            ->orderByDesc('scheduled_at')
+            ->first();
+
+        $defenseDate = $defenseSchedule?->scheduled_at
+            ? $this->formatDate($defenseSchedule->scheduled_at)
+            : ($defense ? $this->formatDate($defense->created_at) : $this->formatDate(now()));
+
+        $documentNumber = $application->transcript_document_number;
+        if (!$documentNumber && $defenseResult && $defenseResult->isFinalizedByAdmin()) {
+            $documentNumber = $this->transcriptDocumentNumberService->assign($application);
+        }
+
         $data = [
-            'documentNumber' => $this->generateDocumentNumber('TN', $application),
+            'documentNumber' => $documentNumber ?? '-',
             'date' => $this->formatDate(now()),
             'application' => $application,
             'mahasiswa' => $application->mahasiswa,
             'prodi' => $application->mahasiswa->prodi,
             'pembimbing' => $pembimbing,
+            'examiners' => $examiners,
             'defense' => $defense,
-            'scores' => $scores,
+            'finalTitle' => $defenseResult?->final_title,
             'averageScore' => round($averageScore, 2),
-            'finalGrade' => $finalGrade,
-            'graduationDate' => $defense ? $this->formatDate($defense->created_at) : $this->formatDate(now()),
+            'defenseDate' => $defenseDate,
         ];
 
         $pdf = Pdf::loadView('pdf.mahasiswa.transkrip-nilai', $data);
@@ -398,7 +422,7 @@ class PdfGeneratorService
             'kartu-bimbingan' => "Kartu_Bimbingan_{$model->mahasiswa->nim}_{$timestamp}.pdf",
             'formulir-seminar' => "Formulir_Seminar_{$model->application->mahasiswa->nim}_{$timestamp}.pdf",
             'formulir-sidang' => "Formulir_Sidang_{$model->application->mahasiswa->nim}_{$timestamp}.pdf",
-            'transkrip-nilai' => "Transkrip_Nilai_Skripsi_{$model->mahasiswa->nim}_{$timestamp}.pdf",
+            'transkrip-nilai' => "Nilai_Skripsi_{$model->mahasiswa->nim}_{$timestamp}.pdf",
             'surat-keterangan-lulus' => "Surat_Keterangan_Lulus_{$model->mahasiswa->nim}_{$timestamp}.pdf",
             default => "Document_{$timestamp}.pdf",
         };

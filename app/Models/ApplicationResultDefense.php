@@ -27,36 +27,31 @@ class ApplicationResultDefense extends Model implements HasMedia
     ];
 
     public const RESULT_SELECT = [
-        'passed'   => 'Passed',
-        'revision' => 'Revision',
-        'failed'   => 'Failed',
+        'passed'   => 'Lulus tanpa revisi',
+        'revision' => 'Lulus dengan revisi',
+        'failed'   => 'Tidak Lulus',
     ];
 
     protected $fillable = [
         'application_id',
+        'final_title',
         'result',
         'note',
         'revision_deadline',
-        'final_grade',
-        'final_grade_letter',
         'created_at',
         'updated_at',
         'deleted_at',
     ];
 
     protected $appends = [
-        'documentation',
-        'invitation_document',
-        'feedback_document',
+        'title_change_form',
         'minutes_document',
         'latest_script',
+        'documentation',
         'approval_page',
-        'report_document',
+        'invitation_document',
+        'feedback_document',
         'revision_approval_sheet',
-        'attendance_document',
-        'form_document',
-        'certificate_document',
-        'publication_document',
     ];
 
     protected function serializeDate(DateTimeInterface $date)
@@ -121,12 +116,10 @@ class ApplicationResultDefense extends Model implements HasMedia
         }
 
         $completed = $this->scores()->whereNotNull('score')->count();
+
         return $completed === $total;
     }
 
-    /**
-     * Keep applications.status aligned with laporan hasil sidang (not defense registration approval).
-     */
     public function syncApplicationStatus(): void
     {
         if (!$this->application) {
@@ -167,51 +160,19 @@ class ApplicationResultDefense extends Model implements HasMedia
         return '<span class="badge badge-warning badge-lg">Menunggu Validasi Admin</span>';
     }
 
-    /**
-     * Dosen pembimbing (registration) + penguji sidang (SkripsiDefense).
-     *
-     * @return array<int>
-     */
     public function getScorerDosenIds(): array
     {
-        $application = $this->application;
-        if (!$application) {
+        if (!$this->application) {
             return [];
         }
 
-        $ids = [];
-
-        $regApp = Application::where('mahasiswa_id', $application->mahasiswa_id)
-            ->where('type', $application->type)
-            ->where('stage', 'registration')
-            ->orderByDesc('created_at')
-            ->first();
-
-        if ($regApp) {
-            $supervisorIds = ApplicationAssignment::where('application_id', $regApp->id)
-                ->where('role', 'supervisor')
-                ->where('status', 'accepted')
-                ->pluck('lecturer_id')
-                ->all();
-            $ids = array_merge($ids, $supervisorIds);
-        }
-
-        $skripsiDefense = SkripsiDefense::where('application_id', $application->id)->first();
-        if ($skripsiDefense) {
-            $examinerIds = $skripsiDefense->examiners()->pluck('dosen_id')->all();
-            $ids = array_merge($ids, $examinerIds);
-        }
-
-        return array_values(array_unique(array_filter($ids)));
+        return app(\App\Services\DefenseScoringService::class)
+            ->getScorerDosenIds($this->application);
     }
 
-    /**
-     * Buat record ApplicationScore kosong untuk setiap penilai setelah admin memvalidasi.
-     * Tidak berlaku untuk hasil failed — mahasiswa mendaftar ulang sidang.
-     */
     public function provisionScoreAssignments(): void
     {
-        if ($this->result === 'failed') {
+        if ($this->result === 'failed' || !$this->application) {
             return;
         }
 
@@ -221,14 +182,13 @@ class ApplicationResultDefense extends Model implements HasMedia
                     'application_result_defence_id' => $this->id,
                     'examiner_id' => $dosenId,
                 ],
-                []
+                [
+                    'application_id' => $this->application_id,
+                ]
             );
         }
     }
 
-    /**
-     * Calculate average score for each examiner
-     */
     public function getExaminerScoresAttribute()
     {
         return $this->scores()
@@ -244,16 +204,15 @@ class ApplicationResultDefense extends Model implements HasMedia
                     $score->pemecahan_masalah,
                     $score->penyampaian,
                 ];
-                
-                // Filter out null values
+
                 $validComponents = array_filter($components, function ($value) {
                     return $value !== null;
                 });
-                
-                $average = count($validComponents) > 0 
-                    ? array_sum($validComponents) / count($validComponents) 
+
+                $average = count($validComponents) > 0
+                    ? array_sum($validComponents) / count($validComponents)
                     : 0;
-                
+
                 return [
                     'examiner' => $score->examiner,
                     'components' => [
@@ -273,33 +232,27 @@ class ApplicationResultDefense extends Model implements HasMedia
             });
     }
 
-    /**
-     * Calculate final score (average of all examiners' scores)
-     */
     public function getFinalScoreAttribute()
     {
         $scores = $this->scores()->get();
-        
+
         if ($scores->isEmpty()) {
             return 0;
         }
-        
+
         $totalScore = 0;
         $count = 0;
-        
+
         foreach ($scores as $score) {
             if ($score->score !== null) {
                 $totalScore += $score->score;
                 $count++;
             }
         }
-        
+
         return $count > 0 ? round($totalScore / $count, 2) : 0;
     }
 
-    /**
-     * Convert numeric score to letter grade
-     */
     public static function convertScoreToGrade($score)
     {
         if ($score >= 85) {
@@ -316,14 +269,11 @@ class ApplicationResultDefense extends Model implements HasMedia
             return 'C';
         } elseif ($score >= 55) {
             return 'D';
-        } else {
-            return 'E';
         }
+
+        return 'E';
     }
 
-    /**
-     * Get grade description
-     */
     public static function getGradeDescription($grade)
     {
         $descriptions = [
@@ -336,23 +286,13 @@ class ApplicationResultDefense extends Model implements HasMedia
             'D' => 'Kurang (55-59)',
             'E' => 'Sangat Kurang (< 55)',
         ];
-        
+
         return $descriptions[$grade] ?? '';
     }
 
-    /**
-     * Get final grade letter (auto-calculated from final_score)
-     */
-    public function getFinalGradeLetterAttribute($value)
+    public function getFinalGradeLetterAttribute()
     {
-        // If manually set, return it
-        if ($value) {
-            return $value;
-        }
-        
-        // Otherwise, calculate from final_score
-        $finalScore = $this->final_score;
-        return self::convertScoreToGrade($finalScore);
+        return self::convertScoreToGrade($this->final_score);
     }
 
     public function getRevisionDeadlineAttribute($value)
@@ -365,19 +305,9 @@ class ApplicationResultDefense extends Model implements HasMedia
         $this->attributes['revision_deadline'] = $value ? Carbon::createFromFormat(config('panel.date_format'), $value)->format('Y-m-d') : null;
     }
 
-    public function getDocumentationAttribute()
+    public function getTitleChangeFormAttribute()
     {
-        return $this->getMedia('documentation');
-    }
-
-    public function getInvitationDocumentAttribute()
-    {
-        return $this->getMedia('invitation_document');
-    }
-
-    public function getFeedbackDocumentAttribute()
-    {
-        return $this->getMedia('feedback_document');
+        return $this->getMedia('title_change_form')->last();
     }
 
     public function getMinutesDocumentAttribute()
@@ -390,38 +320,28 @@ class ApplicationResultDefense extends Model implements HasMedia
         return $this->getMedia('latest_script')->last();
     }
 
+    public function getDocumentationAttribute()
+    {
+        return $this->getMedia('documentation');
+    }
+
     public function getApprovalPageAttribute()
     {
         return $this->getMedia('approval_page')->last();
     }
 
-    public function getReportDocumentAttribute()
+    public function getInvitationDocumentAttribute()
     {
-        return $this->getMedia('report_document');
+        return $this->getMedia('invitation_document');
+    }
+
+    public function getFeedbackDocumentAttribute()
+    {
+        return $this->getMedia('feedback_document');
     }
 
     public function getRevisionApprovalSheetAttribute()
     {
-        return $this->getMedia('revision_approval_sheet');
-    }
-
-    public function getAttendanceDocumentAttribute()
-    {
-        return $this->getMedia('attendance_document')->last();
-    }
-
-    public function getFormDocumentAttribute()
-    {
-        return $this->getMedia('form_document');
-    }
-
-    public function getCertificateDocumentAttribute()
-    {
-        return $this->getMedia('certificate_document')->last();
-    }
-
-    public function getPublicationDocumentAttribute()
-    {
-        return $this->getMedia('publication_document')->last();
+        return $this->getMedia('revision_approval_sheet')->last();
     }
 }

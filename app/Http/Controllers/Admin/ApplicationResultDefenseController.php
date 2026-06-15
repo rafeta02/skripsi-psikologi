@@ -11,6 +11,7 @@ use App\Models\Application;
 use App\Models\ApplicationAction;
 use App\Models\ApplicationResultDefense;
 use App\Models\ApplicationScore;
+use App\Services\ThesisTranscriptDocumentNumberService;
 use Gate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,11 @@ use Yajra\DataTables\Facades\DataTables;
 class ApplicationResultDefenseController extends Controller
 {
     use MediaUploadingTrait;
+
+    public function __construct(
+        private readonly ThesisTranscriptDocumentNumberService $transcriptDocumentNumberService
+    ) {
+    }
 
     public function index(Request $request)
     {
@@ -56,6 +62,10 @@ class ApplicationResultDefenseController extends Controller
                 return $row->result ? ApplicationResultDefense::RESULT_SELECT[$row->result] : '';
             });
 
+            $table->editColumn('final_title', function ($row) {
+                return $row->final_title ?? '';
+            });
+
             $table->editColumn('invitation_document', function ($row) {
                 if (! $row->invitation_document) {
                     return '';
@@ -87,30 +97,14 @@ class ApplicationResultDefenseController extends Controller
             $table->editColumn('approval_page', function ($row) {
                 return $row->approval_page ? '<a href="' . $row->approval_page->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
             });
-            $table->editColumn('report_document', function ($row) {
-                if (! $row->report_document) {
-                    return '';
-                }
-                $links = [];
-                foreach ($row->report_document as $media) {
-                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>';
-                }
-
-                return implode(', ', $links);
-            });
             $table->editColumn('revision_approval_sheet', function ($row) {
-                if (! $row->revision_approval_sheet) {
-                    return '';
-                }
-                $links = [];
-                foreach ($row->revision_approval_sheet as $media) {
-                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>';
-                }
-
-                return implode(', ', $links);
+                return $row->revision_approval_sheet ? '<a href="' . $row->revision_approval_sheet->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
+            });
+            $table->editColumn('title_change_form', function ($row) {
+                return $row->title_change_form ? '<a href="' . $row->title_change_form->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'invitation_document', 'feedback_document', 'minutes_document', 'latest_script', 'approval_page', 'report_document', 'revision_approval_sheet']);
+            $table->rawColumns(['actions', 'placeholder', 'application', 'invitation_document', 'feedback_document', 'minutes_document', 'latest_script', 'approval_page', 'title_change_form', 'revision_approval_sheet']);
 
             return $table->make(true);
         }
@@ -173,16 +167,16 @@ class ApplicationResultDefenseController extends Controller
             );
         }
 
-        foreach ($request->input('report_document', []) as $file) {
+        if ($request->input('title_change_form', false)) {
             $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($file)),
-                'report_document'
+                storage_path('tmp/uploads/' . basename($request->input('title_change_form'))),
+                'title_change_form'
             );
         }
 
-        foreach ($request->input('revision_approval_sheet', []) as $file) {
+        if ($request->input('revision_approval_sheet', false)) {
             $applicationResultDefense->addMediaWithCustomName(
-                storage_path('tmp/uploads/' . basename($file)),
+                storage_path('tmp/uploads/' . basename($request->input('revision_approval_sheet'))),
                 'revision_approval_sheet'
             );
         }
@@ -302,38 +296,32 @@ class ApplicationResultDefenseController extends Controller
             $applicationResultDefense->approval_page->delete();
         }
 
-        if (count($applicationResultDefense->report_document) > 0) {
-            foreach ($applicationResultDefense->report_document as $media) {
-                if (! in_array($media->file_name, $request->input('report_document', []))) {
-                    $media->delete();
+        if ($request->input('title_change_form', false)) {
+            if (! $applicationResultDefense->title_change_form || $request->input('title_change_form') !== $applicationResultDefense->title_change_form->file_name) {
+                if ($applicationResultDefense->title_change_form) {
+                    $applicationResultDefense->title_change_form->delete();
                 }
-            }
-        }
-        $media = $applicationResultDefense->report_document->pluck('file_name')->toArray();
-        foreach ($request->input('report_document', []) as $file) {
-            if (count($media) === 0 || ! in_array($file, $media)) {
                 $applicationResultDefense->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($file)),
-                    'report_document'
+                    storage_path('tmp/uploads/' . basename($request->input('title_change_form'))),
+                    'title_change_form'
                 );
             }
+        } elseif ($applicationResultDefense->title_change_form) {
+            $applicationResultDefense->title_change_form->delete();
         }
 
-        if (count($applicationResultDefense->revision_approval_sheet) > 0) {
-            foreach ($applicationResultDefense->revision_approval_sheet as $media) {
-                if (! in_array($media->file_name, $request->input('revision_approval_sheet', []))) {
-                    $media->delete();
+        if ($request->input('revision_approval_sheet', false)) {
+            if (! $applicationResultDefense->revision_approval_sheet || $request->input('revision_approval_sheet') !== $applicationResultDefense->revision_approval_sheet->file_name) {
+                if ($applicationResultDefense->revision_approval_sheet) {
+                    $applicationResultDefense->revision_approval_sheet->delete();
                 }
-            }
-        }
-        $media = $applicationResultDefense->revision_approval_sheet->pluck('file_name')->toArray();
-        foreach ($request->input('revision_approval_sheet', []) as $file) {
-            if (count($media) === 0 || ! in_array($file, $media)) {
                 $applicationResultDefense->addMediaWithCustomName(
-                    storage_path('tmp/uploads/' . basename($file)),
+                    storage_path('tmp/uploads/' . basename($request->input('revision_approval_sheet'))),
                     'revision_approval_sheet'
                 );
             }
+        } elseif ($applicationResultDefense->revision_approval_sheet) {
+            $applicationResultDefense->revision_approval_sheet->delete();
         }
 
         return redirect()->route('admin.application-result-defenses.index');
@@ -383,7 +371,9 @@ class ApplicationResultDefenseController extends Controller
                 ]);
 
                 if (in_array($resultDefense->result, ['passed', 'revision'], true)) {
-                    $resultDefense->provisionScoreAssignments();
+                    if ($resultDefense->scores()->count() === 0) {
+                        $resultDefense->provisionScoreAssignments();
+                    }
                 } elseif ($resultDefense->result === 'failed') {
                     ApplicationScore::where('application_result_defence_id', $resultDefense->id)->delete();
                 }
@@ -392,7 +382,8 @@ class ApplicationResultDefenseController extends Controller
             });
 
             $message = match ($resultDefense->result) {
-                'passed', 'revision' => 'Laporan hasil sidang divalidasi. Form penilaian telah dikirim ke dosen pembimbing dan penguji.',
+                'passed' => 'Laporan hasil sidang (lulus tanpa revisi) divalidasi.',
+                'revision' => 'Laporan hasil sidang (lulus dengan revisi) divalidasi.',
                 'failed' => 'Laporan hasil sidang (tidak lulus) divalidasi. Mahasiswa dapat mendaftar ulang sidang skripsi.',
                 default => 'Laporan hasil sidang divalidasi.',
             };
@@ -474,11 +465,13 @@ class ApplicationResultDefenseController extends Controller
                         'notes' => $request->notes ?? $resultDefense->application->notes,
                     ]);
                 }
+
+                $this->transcriptDocumentNumberService->assign($resultDefense->application->fresh());
             });
 
             return response()->json([
                 'success' => true,
-                'message' => 'Kelulusan difinalisasi. Mahasiswa dapat mengunduh surat keterangan lulus dan rekap nilai.',
+                'message' => 'Kelulusan difinalisasi. Mahasiswa dapat mengunduh rekap nilai.',
             ]);
         } catch (\Exception $e) {
             return response()->json([

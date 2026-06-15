@@ -40,6 +40,7 @@ class ApplicationResultReview extends Model implements HasMedia
     protected $fillable = [
         'application_id',
         'result',
+        'note',
         'revision_deadline',
         'created_at',
         'updated_at',
@@ -60,6 +61,43 @@ class ApplicationResultReview extends Model implements HasMedia
     public function application()
     {
         return $this->belongsTo(Application::class, 'application_id');
+    }
+
+    public function isValidatedByAdmin(): bool
+    {
+        return ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'result_review_approved')
+            ->exists();
+    }
+
+    public function isRejectedByAdmin(): bool
+    {
+        return ApplicationAction::where('application_id', $this->application_id)
+            ->where('action_type', 'result_review_rejected')
+            ->exists();
+    }
+
+    public function syncApplicationStatus(): void
+    {
+        if (!$this->application) {
+            return;
+        }
+
+        if ($this->isRejectedByAdmin()) {
+            $status = 'rejected';
+        } else {
+            $status = match ($this->result) {
+                'passed' => $this->isValidatedByAdmin() ? 'approved' : 'submitted',
+                'revision' => 'revision',
+                'failed' => 'rejected',
+                default => $this->application->status,
+            };
+        }
+
+        if ($this->application->status !== $status) {
+            $this->application->update(['status' => $status]);
+            $this->application->refresh();
+        }
     }
 
     public function getRevisionDeadlineAttribute($value)

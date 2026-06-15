@@ -586,6 +586,26 @@ class PermissionsTableSeeder extends Seeder
                 'id'    => 144,
                 'title' => 'profile_password_edit',
             ],
+            [
+                'id'    => 145,
+                'title' => 'application_result_review_create',
+            ],
+            [
+                'id'    => 146,
+                'title' => 'application_result_review_edit',
+            ],
+            [
+                'id'    => 147,
+                'title' => 'application_result_review_show',
+            ],
+            [
+                'id'    => 148,
+                'title' => 'application_result_review_delete',
+            ],
+            [
+                'id'    => 149,
+                'title' => 'application_result_review_access',
+            ],
         ];
 
         Permission::insert($permissions);

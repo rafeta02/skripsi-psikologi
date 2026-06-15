@@ -46,7 +46,7 @@
                         {{ trans('cruds.applicationResultDefense.fields.approval_page') }}
                     </th>
                     <th>
-                        {{ trans('cruds.applicationResultDefense.fields.report_document') }}
+                        {{ trans('cruds.applicationResultDefense.fields.final_title') }}
                     </th>
                     <th>
                         {{ trans('cruds.applicationResultDefense.fields.revision_approval_sheet') }}
@@ -115,7 +115,7 @@
 { data: 'minutes_document', name: 'minutes_document', sortable: false, searchable: false },
 { data: 'latest_script', name: 'latest_script', sortable: false, searchable: false },
 { data: 'approval_page', name: 'approval_page', sortable: false, searchable: false },
-{ data: 'report_document', name: 'report_document', sortable: false, searchable: false },
+{ data: 'final_title', name: 'final_title' },
 { data: 'revision_approval_sheet', name: 'revision_approval_sheet', sortable: false, searchable: false },
 { data: 'actions', name: '{{ trans('global.actions') }}' }
     ],

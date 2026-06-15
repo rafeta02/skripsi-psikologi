@@ -27,27 +27,9 @@
                     <th>
                         {{ trans('cruds.applicationScore.fields.examiner') }}
                     </th>
-                    <th>
-                        Penulisan
-                    </th>
-                    <th>
-                        Isi
-                    </th>
-                    <th>
-                        Analisis
-                    </th>
-                    <th>
-                        Teoritis
-                    </th>
-                    <th>
-                        Faktual
-                    </th>
-                    <th>
-                        Pemecahan Masalah
-                    </th>
-                    <th>
-                        Penyampaian
-                    </th>
+                    @foreach(\App\Models\ApplicationScore::scoreComponentLabels() as $field => $label)
+                    <th title="{{ $label }}">{{ Str::limit($label, 40) }}</th>
+                    @endforeach
                     <th>
                         Sum
                     </th>

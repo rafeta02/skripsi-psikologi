@@ -110,6 +110,15 @@
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.publication_statement_helper') }}</span>
             </div>
             <div class="form-group">
+                <label for="signed_scientific_publication_statement">{{ trans('cruds.skripsiDefense.fields.signed_scientific_publication_statement') }}</label>
+                <div class="needsclick dropzone {{ $errors->has('signed_scientific_publication_statement') ? 'is-invalid' : '' }}" id="signed_scientific_publication_statement-dropzone">
+                </div>
+                @if($errors->has('signed_scientific_publication_statement'))
+                    <span class="text-danger">{{ $errors->first('signed_scientific_publication_statement') }}</span>
+                @endif
+                <span class="help-block">{{ trans('cruds.skripsiDefense.fields.signed_scientific_publication_statement_helper') }}</span>
+            </div>
+            <div class="form-group">
                 <label for="defense_approval_page">{{ trans('cruds.skripsiDefense.fields.defense_approval_page') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('defense_approval_page') ? 'is-invalid' : '' }}" id="defense_approval_page-dropzone">
                 </div>
@@ -607,6 +616,56 @@ Dropzone.options.researchModuleDropzone = {
           this.options.addedfile.call(this, file)
       file.previewElement.classList.add('dz-complete')
       $('form').append('<input type="hidden" name="publication_statement" value="' + file.file_name + '">')
+      this.options.maxFiles = this.options.maxFiles - 1
+@endif
+    },
+     error: function (file, response) {
+         if ($.type(response) === 'string') {
+             var message = response //dropzone sends it's own error messages in string
+         } else {
+             var message = response.errors.file
+         }
+         file.previewElement.classList.add('dz-error')
+         _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
+         _results = []
+         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+             node = _ref[_i]
+             _results.push(node.textContent = message)
+         }
+
+         return _results
+     }
+}
+</script>
+<script>
+    Dropzone.options.signedScientificPublicationStatementDropzone = {
+    url: '{{ route('admin.skripsi-defenses.storeMedia') }}',
+    maxFilesize: 10, // MB
+    maxFiles: 1,
+    addRemoveLinks: true,
+    headers: {
+      'X-CSRF-TOKEN': "{{ csrf_token() }}"
+    },
+    params: {
+      size: 10
+    },
+    success: function (file, response) {
+      $('form').find('input[name="signed_scientific_publication_statement"]').remove()
+      $('form').append('<input type="hidden" name="signed_scientific_publication_statement" value="' + response.name + '">')
+    },
+    removedfile: function (file) {
+      file.previewElement.remove()
+      if (file.status !== 'error') {
+        $('form').find('input[name="signed_scientific_publication_statement"]').remove()
+        this.options.maxFiles = this.options.maxFiles + 1
+      }
+    },
+    init: function () {
+@if(isset($skripsiDefense) && $skripsiDefense->signed_scientific_publication_statement)
+      var file = {!! json_encode($skripsiDefense->signed_scientific_publication_statement) !!}
+          this.options.addedfile.call(this, file)
+      file.previewElement.classList.add('dz-complete')
+      $('form').append('<input type="hidden" name="signed_scientific_publication_statement" value="' + file.file_name + '">')
       this.options.maxFiles = this.options.maxFiles - 1
 @endif
     },

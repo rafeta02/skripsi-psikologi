@@ -9,12 +9,10 @@
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h2 class="mb-1 text-white font-weight-bold">
-                                <i class="fas fa-star mr-2"></i> Penilaian Sidang (ApplicationScore)
+                                <i class="fas fa-star mr-2"></i> Penilaian Sidang Skripsi
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                                <i class="fas fa-user mr-2"></i> {{ $dosen->nama }}
-                                <span class="mx-2">|</span>
-                                <i class="fas fa-id-card mr-2"></i> NIDN: {{ $dosen->nidn }}
+                                Isi nilai setelah sidang dilaksanakan, sebelum mahasiswa melaporkan hasil sidang.
                             </p>
                         </div>
                         <div class="col-md-4 text-md-right mt-3 mt-md-0">
@@ -44,7 +42,7 @@
                                         <th>#</th>
                                         <th>Mahasiswa</th>
                                         <th>Program Studi</th>
-                                        <th>Hasil Sidang</th>
+                                        <th>Tahap</th>
                                         <th>Status</th>
                                         <th>Nilai</th>
                                         <th>Tanggal</th>
@@ -54,35 +52,38 @@
                                 <tbody>
                                     @foreach($scores as $index => $score)
                                         @php
+                                            $app = $score->application ?? $score->application_result_defence?->application;
                                             $resultDefense = $score->application_result_defence;
-                                            $validated = $resultDefense?->isValidatedByAdmin();
+                                            $isPreReport = !$resultDefense;
                                         @endphp
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
                                             <td>
-                                                <div class="font-weight-semibold">{{ $resultDefense->application->mahasiswa->nama ?? 'N/A' }}</div>
-                                                <div class="text-xs text-gray-600">{{ $resultDefense->application->mahasiswa->nim ?? 'N/A' }}</div>
+                                                <div class="font-weight-semibold">{{ $app->mahasiswa->nama ?? 'N/A' }}</div>
+                                                <div class="text-xs text-gray-600">{{ $app->mahasiswa->nim ?? 'N/A' }}</div>
                                             </td>
-                                            <td class="text-sm">{{ $resultDefense->application->mahasiswa->prodi->name ?? 'N/A' }}</td>
+                                            <td class="text-sm">{{ $app->mahasiswa->prodi->name ?? 'N/A' }}</td>
                                             <td>
-                                                @php
-                                                    $resultLabels = [
-                                                        'passed' => 'Lulus',
-                                                        'revision' => 'Revisi',
-                                                        'failed' => 'Tidak Lulus',
-                                                    ];
-                                                @endphp
-                                                <span class="badge-modern badge-modern-info">
-                                                    {{ $resultLabels[$resultDefense->result ?? ''] ?? '-' }}
-                                                </span>
+                                                @if($isPreReport)
+                                                    <span class="badge-modern badge-modern-primary">Setelah sidang</span>
+                                                @else
+                                                    @php
+                                                        $resultLabels = [
+                                                            'passed' => 'Lulus tanpa revisi',
+                                                            'revision' => 'Lulus dengan revisi',
+                                                            'failed' => 'Tidak Lulus',
+                                                        ];
+                                                    @endphp
+                                                    <span class="badge-modern badge-modern-info">
+                                                        {{ $resultLabels[$resultDefense->result ?? ''] ?? '-' }}
+                                                    </span>
+                                                @endif
                                             </td>
                                             <td>
-                                                @if(!$validated)
-                                                    <span class="badge-modern badge-modern-warning">Menunggu validasi admin</span>
-                                                @elseif($score->isComplete())
+                                                @if($score->isComplete())
                                                     <span class="badge-modern badge-modern-success">Selesai</span>
                                                 @else
-                                                    <span class="badge-modern badge-modern-primary">Perlu diisi</span>
+                                                    <span class="badge-modern badge-modern-warning">Perlu diisi</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -96,14 +97,10 @@
                                                 {{ \Carbon\Carbon::parse($score->updated_at)->format('d M Y H:i') }}
                                             </td>
                                             <td>
-                                                @if($validated)
-                                                    <a href="{{ route('dosen.application-scores.edit', $score) }}" class="btn-modern btn-modern-sm btn-modern-primary">
-                                                        <i class="fas fa-edit"></i>
-                                                        {{ $score->isComplete() ? 'Ubah' : 'Isi Nilai' }}
-                                                    </a>
-                                                @else
-                                                    <span class="text-muted small">Belum tersedia</span>
-                                                @endif
+                                                <a href="{{ route('dosen.application-scores.edit', $score) }}" class="btn-modern btn-modern-sm btn-modern-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                    {{ $score->isComplete() ? 'Ubah' : 'Isi Nilai' }}
+                                                </a>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -116,7 +113,7 @@
                                 <i class="fas fa-star fa-3x text-muted"></i>
                             </div>
                             <h4 class="text-muted">Belum Ada Tugas Penilaian</h4>
-                            <p class="text-muted mb-0">Penilaian sidang akan muncul setelah admin memvalidasi laporan hasil sidang mahasiswa.</p>
+                            <p class="text-muted mb-0">Penilaian sidang akan muncul setelah jadwal sidang disetujui admin dan waktu sidang telah dilaksanakan.</p>
                         </div>
                     @endif
                 </div>

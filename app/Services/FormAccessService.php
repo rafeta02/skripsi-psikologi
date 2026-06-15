@@ -9,6 +9,7 @@ use App\Models\MbkmSeminar;
 use App\Models\SkripsiSeminar;
 use App\Models\ApplicationAction;
 use App\Models\ApplicationResultSeminar;
+use App\Models\ApplicationResultReview;
 use App\Models\ApplicationSchedule;
 use App\Models\SkripsiDefense;
 use App\Models\ApplicationResultDefense;
@@ -238,7 +239,7 @@ class FormAccessService
         })
             ->whereIn('application_id', function ($query) {
                 $query->select('application_id')
-                    ->from('application_result_seminars')
+                    ->from('application_result_reviews')
                     ->where('result', 'failed')
                     ->whereNull('deleted_at');
             })
@@ -370,8 +371,22 @@ class FormAccessService
             ];
         }
 
+        return [
+            'allowed' => false,
+            'message' => null,
+            'application' => null,
+        ];
+    }
+
+    /**
+     * Check if student can submit/view laporan hasil review proposal (ApplicationResultReview) — Skripsi Reguler.
+     */
+    public function canAccessApplicationResultReview($mahasiswaId, bool $forCreate = true): array
+    {
         $seminar = SkripsiSeminar::whereHas('application', function ($query) use ($mahasiswaId) {
-            $query->where('mahasiswa_id', $mahasiswaId)->where('type', 'skripsi');
+            $query->where('mahasiswa_id', $mahasiswaId)
+                ->where('type', 'skripsi')
+                ->where('stage', 'seminar');
         })
             ->whereHas('application', fn ($query) => $query->where('status', 'approved'))
             ->whereNotNull('reviewer_1_id')
@@ -387,12 +402,12 @@ class FormAccessService
             ];
         }
 
-        $existing = ApplicationResultSeminar::where('application_id', $seminar->application_id)->exists();
+        $existing = ApplicationResultReview::where('application_id', $seminar->application_id)->exists();
 
         if ($forCreate && $existing) {
             return [
                 'allowed' => false,
-                'message' => 'Laporan hasil review sudah pernah dikirim.',
+                'message' => 'Laporan hasil review proposal sudah pernah dikirim.',
                 'application' => $seminar->application,
             ];
         }
@@ -402,6 +417,16 @@ class FormAccessService
             'message' => null,
             'application' => $seminar->application,
         ];
+    }
+
+    /**
+     * Whether admin has validated a passed review result report (Skripsi Reguler).
+     */
+    public function isReviewResultValidatedByAdmin(int $applicationId): bool
+    {
+        return ApplicationAction::where('application_id', $applicationId)
+            ->where('action_type', 'result_review_approved')
+            ->exists();
     }
 
     /**
@@ -436,48 +461,85 @@ class FormAccessService
         if (!$seminarApp) {
             return [
                 'allowed' => false,
-                'message' => 'Anda harus menyelesaikan seminar proposal dan mengirim laporan hasil terlebih dahulu.',
+                'message' => 'Anda harus menyelesaikan review proposal dan mengirim laporan hasil terlebih dahulu.',
                 'application' => null,
             ];
         }
 
-        $seminarResult = ApplicationResultSeminar::where('application_id', $seminarApp->id)
-            ->orderByDesc('created_at')
-            ->first();
+        if ($seminarApp->type === 'mbkm') {
+            $seminarResult = ApplicationResultSeminar::where('application_id', $seminarApp->id)
+                ->orderByDesc('created_at')
+                ->first();
 
-        if (!$seminarResult) {
-            return [
-                'allowed' => false,
-                'message' => 'Anda harus mengirim laporan hasil seminar proposal terlebih dahulu.',
-                'application' => $seminarApp,
-            ];
-        }
+            if (!$seminarResult) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Anda harus mengirim laporan hasil seminar MBKM terlebih dahulu.',
+                    'application' => $seminarApp,
+                ];
+            }
 
-        if ($seminarResult->result === 'failed') {
-            return [
-                'allowed' => false,
-                'message' => $seminarApp->type === 'mbkm'
-                    ? 'Seminar MBKM tidak lulus. Selesaikan perbaikan seminar terlebih dahulu.'
-                    : 'Review proposal tidak lulus. Perbaiki pendaftaran reviewer terlebih dahulu.',
-                'application' => $seminarApp,
-            ];
-        }
+            if ($seminarResult->result === 'failed') {
+                return [
+                    'allowed' => false,
+                    'message' => 'Seminar MBKM tidak lulus. Selesaikan perbaikan seminar terlebih dahulu.',
+                    'application' => $seminarApp,
+                ];
+            }
 
-        if ($seminarResult->result === 'revision') {
-            return [
-                'allowed' => false,
-                'message' => 'Proposal masih dalam tahap revisi. Selesaikan revisi dan laporan hasil terlebih dahulu.',
-                'application' => $seminarApp,
-            ];
-        }
+            if ($seminarResult->result === 'revision') {
+                return [
+                    'allowed' => false,
+                    'message' => 'Proposal masih dalam tahap revisi. Selesaikan revisi dan laporan hasil terlebih dahulu.',
+                    'application' => $seminarApp,
+                ];
+            }
 
-        if ($seminarResult->result === 'passed' && !$this->isSeminarResultValidatedByAdmin($seminarApp->id)) {
-            return [
-                'allowed' => false,
-                'message' => 'Laporan hasil lulus menunggu validasi admin. Anda belum dapat mendaftar sidang skripsi.',
-                'application' => $seminarApp,
-                'pending_admin_validation' => true,
-            ];
+            if ($seminarResult->result === 'passed' && !$this->isSeminarResultValidatedByAdmin($seminarApp->id)) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Laporan hasil lulus menunggu validasi admin. Anda belum dapat mendaftar sidang skripsi.',
+                    'application' => $seminarApp,
+                    'pending_admin_validation' => true,
+                ];
+            }
+        } else {
+            $reviewResult = ApplicationResultReview::where('application_id', $seminarApp->id)
+                ->orderByDesc('created_at')
+                ->first();
+
+            if (!$reviewResult) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Anda harus mengirim laporan hasil review proposal terlebih dahulu.',
+                    'application' => $seminarApp,
+                ];
+            }
+
+            if ($reviewResult->result === 'failed') {
+                return [
+                    'allowed' => false,
+                    'message' => 'Review proposal tidak lulus. Perbaiki pendaftaran reviewer terlebih dahulu.',
+                    'application' => $seminarApp,
+                ];
+            }
+
+            if ($reviewResult->result === 'revision') {
+                return [
+                    'allowed' => false,
+                    'message' => 'Proposal masih dalam tahap revisi. Selesaikan revisi dan laporan hasil terlebih dahulu.',
+                    'application' => $seminarApp,
+                ];
+            }
+
+            if ($reviewResult->result === 'passed' && !$this->isReviewResultValidatedByAdmin($seminarApp->id)) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Laporan hasil lulus menunggu validasi admin. Anda belum dapat mendaftar sidang skripsi.',
+                    'application' => $seminarApp,
+                    'pending_admin_validation' => true,
+                ];
+            }
         }
 
         if ($this->hasActiveDefenseApplicationBlockingRegistration($mahasiswaId)) {
@@ -547,13 +609,13 @@ class FormAccessService
     }
 
     /**
-     * Whether Laporan Hasil Review shortcuts should appear (dashboard, menu, dokumen).
-     * Hidden after admin validates a passed report.
+     * Whether Laporan Hasil Seminar shortcuts should appear (MBKM only).
      */
     public function canShowApplicationResultSeminarShortcut($mahasiswaId): array
     {
         $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
             ->where('stage', 'seminar')
+            ->where('type', 'mbkm')
             ->orderByDesc('created_at')
             ->first();
 
@@ -567,11 +629,56 @@ class FormAccessService
         $result = ApplicationResultSeminar::where('application_id', $seminarApp->id)->first();
 
         if ($result) {
-            if (
-                $seminarApp->type === 'skripsi'
-                && $result->result === 'passed'
-                && $this->isSeminarResultValidatedByAdmin($seminarApp->id)
-            ) {
+            if ($result->result === 'passed' && $this->isSeminarResultValidatedByAdmin($seminarApp->id)) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Laporan hasil seminar sudah divalidasi admin.',
+                ];
+            }
+
+            return [
+                'allowed' => true,
+                'message' => null,
+            ];
+        }
+
+        $mbkmContext = $this->findMbkmSeminarResultContext($mahasiswaId);
+
+        if ($mbkmContext && $mbkmContext['schedule']?->isReadyForResultReport()) {
+            return [
+                'allowed' => true,
+                'message' => null,
+            ];
+        }
+
+        return [
+            'allowed' => false,
+            'message' => null,
+        ];
+    }
+
+    /**
+     * Whether Laporan Hasil Review Proposal shortcuts should appear (Skripsi Reguler only).
+     */
+    public function canShowApplicationResultReviewShortcut($mahasiswaId): array
+    {
+        $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', 'seminar')
+            ->where('type', 'skripsi')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$seminarApp) {
+            return [
+                'allowed' => false,
+                'message' => null,
+            ];
+        }
+
+        $result = ApplicationResultReview::where('application_id', $seminarApp->id)->first();
+
+        if ($result) {
+            if ($result->result === 'passed' && $this->isReviewResultValidatedByAdmin($seminarApp->id)) {
                 return [
                     'allowed' => false,
                     'message' => 'Laporan hasil review sudah divalidasi admin.',
@@ -584,23 +691,7 @@ class FormAccessService
             ];
         }
 
-        if ($seminarApp->type === 'mbkm') {
-            $mbkmContext = $this->findMbkmSeminarResultContext($mahasiswaId);
-
-            if ($mbkmContext && $mbkmContext['schedule']?->isReadyForResultReport()) {
-                return [
-                    'allowed' => true,
-                    'message' => null,
-                ];
-            }
-
-            return [
-                'allowed' => false,
-                'message' => null,
-            ];
-        }
-
-        return $this->canAccessApplicationResultSeminar($mahasiswaId, true);
+        return $this->canAccessApplicationResultReview($mahasiswaId, true);
     }
 
     /**
@@ -697,7 +788,8 @@ class FormAccessService
     }
 
     /**
-     * Mahasiswa dapat melaporkan hasil sidang setelah jadwal sidang diverifikasi admin.
+     * Mahasiswa dapat melaporkan hasil sidang setelah sidang dilaksanakan
+     * dan semua dosen menyelesaikan penilaian (ApplicationScore).
      */
     public function canAccessDefenseResult($mahasiswaId): array
     {
@@ -724,7 +816,8 @@ class FormAccessService
             ];
         }
 
-        $schedule = ApplicationSchedule::where('application_id', $defenseApp->id)->first();
+        $scoringService = app(DefenseScoringService::class);
+        $schedule = $scoringService->resolveDefenseSchedule($defenseApp);
 
         if (!$schedule) {
             return [
@@ -734,10 +827,28 @@ class FormAccessService
             ];
         }
 
-        if (!$schedule->isApprovedByAdmin() && $defenseApp->status !== 'scheduled') {
+        if (!$scoringService->isDefenseScheduleApproved($defenseApp)) {
             return [
                 'allowed' => false,
                 'message' => 'Jadwal sidang belum diverifikasi admin.',
+                'application' => $defenseApp,
+            ];
+        }
+
+        if (!$scoringService->isDefenseHeld($defenseApp)) {
+            return [
+                'allowed' => false,
+                'message' => 'Sidang belum dilaksanakan. Laporan hasil dapat diajukan setelah waktu sidang lewat dan dosen menyelesaikan penilaian.',
+                'application' => $defenseApp,
+            ];
+        }
+
+        $scoringService->ensureScoreAssignments($defenseApp);
+
+        if (!$scoringService->isScoringComplete($defenseApp)) {
+            return [
+                'allowed' => false,
+                'message' => 'Tunggu semua dosen pembimbing dan penguji menyelesaikan penilaian sidang.',
                 'application' => $defenseApp,
             ];
         }
@@ -789,6 +900,7 @@ class FormAccessService
             'mbkm_seminar' => $this->canAccessMbkmSeminar($mahasiswaId),
             'skripsi_seminar' => $this->canAccessSkripsiSeminar($mahasiswaId),
             'application_result_seminar' => $this->canShowApplicationResultSeminarShortcut($mahasiswaId),
+            'application_result_review' => $this->canShowApplicationResultReviewShortcut($mahasiswaId),
             'skripsi_defense' => $this->canAccessSkripsiDefense($mahasiswaId),
             'defense_schedule' => $this->canAccessDefenseSchedule($mahasiswaId),
             'application_schedule' => $this->canAccessApplicationSchedule($mahasiswaId),

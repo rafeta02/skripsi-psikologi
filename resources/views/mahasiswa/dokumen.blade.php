@@ -78,8 +78,8 @@
                                 <a href="{{ route('frontend.skripsi-seminars.index') }}" class="btn btn-outline-primary text-left mb-2">
                                     <i class="fas fa-file-upload"></i> Pendaftaran Reviewer Proposal
                                 </a>
-                                @if($allowedForms['application_result_seminar']['allowed'] ?? false)
-                                <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn btn-outline-danger text-left mb-2">
+                                @if($allowedForms['application_result_review']['allowed'] ?? false)
+                                <a href="{{ route('frontend.application-result-reviews.index') }}" class="btn btn-outline-danger text-left mb-2">
                                     <i class="fas fa-clipboard-check"></i> Laporan Hasil Review Proposal
                                 </a>
                                 @endif

@@ -46,6 +46,7 @@ class SkripsiDefense extends Model implements HasMedia
         'research_module',
         'mbkm_recommendation_letter',
         'publication_statement',
+        'signed_scientific_publication_statement',
         'defense_approval_page',
         'spp_receipt',
         'krs_latest',
@@ -111,6 +112,11 @@ class SkripsiDefense extends Model implements HasMedia
     public function getPublicationStatementAttribute()
     {
         return $this->getMedia('publication_statement')->last();
+    }
+
+    public function getSignedScientificPublicationStatementAttribute()
+    {
+        return $this->getMedia('signed_scientific_publication_statement')->last();
     }
 
     public function getDefenseApprovalPageAttribute()

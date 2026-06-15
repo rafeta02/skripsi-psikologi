@@ -97,11 +97,15 @@ class DashboardController extends Controller
         $totalScores = ApplicationScore::where('examiner_id', $dosen->id)->count();
         $pendingDefenseScores = ApplicationScore::where('examiner_id', $dosen->id)
             ->whereNull('score')
-            ->whereHas('application_result_defence', function ($q) {
-                $q->whereHas('application', function ($appQ) {
-                    $appQ->whereHas('actions', function ($actionQ) {
-                        $actionQ->where('action_type', 'result_defense_approved');
-                    });
+            ->where(function ($query) {
+                $query->where(function ($preReport) {
+                    $preReport->whereNotNull('application_id')
+                        ->whereDoesntHave('application_result_defence');
+                })->orWhereHas('application_result_defence', function ($resultQuery) {
+                    $resultQuery->whereIn('result', ['passed', 'revision'])
+                        ->whereHas('application.actions', function ($actionQuery) {
+                            $actionQuery->where('action_type', 'result_defense_approved');
+                        });
                 });
             })
             ->count();

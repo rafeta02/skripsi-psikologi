@@ -31,6 +31,10 @@
         </div>
     </div>
 
+    @if($skripsiDefense->isAccepted())
+        @include('partials.siakad-upload-warning')
+    @endif
+
     <!-- Detail Content -->
     <div class="row">
         <div class="col-lg-8">
@@ -125,6 +129,20 @@
                             </div>
                         @endif
 
+                        @if($skripsiDefense->signed_scientific_publication_statement)
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-signature fa-3x text-success mb-3"></i>
+                                        <h6 class="mb-2">Surat Pernyataan Publikasi Ilmiah sudah ditanda tangani</h6>
+                                        <a href="{{ $skripsiDefense->signed_scientific_publication_statement->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
                         {{-- Dokumen administrasi --}}
                         @if($skripsiDefense->spp_receipt)
                             <div class="col-md-6 mb-3">
@@ -159,7 +177,7 @@
                                 <div class="card h-100 border">
                                     <div class="card-body text-center">
                                         <i class="fas fa-certificate fa-3x text-success mb-3"></i>
-                                        <h6 class="mb-2">Sertifikat EAP</h6>
+                                        <h6 class="mb-2">Sertifikat EAP yang sudah dilegalisir</h6>
                                         <a href="{{ $skripsiDefense->eap_certificate->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
                                             <i class="fas fa-download"></i> Download
                                         </a>
@@ -201,6 +219,7 @@
                             !$skripsiDefense->defence_document &&
                             !$skripsiDefense->plagiarism_report &&
                             !$skripsiDefense->publication_statement &&
+                            !$skripsiDefense->signed_scientific_publication_statement &&
                             !$skripsiDefense->spp_receipt &&
                             !$skripsiDefense->krs_latest &&
                             !$skripsiDefense->eap_certificate &&

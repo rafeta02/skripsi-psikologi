@@ -56,6 +56,13 @@
                         </div>
                     @endif
 
+                    @if($applicationResultDefense->final_title)
+                        <div class="mb-4">
+                            <label class="text-muted mb-1">Judul Akhir Skripsi</label>
+                            <p class="font-weight-semibold mb-0">{{ $applicationResultDefense->final_title }}</p>
+                        </div>
+                    @endif
+
                     @if($applicationResultDefense->note)
                         <div class="mb-4">
                             <label class="text-muted mb-1">Catatan Penguji</label>

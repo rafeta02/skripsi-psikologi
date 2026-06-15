@@ -51,12 +51,12 @@
                 <span class="help-block">{{ trans('cruds.applicationResultDefense.fields.revision_deadline_helper') }}</span>
             </div>
             <div class="form-group">
-                <label for="final_grade">{{ trans('cruds.applicationResultDefense.fields.final_grade') }}</label>
-                <input class="form-control {{ $errors->has('final_grade') ? 'is-invalid' : '' }}" type="number" name="final_grade" id="final_grade" value="{{ old('final_grade', '') }}" step="0.01" max="10">
-                @if($errors->has('final_grade'))
-                    <span class="text-danger">{{ $errors->first('final_grade') }}</span>
+                <label for="final_title">{{ trans('cruds.applicationResultDefense.fields.final_title') }}</label>
+                <input class="form-control {{ $errors->has('final_title') ? 'is-invalid' : '' }}" type="text" name="final_title" id="final_title" value="{{ old('final_title', '') }}" maxlength="500" required>
+                @if($errors->has('final_title'))
+                    <span class="text-danger">{{ $errors->first('final_title') }}</span>
                 @endif
-                <span class="help-block">{{ trans('cruds.applicationResultDefense.fields.final_grade_helper') }}</span>
+                <span class="help-block">{{ trans('cruds.applicationResultDefense.fields.final_title_helper') }}</span>
             </div>
             <div class="form-group">
                 <label for="documentation">{{ trans('cruds.applicationResultDefense.fields.documentation') }}</label>
@@ -113,13 +113,13 @@
                 <span class="help-block">{{ trans('cruds.applicationResultDefense.fields.approval_page_helper') }}</span>
             </div>
             <div class="form-group">
-                <label for="report_document">{{ trans('cruds.applicationResultDefense.fields.report_document') }}</label>
-                <div class="needsclick dropzone {{ $errors->has('report_document') ? 'is-invalid' : '' }}" id="report_document-dropzone">
+                <label for="title_change_form">{{ trans('cruds.applicationResultDefense.fields.title_change_form') }}</label>
+                <div class="needsclick dropzone {{ $errors->has('title_change_form') ? 'is-invalid' : '' }}" id="title_change_form-dropzone">
                 </div>
-                @if($errors->has('report_document'))
-                    <span class="text-danger">{{ $errors->first('report_document') }}</span>
+                @if($errors->has('title_change_form'))
+                    <span class="text-danger">{{ $errors->first('title_change_form') }}</span>
                 @endif
-                <span class="help-block">{{ trans('cruds.applicationResultDefense.fields.report_document_helper') }}</span>
+                <span class="help-block">{{ trans('cruds.applicationResultDefense.fields.title_change_form_helper') }}</span>
             </div>
             <div class="form-group">
                 <label for="revision_approval_sheet">{{ trans('cruds.applicationResultDefense.fields.revision_approval_sheet') }}</label>
@@ -463,10 +463,10 @@ Dropzone.options.feedbackDocumentDropzone = {
 }
 </script>
 <script>
-    var uploadedReportDocumentMap = {}
-Dropzone.options.reportDocumentDropzone = {
+    Dropzone.options.titleChangeFormDropzone = {
     url: '{{ route('admin.application-result-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
+    maxFiles: 1,
     addRemoveLinks: true,
     headers: {
       'X-CSRF-TOKEN': "{{ csrf_token() }}"
@@ -475,34 +475,28 @@ Dropzone.options.reportDocumentDropzone = {
       size: 10
     },
     success: function (file, response) {
-      $('form').append('<input type="hidden" name="report_document[]" value="' + response.name + '">')
-      uploadedReportDocumentMap[file.name] = response.name
+      $('form').find('input[name="title_change_form"]').remove()
+      $('form').append('<input type="hidden" name="title_change_form" value="' + response.name + '">')
     },
     removedfile: function (file) {
       file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedReportDocumentMap[file.name]
+      if (file.status !== 'error') {
+        $('form').find('input[name="title_change_form"]').remove()
+        this.options.maxFiles = this.options.maxFiles + 1
       }
-      $('form').find('input[name="report_document[]"][value="' + name + '"]').remove()
     },
     init: function () {
-@if(isset($applicationResultDefense) && $applicationResultDefense->report_document)
-          var files =
-            {!! json_encode($applicationResultDefense->report_document) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="report_document[]" value="' + file.file_name + '">')
-            }
+@if(isset($applicationResultDefense) && $applicationResultDefense->title_change_form)
+      var file = {!! json_encode($applicationResultDefense->title_change_form) !!}
+          this.options.addedfile.call(this, file)
+      file.previewElement.classList.add('dz-complete')
+      $('form').append('<input type="hidden" name="title_change_form" value="' + file.file_name + '">')
+      this.options.maxFiles = this.options.maxFiles - 1
 @endif
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }
@@ -519,10 +513,10 @@ Dropzone.options.reportDocumentDropzone = {
 }
 </script>
 <script>
-    var uploadedRevisionApprovalSheetMap = {}
-Dropzone.options.revisionApprovalSheetDropzone = {
+    Dropzone.options.revisionApprovalSheetDropzone = {
     url: '{{ route('admin.application-result-defenses.storeMedia') }}',
-    maxFilesize: 10, // MB
+    maxFilesize: 10,
+    maxFiles: 1,
     addRemoveLinks: true,
     headers: {
       'X-CSRF-TOKEN': "{{ csrf_token() }}"
@@ -531,34 +525,28 @@ Dropzone.options.revisionApprovalSheetDropzone = {
       size: 10
     },
     success: function (file, response) {
-      $('form').append('<input type="hidden" name="revision_approval_sheet[]" value="' + response.name + '">')
-      uploadedRevisionApprovalSheetMap[file.name] = response.name
+      $('form').find('input[name="revision_approval_sheet"]').remove()
+      $('form').append('<input type="hidden" name="revision_approval_sheet" value="' + response.name + '">')
     },
     removedfile: function (file) {
       file.previewElement.remove()
-      var name = ''
-      if (typeof file.file_name !== 'undefined') {
-        name = file.file_name
-      } else {
-        name = uploadedRevisionApprovalSheetMap[file.name]
+      if (file.status !== 'error') {
+        $('form').find('input[name="revision_approval_sheet"]').remove()
+        this.options.maxFiles = this.options.maxFiles + 1
       }
-      $('form').find('input[name="revision_approval_sheet[]"][value="' + name + '"]').remove()
     },
     init: function () {
 @if(isset($applicationResultDefense) && $applicationResultDefense->revision_approval_sheet)
-          var files =
-            {!! json_encode($applicationResultDefense->revision_approval_sheet) !!}
-              for (var i in files) {
-              var file = files[i]
-              this.options.addedfile.call(this, file)
-              file.previewElement.classList.add('dz-complete')
-              $('form').append('<input type="hidden" name="revision_approval_sheet[]" value="' + file.file_name + '">')
-            }
+      var file = {!! json_encode($applicationResultDefense->revision_approval_sheet) !!}
+          this.options.addedfile.call(this, file)
+      file.previewElement.classList.add('dz-complete')
+      $('form').append('<input type="hidden" name="revision_approval_sheet" value="' + file.file_name + '">')
+      this.options.maxFiles = this.options.maxFiles - 1
 @endif
     },
      error: function (file, response) {
          if ($.type(response) === 'string') {
-             var message = response //dropzone sends it's own error messages in string
+             var message = response
          } else {
              var message = response.errors.file
          }

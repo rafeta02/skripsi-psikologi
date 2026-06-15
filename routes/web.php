@@ -328,9 +328,15 @@ Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['
     Route::post('skripsi-defenses/ckmedia', 'SkripsiDefenseController@storeCKEditorImages')->name('skripsi-defenses.storeCKEditorImages');
     Route::resource('skripsi-defenses', 'SkripsiDefenseController');
 
-    // Laporan Hasil Review Proposal (Skripsi Reguler)
+    // Laporan Hasil Seminar MBKM
     Route::post('application-result-seminars/media', 'ApplicationResultSeminarController@storeMedia')->name('application-result-seminars.storeMedia');
     Route::resource('application-result-seminars', 'ApplicationResultSeminarController')->only([
+        'index', 'create', 'store', 'show',
+    ]);
+
+    // Laporan Hasil Review Proposal (Skripsi Reguler)
+    Route::post('application-result-reviews/media', 'ApplicationResultReviewController@storeMedia')->name('application-result-reviews.storeMedia');
+    Route::resource('application-result-reviews', 'ApplicationResultReviewController')->only([
         'index', 'create', 'store', 'show',
     ]);
 

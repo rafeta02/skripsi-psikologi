@@ -21,6 +21,7 @@ class ApplicationScore extends Model
     ];
 
     protected $fillable = [
+        'application_id',
         'application_result_defence_id',
         'examiner_id',
         'penulisan',
@@ -38,9 +39,34 @@ class ApplicationScore extends Model
         'deleted_at',
     ];
 
+    public const SCORE_COMPONENT_LABELS = [
+        'penulisan' => 'Sistematika penulisan',
+        'isi' => 'Isi (masalah yang diajukan, relevansinya, bahasa, arti bagi pengembangan ilmu dan kegunaan)',
+        'analisis' => 'Analisis (pembahasan dan penarikan simpulan: formulasi masalah, penggunaan literatur, integrasi data empirik dan teoritik, analisis data)',
+        'teoritis' => 'Penguasaan pengetahuan teoritis (komprehensif yang menyangkut skripsi)',
+        'faktual' => 'Penguasaan pengetahuan faktual (komprehensif yang menyangkut skripsi)',
+        'pemecahan_masalah' => 'Cara menanggapi dan memecahkan masalah (kemandirian, kreativitas, pandangan, cara berpikir, cara kerja, objektivitas, dan etika ilmiah)',
+        'penyampaian' => 'Cara penyampaian (sistematis, logis, runtut)',
+    ];
+
+    public static function scoreComponentLabels(): array
+    {
+        return self::SCORE_COMPONENT_LABELS;
+    }
+
+    public static function scoreComponentKeys(): array
+    {
+        return array_keys(self::SCORE_COMPONENT_LABELS);
+    }
+
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
+    }
+
+    public function application()
+    {
+        return $this->belongsTo(Application::class, 'application_id');
     }
 
     public function application_result_defence()

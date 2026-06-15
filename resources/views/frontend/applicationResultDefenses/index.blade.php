@@ -55,8 +55,8 @@
                                     </p>
                                     @php
                                         $resultBadge = match($result->result) {
-                                            'passed' => ['success', 'Lulus'],
-                                            'revision' => ['warning', 'Revisi'],
+                                            'passed' => ['success', 'Lulus tanpa revisi'],
+                                            'revision' => ['warning', 'Lulus dengan revisi'],
                                             'failed' => ['danger', 'Tidak Lulus'],
                                             default => ['secondary', ucfirst($result->result ?? '-')],
                                         };

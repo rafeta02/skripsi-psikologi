@@ -61,6 +61,10 @@
         </div>
     @endif
 
+    @if(($skripsiDefenses ?? collect())->contains(fn ($defense) => $defense->isAccepted()))
+        @include('partials.siakad-upload-warning')
+    @endif
+
     <div class="row">
         <div class="col-lg-12">
             @if(($skripsiDefenses ?? collect())->count() > 0)

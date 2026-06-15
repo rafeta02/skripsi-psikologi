@@ -60,7 +60,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label-modern" for="report_document">Bukti Pendukung (PDF/Gambar)</label>
+                                <label class="form-label-modern" for="report_document">Laporan Kendala (PDF/Gambar)</label>
                                 <div class="custom-file">
                                     <input type="file" name="report_document[]" class="custom-file-input @error('report_document') is-invalid @enderror @error('report_document.*') is-invalid @enderror" id="report_document" accept=".pdf,.jpg,.jpeg,.png" multiple>
                                     <label class="custom-file-label" for="report_document">Pilih file...</label>

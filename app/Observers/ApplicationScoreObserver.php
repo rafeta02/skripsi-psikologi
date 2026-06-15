@@ -7,34 +7,22 @@ use App\Models\ApplicationResultDefense;
 
 class ApplicationScoreObserver
 {
-    /**
-     * Handle the ApplicationScore "created" event.
-     */
     public function created(ApplicationScore $applicationScore)
     {
-        $this->updateDefenseGrade($applicationScore);
+        $this->syncDefenseCompletion($applicationScore);
     }
 
-    /**
-     * Handle the ApplicationScore "updated" event.
-     */
     public function updated(ApplicationScore $applicationScore)
     {
-        $this->updateDefenseGrade($applicationScore);
+        $this->syncDefenseCompletion($applicationScore);
     }
 
-    /**
-     * Handle the ApplicationScore "deleted" event.
-     */
     public function deleted(ApplicationScore $applicationScore)
     {
-        $this->updateDefenseGrade($applicationScore);
+        $this->syncDefenseCompletion($applicationScore);
     }
 
-    /**
-     * Update the defense grade letter based on final score
-     */
-    protected function updateDefenseGrade(ApplicationScore $applicationScore)
+    protected function syncDefenseCompletion(ApplicationScore $applicationScore)
     {
         if (!$applicationScore->application_result_defence_id) {
             return;
@@ -42,28 +30,15 @@ class ApplicationScoreObserver
 
         $defense = ApplicationResultDefense::find($applicationScore->application_result_defence_id);
 
-        if (!$defense) {
-            return;
-        }
-
-        $finalScore = $defense->final_score;
-        $gradeLetter = ApplicationResultDefense::convertScoreToGrade($finalScore);
-
-        $defense->update([
-            'final_grade' => $finalScore,
-            'final_grade_letter' => $gradeLetter,
-        ]);
-
-        if (!$defense->isValidatedByAdmin()) {
+        if (!$defense || !$defense->isValidatedByAdmin() || !$defense->application) {
             return;
         }
 
         $totalScorers = $defense->scores()->count();
         $completedScorers = $defense->scores()->whereNotNull('score')->count();
 
-        if ($totalScorers > 0 && $totalScorers === $completedScorers && $defense->application) {
+        if ($totalScorers > 0 && $totalScorers === $completedScorers) {
             $defense->application->update(['status' => 'done']);
         }
     }
 }
-

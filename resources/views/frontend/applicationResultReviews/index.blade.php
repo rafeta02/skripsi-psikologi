@@ -4,21 +4,21 @@
 <div class="container py-4">
     <div class="row mb-4">
         <div class="col-lg-12">
-            <div class="card-modern" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: none;">
+            <div class="card-modern" style="background: linear-gradient(135deg, #2980b9 0%, #1a5276 100%); border: none;">
                 <div class="card-modern-body" style="padding: 2rem;">
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h2 class="mb-1 text-white font-weight-bold">
-                                <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Seminar MBKM
+                                <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Review Proposal
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                                Daftar laporan hasil seminar MBKM. Setelah jadwal seminar disetujui admin, kirim laporan setelah seminar dilaksanakan.
+                                Skripsi Reguler — laporkan hasil penilaian reviewer proposal (tanpa seminar formal)
                             </p>
                         </div>
                         <div class="col-md-4 text-right">
-                            @can('application_result_seminar_create')
+                            @can('application_result_review_create')
                                 @if($canCreate['allowed'] ?? false)
-                                    <a href="{{ route('frontend.application-result-seminars.create') }}" class="btn btn-light btn-lg shadow">
+                                    <a href="{{ route('frontend.application-result-reviews.create') }}" class="btn btn-light btn-lg shadow">
                                         <i class="fas fa-plus-circle"></i> Kirim Laporan
                                     </a>
                                 @endif
@@ -51,13 +51,13 @@
 
     <div class="row">
         <div class="col-lg-12">
-            @if($applicationResultSeminars->count() > 0)
-                @foreach($applicationResultSeminars as $result)
+            @if($applicationResultReviews->count() > 0)
+                @foreach($applicationResultReviews as $result)
                     <div class="card-modern mb-4">
                         <div class="card-modern-body">
                             <div class="row align-items-start">
                                 <div class="col-md-8">
-                                    <h4 class="font-weight-bold mb-2">Laporan Hasil Review</h4>
+                                    <h4 class="font-weight-bold mb-2">Laporan Hasil Review Proposal</h4>
                                     <p class="text-muted mb-2">
                                         <i class="far fa-calendar"></i> {{ $result->created_at->format('d M Y H:i') }}
                                     </p>
@@ -84,8 +84,8 @@
                                     @endif
                                 </div>
                                 <div class="col-md-4 text-right">
-                                    @can('application_result_seminar_show')
-                                        <a href="{{ route('frontend.application-result-seminars.show', $result->id) }}" class="btn btn-primary">
+                                    @can('application_result_review_show')
+                                        <a href="{{ route('frontend.application-result-reviews.show', $result->id) }}" class="btn btn-primary">
                                             <i class="fas fa-eye"></i> Lihat Detail
                                         </a>
                                     @endcan
@@ -99,10 +99,10 @@
                     <div class="card-modern-body text-center py-5">
                         <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
                         <h4 class="text-muted mb-3">Belum Ada Laporan</h4>
-                        <p class="text-muted mb-4">Setelah seminar dilaksanakan, kirim laporan hasil seminar di sini.</p>
-                        @can('application_result_seminar_create')
+                        <p class="text-muted mb-4">Setelah reviewer menilai proposal, kirim laporan hasil review di sini.</p>
+                        @can('application_result_review_create')
                             @if($canCreate['allowed'] ?? false)
-                                <a href="{{ route('frontend.application-result-seminars.create') }}" class="btn btn-primary btn-lg">
+                                <a href="{{ route('frontend.application-result-reviews.create') }}" class="btn btn-primary btn-lg">
                                     <i class="fas fa-plus-circle"></i> Kirim Laporan Sekarang
                                 </a>
                             @endif

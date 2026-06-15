@@ -66,6 +66,12 @@
                             'required' => true,
                         ])
 
+                        @include('frontend.skripsiDefenses.partials.file-input', [
+                            'name' => 'signed_scientific_publication_statement',
+                            'label' => 'Surat Pernyataan Publikasi Ilmiah sudah ditanda tangani',
+                            'required' => true,
+                        ])
+
                         <hr class="my-4">
 
                         <h5 class="font-weight-bold mb-3 text-primary"><i class="fas fa-folder-open mr-2"></i>Dokumen Penelitian (boleh lebih dari 1 file)</h5>
@@ -73,11 +79,10 @@
                         @foreach([
                             'ethics_statement' => 'Pernyataan Etika Penelitian',
                             'research_instruments' => 'Instrumen Penelitian',
-                            'data_collection_letter' => 'Surat Izin Pengumpulan Data',
-                            'research_module' => 'Modul Penelitian',
+                            'data_collection_letter' => 'Surat Keterangan Telah Melaksanakan Penelitian / Informed consent',
                             'defense_approval_page' => 'Halaman Persetujuan Sidang',
                             'research_poster' => 'Poster Penelitian',
-                            'supervision_logbook' => 'Logbook Bimbingan',
+                            'supervision_logbook' => 'Tangkapan Layar Panel Konsultasi Siakad yang sudah divalidasi dosen pembimbing Minimal 12 Kali',
                         ] as $field => $label)
                             @include('frontend.skripsiDefenses.partials.file-input', [
                                 'name' => $field,
@@ -86,6 +91,13 @@
                                 'multiple' => true,
                             ])
                         @endforeach
+
+                        @include('frontend.skripsiDefenses.partials.file-input', [
+                            'name' => 'research_module',
+                            'label' => 'Modul Penelitian (opsional)',
+                            'required' => false,
+                            'multiple' => true,
+                        ])
 
                         <hr class="my-4">
 
@@ -105,7 +117,7 @@
 
                         @include('frontend.skripsiDefenses.partials.file-input', [
                             'name' => 'eap_certificate',
-                            'label' => 'Sertifikat EAP',
+                            'label' => 'Sertifikat EAP yang sudah dilegalisir',
                             'required' => true,
                         ])
 

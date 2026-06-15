@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
     /**
-     * Aplikasi defense yang sudah difinalisasi admin (siap unduh SKL & rekap nilai).
+     * Aplikasi defense yang sudah difinalisasi admin (siap unduh rekap nilai).
      */
     private function getGraduationDocumentsContext(int $mahasiswaId): array
     {
@@ -110,8 +110,8 @@ class DashboardController extends Controller
                 return [
                     'phase' => 4,
                     'phase_name' => 'Selesai (Finalisasi Admin)',
-                    'phase_description' => 'Kelulusan Anda sudah difinalisasi. Dokumen kelulusan dan nilai tersedia.',
-                    'next_step' => 'Unduh Surat Keterangan Lulus dan Rekap Nilai pada menu dokumen/PDF.',
+                    'phase_description' => 'Kelulusan Anda sudah difinalisasi. Rekap nilai tersedia.',
+                    'next_step' => 'Unduh Rekap Nilai pada menu dokumen.',
                     'application' => $activeApplication
                 ];
             }

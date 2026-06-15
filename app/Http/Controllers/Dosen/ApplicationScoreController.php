@@ -3,13 +3,21 @@
 namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
+use App\Models\Application;
+use App\Models\ApplicationResultDefense;
 use App\Models\ApplicationScore;
 use App\Models\Dosen;
+use App\Services\DefenseScoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ApplicationScoreController extends Controller
 {
+    public function __construct(
+        private readonly DefenseScoringService $defenseScoringService
+    ) {
+    }
+
     private function resolveDosen(): Dosen
     {
         $user = Auth::user();
@@ -33,6 +41,15 @@ class ApplicationScoreController extends Controller
         return $dosen;
     }
 
+    private function resolveApplication(ApplicationScore $applicationScore): ?Application
+    {
+        if ($applicationScore->application_id) {
+            return $applicationScore->application;
+        }
+
+        return $applicationScore->application_result_defence?->application;
+    }
+
     private function authorizeScoreOwnership(ApplicationScore $applicationScore): void
     {
         $dosen = $this->resolveDosen();
@@ -41,32 +58,68 @@ class ApplicationScoreController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        $application = $this->resolveApplication($applicationScore);
+
+        if (!$application) {
+            abort(403, 'Data aplikasi sidang tidak ditemukan.');
+        }
+
+        // Alur baru: penilaian setelah sidang dilaksanakan, sebelum mahasiswa lapor hasil
+        if ($this->defenseScoringService->canDosenScore($application, $dosen->id)) {
+            return;
+        }
+
+        // Alur legacy: penilaian setelah admin validasi laporan hasil sidang
         $resultDefense = $applicationScore->application_result_defence;
 
-        if (!$resultDefense || !$resultDefense->isValidatedByAdmin()) {
-            abort(403, 'Penilaian belum tersedia. Tunggu validasi admin atas laporan hasil sidang.');
+        if ($resultDefense && $resultDefense->isValidatedByAdmin()) {
+            if ($resultDefense->result === 'failed') {
+                abort(403, 'Penilaian tidak diperlukan untuk hasil sidang tidak lulus.');
+            }
+
+            return;
         }
 
-        if ($resultDefense->result === 'failed') {
-            abort(403, 'Penilaian tidak diperlukan untuk hasil sidang tidak lulus.');
-        }
+        abort(403, 'Penilaian sidang belum tersedia. Sidang harus sudah dilaksanakan.');
     }
 
     public function index()
     {
         $dosen = $this->resolveDosen();
+        $this->defenseScoringService->syncAssignmentsForDosen($dosen->id);
 
         $scores = ApplicationScore::with([
+            'application.mahasiswa.prodi',
+            'application.skripsiDefense',
             'application_result_defence.application.mahasiswa.prodi',
-            'application_result_defence.application.skripsiDefense',
         ])
             ->where('examiner_id', $dosen->id)
-            ->whereHas('application_result_defence', function ($q) {
-                $q->whereIn('result', ['passed', 'revision']);
+            ->where(function ($query) {
+                $query->where(function ($preReport) {
+                    $preReport->whereNotNull('application_id')
+                        ->whereDoesntHave('application_result_defence');
+                })->orWhereHas('application_result_defence', function ($resultQuery) {
+                    $resultQuery->whereIn('result', ['passed', 'revision']);
+                });
             })
             ->orderByRaw('CASE WHEN score IS NULL THEN 0 ELSE 1 END')
             ->orderByDesc('updated_at')
-            ->get();
+            ->get()
+            ->filter(function (ApplicationScore $score) use ($dosen) {
+                $application = $this->resolveApplication($score);
+
+                if (!$application) {
+                    return false;
+                }
+
+                if ($score->application_result_defence) {
+                    return $score->application_result_defence->isValidatedByAdmin();
+                }
+
+                return $this->defenseScoringService->canDosenScore($application, $dosen->id)
+                    || $this->defenseScoringService->isDefenseHeld($application);
+            })
+            ->values();
 
         $pendingCount = $scores->filter(fn ($s) => !$s->isComplete())->count();
 
@@ -78,8 +131,9 @@ class ApplicationScoreController extends Controller
         $this->authorizeScoreOwnership($applicationScore);
 
         $applicationScore->load([
+            'application.mahasiswa.prodi',
+            'application.skripsiDefense',
             'application_result_defence.application.mahasiswa.prodi',
-            'application_result_defence.application.skripsiDefense',
             'examiner',
         ]);
 

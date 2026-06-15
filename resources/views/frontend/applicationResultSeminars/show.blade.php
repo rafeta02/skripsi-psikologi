@@ -226,16 +226,28 @@
                     @endif
                     @if($applicationResultSeminar->result === 'failed')
                         <div class="alert alert-danger mb-3">
-                            <i class="fas fa-times-circle"></i> Review proposal tidak lulus. Perbaiki pendaftaran reviewer dan unggah ulang dokumen.
+                            <i class="fas fa-times-circle"></i> Seminar MBKM tidak lulus. Perbaiki pendaftaran seminar dan unggah ulang dokumen.
                         </div>
-                        @can('skripsi_seminar_edit')
+                        @can('mbkm_seminar_edit')
                             @php
-                                $retrySeminarId = app(\App\Services\FormAccessService::class)
-                                    ->getSkripsiSeminarForFailedRetry(auth()->user()->mahasiswa_id)?->id;
+                                $retryMbkmSeminar = \App\Models\MbkmSeminar::whereHas('application', function ($query) {
+                                    $query->where('mahasiswa_id', auth()->user()->mahasiswa_id)
+                                        ->where('type', 'mbkm')
+                                        ->where('stage', 'seminar')
+                                        ->where('status', 'rejected');
+                                })
+                                    ->whereIn('application_id', function ($query) {
+                                        $query->select('application_id')
+                                            ->from('application_result_seminars')
+                                            ->where('result', 'failed')
+                                            ->whereNull('deleted_at');
+                                    })
+                                    ->orderByDesc('created_at')
+                                    ->first();
                             @endphp
-                            @if($retrySeminarId)
-                                <a href="{{ route('frontend.skripsi-seminars.edit', $retrySeminarId) }}" class="btn btn-danger btn-block">
-                                    <i class="fas fa-edit"></i> Perbaiki Pendaftaran Reviewer
+                            @if($retryMbkmSeminar)
+                                <a href="{{ route('frontend.mbkm-seminars.edit', $retryMbkmSeminar->id) }}" class="btn btn-danger btn-block">
+                                    <i class="fas fa-edit"></i> Perbaiki Pendaftaran Seminar MBKM
                                 </a>
                             @endif
                         @endcan

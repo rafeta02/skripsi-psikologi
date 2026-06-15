@@ -376,10 +376,18 @@
                         </li>
                         @endcan
 
+                        @if(($allowedForms['application_result_review']['allowed'] ?? false))
+                        <li class="nav-item">
+                            <a href="{{ route('frontend.application-result-reviews.index') }}" class="nav-link {{ request()->routeIs('frontend.application-result-reviews.*') ? 'active' : '' }}">
+                                <i class="fas fa-clipboard-check"></i> Laporan Hasil Review
+                            </a>
+                        </li>
+                        @endif
+
                         @if(($allowedForms['application_result_seminar']['allowed'] ?? false))
                         <li class="nav-item">
                             <a href="{{ route('frontend.application-result-seminars.index') }}" class="nav-link {{ request()->routeIs('frontend.application-result-seminars.*') ? 'active' : '' }}">
-                                <i class="fas fa-clipboard-check"></i> Laporan Review
+                                <i class="fas fa-clipboard-check"></i> Laporan Hasil Seminar
                             </a>
                         </li>
                         @endif

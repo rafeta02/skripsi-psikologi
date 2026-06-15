@@ -43,6 +43,7 @@ class Application extends Model implements HasMedia
         'status',
         'submitted_at',
         'notes',
+        'transcript_document_number',
         'created_at',
         'updated_at',
         'deleted_at',

@@ -33,55 +33,12 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.applicationScore.fields.examiner_helper') }}</span>
             </div>
-            <div class="form-group">
-                <label for="penulisan">Penulisan</label>
-                <input class="form-control {{ $errors->has('penulisan') ? 'is-invalid' : '' }}" type="number" name="penulisan" id="penulisan" value="{{ old('penulisan', '') }}">
-                @if($errors->has('penulisan'))
-                    <span class="text-danger">{{ $errors->first('penulisan') }}</span>
-                @endif
-            </div>
-            <div class="form-group">
-                <label for="isi">Isi</label>
-                <input class="form-control {{ $errors->has('isi') ? 'is-invalid' : '' }}" type="number" name="isi" id="isi" value="{{ old('isi', '') }}">
-                @if($errors->has('isi'))
-                    <span class="text-danger">{{ $errors->first('isi') }}</span>
-                @endif
-            </div>
-            <div class="form-group">
-                <label for="analisis">Analisis</label>
-                <input class="form-control {{ $errors->has('analisis') ? 'is-invalid' : '' }}" type="number" name="analisis" id="analisis" value="{{ old('analisis', '') }}">
-                @if($errors->has('analisis'))
-                    <span class="text-danger">{{ $errors->first('analisis') }}</span>
-                @endif
-            </div>
-            <div class="form-group">
-                <label for="teoritis">Teoritis</label>
-                <input class="form-control {{ $errors->has('teoritis') ? 'is-invalid' : '' }}" type="number" name="teoritis" id="teoritis" value="{{ old('teoritis', '') }}">
-                @if($errors->has('teoritis'))
-                    <span class="text-danger">{{ $errors->first('teoritis') }}</span>
-                @endif
-            </div>
-            <div class="form-group">
-                <label for="faktual">Faktual</label>
-                <input class="form-control {{ $errors->has('faktual') ? 'is-invalid' : '' }}" type="number" name="faktual" id="faktual" value="{{ old('faktual', '') }}">
-                @if($errors->has('faktual'))
-                    <span class="text-danger">{{ $errors->first('faktual') }}</span>
-                @endif
-            </div>
-            <div class="form-group">
-                <label for="pemecahan_masalah">Pemecahan Masalah</label>
-                <input class="form-control {{ $errors->has('pemecahan_masalah') ? 'is-invalid' : '' }}" type="number" name="pemecahan_masalah" id="pemecahan_masalah" value="{{ old('pemecahan_masalah', '') }}">
-                @if($errors->has('pemecahan_masalah'))
-                    <span class="text-danger">{{ $errors->first('pemecahan_masalah') }}</span>
-                @endif
-            </div>
-            <div class="form-group">
-                <label for="penyampaian">Penyampaian</label>
-                <input class="form-control {{ $errors->has('penyampaian') ? 'is-invalid' : '' }}" type="number" name="penyampaian" id="penyampaian" value="{{ old('penyampaian', '') }}">
-                @if($errors->has('penyampaian'))
-                    <span class="text-danger">{{ $errors->first('penyampaian') }}</span>
-                @endif
-            </div>
+            @include('partials.application-score-component-fields', [
+                'scoreRecord' => null,
+                'colClass' => 'form-group',
+                'inputClass' => 'form-control score-input',
+                'useAdminLabel' => true,
+            ])
             <div class="form-group">
                 <label for="sum">Sum</label>
                 <input class="form-control {{ $errors->has('sum') ? 'is-invalid' : '' }}" type="number" name="sum" id="sum" value="{{ old('sum', '') }}" step="0.1">

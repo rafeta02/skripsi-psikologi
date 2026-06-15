@@ -138,9 +138,13 @@
                         @endif
                     @elseif($currentPhase == 2 && $activeApplication)
                         <div class="d-flex flex-wrap gap-2 mt-3">
-                            @if($allowedForms['application_result_seminar']['allowed'] ?? false)
-                            <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn-modern btn-modern-primary">
+                            @if($activeApplication->type == 'skripsi' && ($allowedForms['application_result_review']['allowed'] ?? false))
+                            <a href="{{ route('frontend.application-result-reviews.index') }}" class="btn-modern btn-modern-primary">
                                 <i class="fas fa-clipboard-check"></i> Laporan Hasil Review
+                            </a>
+                            @elseif($activeApplication->type == 'mbkm' && ($allowedForms['application_result_seminar']['allowed'] ?? false))
+                            <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn-modern btn-modern-primary">
+                                <i class="fas fa-clipboard-check"></i> Laporan Hasil Seminar
                             </a>
                             @endif
                             @if($allowedForms['skripsi_defense']['allowed'] ?? false)

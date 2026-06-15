@@ -74,11 +74,8 @@
             @if($adminFinalized && $applicationResultDefense->application)
                 <div class="alert alert-success">
                     <i class="fas fa-download mr-1"></i>
-                    Dokumen kelulusan sudah siap:
-                    <a class="btn btn-sm btn-success ml-2" href="{{ route('pdf.surat-keterangan-lulus', $applicationResultDefense->application->id) }}" target="_blank">
-                        <i class="fas fa-file-pdf mr-1"></i> Surat Keterangan Lulus
-                    </a>
-                    <a class="btn btn-sm btn-outline-success ml-2" href="{{ route('pdf.transkrip-nilai', $applicationResultDefense->application->id) }}" target="_blank">
+                    Dokumen akhir sudah siap:
+                    <a class="btn btn-sm btn-success ml-2" href="{{ route('pdf.transkrip-nilai', $applicationResultDefense->application->id) }}" target="_blank">
                         <i class="fas fa-file-pdf mr-1"></i> Rekap Nilai
                     </a>
                 </div>
@@ -104,6 +101,14 @@
                     </tr>
                     <tr>
                         <th>
+                            {{ trans('cruds.applicationResultDefense.fields.final_title') }}
+                        </th>
+                        <td>
+                            {{ $applicationResultDefense->final_title }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
                             {{ trans('cruds.applicationResultDefense.fields.note') }}
                         </th>
                         <td>
@@ -116,14 +121,6 @@
                         </th>
                         <td>
                             {{ $applicationResultDefense->revision_deadline }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            {{ trans('cruds.applicationResultDefense.fields.final_grade') }}
-                        </th>
-                        <td>
-                            {{ $applicationResultDefense->final_grade }}
                         </td>
                     </tr>
                     @if($applicationResultDefense->scores->isNotEmpty())
@@ -146,6 +143,14 @@
                             <span style="color: #666; margin-left: 10px;">
                                 {{ \App\Models\ApplicationResultDefense::getGradeDescription($applicationResultDefense->final_grade_letter) }}
                             </span>
+                        </td>
+                    </tr>
+                    @endif
+                    @if($applicationResultDefense->application?->transcript_document_number)
+                    <tr>
+                        <th>Nomor Rekap Nilai</th>
+                        <td>
+                            <strong>{{ $applicationResultDefense->application->transcript_document_number }}</strong>
                         </td>
                     </tr>
                     @endif
@@ -231,7 +236,7 @@
             <form id="finalizeDefenseForm">
                 <div class="modal-body">
                     <div class="alert alert-primary">
-                        Finalisasi kelulusan akan membuka dokumen <strong>Surat Keterangan Lulus</strong> dan <strong>Rekap Nilai</strong> untuk mahasiswa.
+                        Finalisasi kelulusan akan membuka dokumen <strong>Rekap Nilai</strong> untuk mahasiswa.
                     </div>
                     <div class="form-group">
                         <label for="finalize_notes">Catatan (opsional)</label>

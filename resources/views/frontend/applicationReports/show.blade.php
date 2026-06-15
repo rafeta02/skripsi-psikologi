@@ -61,7 +61,7 @@
             @if($applicationReport->report_document && count($applicationReport->report_document) > 0)
                 <div class="card-modern">
                     <div class="card-modern-body">
-                        <h4 class="font-weight-bold mb-3">Bukti Pendukung</h4>
+                        <h4 class="font-weight-bold mb-3">Laporan Kendala</h4>
                         <div class="row">
                             @foreach($applicationReport->report_document as $document)
                                 <div class="col-md-4 mb-3">
