@@ -788,13 +788,14 @@ class FormAccessService
     }
 
     /**
-     * Mahasiswa dapat melaporkan hasil sidang setelah sidang dilaksanakan
-     * dan semua dosen menyelesaikan penilaian (ApplicationScore).
+     * Mahasiswa dapat melaporkan hasil sidang setelah jadwal sidang diverifikasi admin
+     * dan waktu pelaksanaan sidang sudah lewat (Skripsi Reguler & MBKM).
      */
     public function canAccessDefenseResult($mahasiswaId): array
     {
         $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
             ->where('stage', 'defense')
+            ->whereIn('type', ['skripsi', 'mbkm'])
             ->orderByDesc('created_at')
             ->first();
 
@@ -838,17 +839,7 @@ class FormAccessService
         if (!$scoringService->isDefenseHeld($defenseApp)) {
             return [
                 'allowed' => false,
-                'message' => 'Sidang belum dilaksanakan. Laporan hasil dapat diajukan setelah waktu sidang lewat dan dosen menyelesaikan penilaian.',
-                'application' => $defenseApp,
-            ];
-        }
-
-        $scoringService->ensureScoreAssignments($defenseApp);
-
-        if (!$scoringService->isScoringComplete($defenseApp)) {
-            return [
-                'allowed' => false,
-                'message' => 'Tunggu semua dosen pembimbing dan penguji menyelesaikan penilaian sidang.',
+                'message' => 'Sidang belum dilaksanakan. Laporan hasil dapat diajukan setelah waktu sidang lewat.',
                 'application' => $defenseApp,
             ];
         }
@@ -875,6 +866,7 @@ class FormAccessService
     {
         $defenseApp = Application::where('mahasiswa_id', $mahasiswaId)
             ->where('stage', 'defense')
+            ->whereIn('type', ['skripsi', 'mbkm'])
             ->orderByDesc('created_at')
             ->first();
 

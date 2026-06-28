@@ -167,6 +167,22 @@ class ApplicationSchedule extends Model implements HasMedia
     }
 
     /**
+     * Jadwal sidang sudah diverifikasi admin.
+     */
+    public function isDefenseScheduleVerified(): bool
+    {
+        if ($this->isApprovedByAdmin()) {
+            return true;
+        }
+
+        if ($this->application?->status !== 'scheduled') {
+            return false;
+        }
+
+        return in_array($this->schedule_type, ['skripsi_defense', 'defense'], true);
+    }
+
+    /**
      * Jadwal seminar/sidang sudah diverifikasi admin dan siap dilanjutkan ke pelaporan hasil.
      */
     public function isReadyForResultReport(): bool

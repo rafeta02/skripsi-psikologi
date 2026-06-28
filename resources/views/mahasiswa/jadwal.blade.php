@@ -82,13 +82,13 @@
                             <div class="mt-3">
                                 @include('partials.schedule-validation-status', ['schedule' => $schedule])
                                 <p class="small text-muted mb-0 mt-2">{{ $schedule->adminValidationStatus()['detail'] }}</p>
-                                @if($schedule->isApprovedByAdmin() && ($allowedForms['defense_result']['allowed'] ?? false))
+                                @if(in_array($schedule->schedule_type, ['skripsi_defense', 'defense']) && $schedule->isDefenseScheduleVerified() && ($allowedForms['defense_result']['allowed'] ?? false))
                                     @can('application_result_defense_create')
                                         <a href="{{ route('frontend.application-result-defenses.create') }}" class="btn btn-success btn-sm btn-block mt-2">
                                             <i class="fas fa-award"></i> Laporkan Hasil Sidang
                                         </a>
                                     @endcan
-                                @elseif($schedule->isApprovedByAdmin() && ($schedule->application->resultDefense ?? null))
+                                @elseif(in_array($schedule->schedule_type, ['skripsi_defense', 'defense']) && $schedule->isDefenseScheduleVerified() && ($schedule->application->resultDefense ?? null))
                                     <a href="{{ route('frontend.application-result-defenses.show', $schedule->application->resultDefense->id) }}" class="btn btn-info btn-sm btn-block mt-2">
                                         <i class="fas fa-eye"></i> Lihat Hasil Sidang
                                     </a>

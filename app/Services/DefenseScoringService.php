@@ -14,7 +14,7 @@ class DefenseScoringService
     public function resolveDefenseSchedule(Application $application): ?ApplicationSchedule
     {
         return ApplicationSchedule::where('application_id', $application->id)
-            ->where('schedule_type', 'skripsi_defense')
+            ->whereIn('schedule_type', ['skripsi_defense', 'defense'])
             ->orderByDesc('id')
             ->first();
     }
@@ -27,8 +27,7 @@ class DefenseScoringService
             return false;
         }
 
-        return $schedule->isApprovedByAdmin()
-            || $application->status === 'scheduled';
+        return $schedule->isDefenseScheduleVerified();
     }
 
     /**
