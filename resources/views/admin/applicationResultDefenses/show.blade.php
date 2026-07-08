@@ -108,6 +108,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <th>Judul Akhir (English)</th>
+                        <td>
+                            {{ $applicationResultDefense->final_title_en ?: '-' }}
+                        </td>
+                    </tr>
+                    <tr>
                         <th>
                             {{ trans('cruds.applicationResultDefense.fields.note') }}
                         </th>

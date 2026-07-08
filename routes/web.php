@@ -32,6 +32,21 @@ Route::group(['prefix' => 'pdf', 'as' => 'pdf.', 'middleware' => ['auth']], func
 Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'middleware' => ['auth', 'admin']], function () {
     Route::get('/', 'HomeController@index')->name('home');
     Route::get('/monitoring', 'HomeController@monitoring')->name('monitoring');
+
+    Route::get('rekap-pembimbing', 'DosenWorkloadController@rekapPembimbing')->name('dosen-workload.rekap-pembimbing');
+    Route::get('rekap-penguji', 'DosenWorkloadController@rekapPenguji')->name('dosen-workload.rekap-penguji');
+    Route::get('rekap-pembimbing/{dosen}/detail', 'DosenWorkloadController@pembimbingDetail')->name('dosen-workload.pembimbing-detail');
+    Route::get('rekap-penguji/{dosen}/detail', 'DosenWorkloadController@pengujiDetail')->name('dosen-workload.penguji-detail');
+
+    Route::get('rekap-nilai-akhir', 'FinalScoreRecapController@index')->name('final-score-recap.index');
+    Route::get('rekap-nilai-akhir/{applicationResultDefense}/detail', 'FinalScoreRecapController@detail')->name('final-score-recap.detail');
+
+    Route::get('database-judul', 'ThesisTitleDatabaseController@index')->name('thesis-title-database.index');
+    Route::post('database-judul/manual', 'ThesisTitleDatabaseController@store')->name('thesis-title-database.store');
+    Route::delete('database-judul/manual/{thesisTitleEntry}', 'ThesisTitleDatabaseController@destroy')->name('thesis-title-database.destroy');
+    Route::post('database-judul/import', 'ThesisTitleDatabaseController@import')->name('thesis-title-database.import');
+    Route::get('database-judul/template-csv', 'ThesisTitleDatabaseController@downloadTemplate')->name('thesis-title-database.template');
+
     // Permissions
     Route::delete('permissions/destroy', 'PermissionsController@massDestroy')->name('permissions.massDestroy');
     Route::resource('permissions', 'PermissionsController');

@@ -34,6 +34,7 @@ class SkripsiRegistration extends Model implements HasMedia
         'application_id',
         'theme_id',
         'title',
+        'title_en',
         'abstract',
         'tps_lecturer_id',
         'preference_supervision_id',

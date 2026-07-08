@@ -68,6 +68,7 @@ class SkripsiRegistrationController extends Controller
         $validated = $request->validate([
             'theme_id' => 'required|exists:keilmuans,id',
             'title' => 'required|string|max:500',
+            'title_en' => 'nullable|string|max:500',
             'abstract' => 'required|string',
             'tps_lecturer_id' => 'nullable|exists:dosens,id',
             'preference_supervision_id' => 'nullable|exists:dosens,id',
@@ -194,6 +195,7 @@ class SkripsiRegistrationController extends Controller
         $validated = $request->validate([
             'theme_id' => 'required|exists:keilmuans,id',
             'title' => 'required|string|max:500',
+            'title_en' => 'nullable|string|max:500',
             'abstract' => 'required|string',
             'tps_lecturer_id' => 'nullable|exists:dosens,id',
             'preference_supervision_id' => 'nullable|exists:dosens,id',

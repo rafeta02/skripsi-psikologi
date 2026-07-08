@@ -40,6 +40,7 @@ class MbkmRegistration extends Model implements HasMedia
         'theme_id',
         'title_mbkm',
         'title',
+        'title_en',
         'total_sks_taken',
         'nilai_mk_kuantitatif',
         'nilai_mk_kualitatif',

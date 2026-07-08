@@ -44,52 +44,24 @@
 @endpush
 
 @section('content')
-<div class="container py-4">
-    <!-- Page Header -->
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-8">
-            <h2 class="mb-1"><i class="fas fa-file-alt text-primary"></i> Aplikasi Saya</h2>
-            <p class="text-muted mb-0">Kelola dan pantau semua aplikasi skripsi Anda</p>
-            <small class="text-muted">
-                <i class="fas fa-info-circle"></i> 
-                @if(count($applications) == 0)
-                    Belum ada aplikasi
-                @elseif(count($applications) == 1)
-                    1 aplikasi aktif
-                @else
-                    Total {{ count($applications) }} aplikasi
-                @endif
-            </small>
-        </div>
-        <div class="col-md-4 text-right">
-            @php
-                $hasActiveApplication = $applications->whereIn('status', ['submitted', 'approved', 'scheduled', 'revision'])->count() > 0;
-            @endphp
-            
+<div class="mb-4">
+    <h2 class="h4 font-weight-bold mb-1">Aplikasi Saya</h2>
+    <p class="text-muted mb-0">Kelola dan pantau semua aplikasi skripsi Anda</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        @php
+            $hasActiveApplication = $applications->whereIn('status', ['submitted', 'approved', 'scheduled', 'revision'])->count() > 0;
+        @endphp
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <small class="text-muted">{{ count($applications) }} aplikasi</small>
             @if(!$hasActiveApplication)
-                <a href="{{ route('frontend.choose-path') }}" class="btn btn-primary btn-lg shadow">
-                    <i class="fas fa-plus-circle"></i> Buat Aplikasi Baru
+                <a href="{{ route('frontend.choose-path') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> Aplikasi Baru
                 </a>
-            @else
-                <button class="btn btn-secondary btn-lg" disabled title="Anda sudah memiliki aplikasi aktif">
-                    <i class="fas fa-check-circle"></i> Sudah Ada Aplikasi Aktif
-                </button>
             @endif
         </div>
-    </div>
-
-    <!-- Info Card -->
-    @if(count($applications) > 0)
-        <div class="alert alert-info border-left mb-4" style="border-left: 4px solid #17a2b8 !important;">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-lightbulb fa-2x mr-3"></i>
-                <div>
-                    <h5 class="mb-1">Tips</h5>
-                    <p class="mb-0">Pendaftaran dianggap <strong>diterima</strong> setelah dosen pembimbing menerima penugasan. Setelah admin menugaskan dosen, status akan menampilkan &quot;Menunggu Dosen&quot; hingga dosen menyetujui.</p>
-                </div>
-            </div>
-        </div>
-    @endif
 
     @if(count($applications) > 0)
         @foreach($applications as $app)
@@ -263,5 +235,11 @@
             </div>
         </div>
     @endif
+    </div>
+
+    <div class="col-lg-4">
+        @include('partials.mahasiswa.process-timeline')
+        @include('partials.mahasiswa.quick-actions')
+    </div>
 </div>
 @endsection

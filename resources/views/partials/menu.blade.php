@@ -261,8 +261,8 @@
                     </li>
                 @endcan
                 {{-- Skripsi Management - Reorganized Menu --}}
-                <li class="nav-item has-treeview {{ request()->is("admin/skripsi*") || request()->is("admin/mbkm*") || request()->is("admin/application*") ? "menu-open" : "" }}">
-                    <a class="nav-link nav-dropdown-toggle {{ request()->is("admin/skripsi*") || request()->is("admin/mbkm*") || request()->is("admin/application*") ? "active" : "" }}" href="#">
+                <li class="nav-item has-treeview {{ request()->is("admin/skripsi*") || request()->is("admin/mbkm*") || request()->is("admin/application*") || request()->is("admin/rekap-*") || request()->is("admin/database-judul*") ? "menu-open" : "" }}">
+                    <a class="nav-link nav-dropdown-toggle {{ request()->is("admin/skripsi*") || request()->is("admin/mbkm*") || request()->is("admin/application*") || request()->is("admin/rekap-*") || request()->is("admin/database-judul*") ? "active" : "" }}" href="#">
                         <i class="fa-fw nav-icon fas fa-graduation-cap"></i>
                         <p>
                             Skripsi Management
@@ -421,6 +421,31 @@
                                 </a>
                             </li>
                         @endcan
+
+                        <li class="nav-item">
+                            <a href="{{ route("admin.dosen-workload.rekap-pembimbing") }}" class="nav-link {{ request()->is("admin/rekap-pembimbing*") ? "active" : "" }}">
+                                <i class="fa-fw nav-icon fas fa-user-tie"></i>
+                                <p>Rekap Pembimbing</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route("admin.dosen-workload.rekap-penguji") }}" class="nav-link {{ request()->is("admin/rekap-penguji*") ? "active" : "" }}">
+                                <i class="fa-fw nav-icon fas fa-gavel"></i>
+                                <p>Rekap Penguji</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route("admin.final-score-recap.index") }}" class="nav-link {{ request()->is("admin/rekap-nilai-akhir*") ? "active" : "" }}">
+                                <i class="fa-fw nav-icon fas fa-chart-pie"></i>
+                                <p>Rekap Nilai Akhir</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route("admin.thesis-title-database.index") }}" class="nav-link {{ request()->is("admin/database-judul*") ? "active" : "" }}">
+                                <i class="fa-fw nav-icon fas fa-book"></i>
+                                <p>Database Judul</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item">

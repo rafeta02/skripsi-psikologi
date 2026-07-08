@@ -1,63 +1,52 @@
 @extends('layouts.dosen')
 
 @section('content')
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-lg-12">
-            <div class="card-modern" style="background: linear-gradient(135deg, var(--dosen-primary) 0%, var(--dosen-secondary) 100%); border: none;">
-                <div class="card-modern-body" style="padding: 2rem;">
-                    <h2 class="mb-1 text-white font-weight-bold">
-                        <i class="fas fa-clipboard-check mr-2"></i> Penilaian Sidang Skripsi
-                    </h2>
-                    <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Isi komponen penilaian (skala 0–100 per aspek)
-                    </p>
-                </div>
+@include('partials.dosen.page-header', [
+    'title' => 'Isi Penilaian Sidang',
+    'subtitle' => 'Komponen penilaian skala 0–100 per aspek',
+])
+
+@php
+    $app = $applicationScore->application
+        ?? $applicationScore->application_result_defence?->application;
+    $mahasiswa = $app->mahasiswa ?? null;
+    $defense = $app->skripsiDefense ?? null;
+@endphp
+
+<div class="mb-3">
+    <a href="{{ route('dosen.scores') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Kembali ke Daftar Penilaian
+    </a>
+</div>
+
+<div class="mhs-card mb-4">
+    <div class="mhs-card-body">
+        <h6 class="font-weight-bold mb-3">Informasi Mahasiswa</h6>
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <small class="text-muted d-block">Nama</small>
+                <strong>{{ $mahasiswa->nama ?? '-' }}</strong>
+            </div>
+            <div class="col-md-4 mb-2">
+                <small class="text-muted d-block">NIM</small>
+                <strong>{{ $mahasiswa->nim ?? '-' }}</strong>
+            </div>
+            <div class="col-md-4 mb-2">
+                <small class="text-muted d-block">Program Studi</small>
+                <strong>{{ $mahasiswa->prodi->name ?? '-' }}</strong>
             </div>
         </div>
-    </div>
-
-    @php
-        $app = $applicationScore->application
-            ?? $applicationScore->application_result_defence?->application;
-        $mahasiswa = $app->mahasiswa ?? null;
-        $defense = $app->skripsiDefense ?? null;
-    @endphp
-
-    <div class="row mb-4">
-        <div class="col-lg-12">
-            <div class="card-modern">
-                <div class="card-modern-body">
-                    <h5 class="font-weight-bold mb-3">Informasi Mahasiswa</h5>
-                    <div class="row">
-                        <div class="col-md-4 mb-2">
-                            <label class="text-muted mb-1">Nama</label>
-                            <p class="font-weight-semibold mb-0">{{ $mahasiswa->nama ?? '-' }}</p>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="text-muted mb-1">NIM</label>
-                            <p class="font-weight-semibold mb-0">{{ $mahasiswa->nim ?? '-' }}</p>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="text-muted mb-1">Program Studi</label>
-                            <p class="font-weight-semibold mb-0">{{ $mahasiswa->prodi->name ?? '-' }}</p>
-                        </div>
-                    </div>
-                    @if($defense?->title)
-                        <div class="mt-2">
-                            <label class="text-muted mb-1">Judul</label>
-                            <p class="font-weight-semibold mb-0">{{ $defense->title }}</p>
-                        </div>
-                    @endif
-                </div>
+        @if($defense?->title)
+            <div class="mt-2">
+                <small class="text-muted d-block">Judul</small>
+                <strong>{{ $defense->title }}</strong>
             </div>
-        </div>
+        @endif
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card-modern">
-                <div class="card-modern-body">
+<div class="mhs-card">
+    <div class="mhs-card-body">
                     <form action="{{ route('dosen.application-scores.update', $applicationScore) }}" method="POST" id="scoreForm">
                         @csrf
                         @method('PUT')
@@ -84,17 +73,14 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ route('dosen.scores') }}" class="btn btn-secondary">
+                            <a href="{{ route('dosen.scores') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-arrow-left"></i> Kembali
                             </a>
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Simpan Penilaian
                             </button>
                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 @endsection

@@ -312,7 +312,14 @@
                 
                 <div class="form-group">
                     <label for="title">Judul Skripsi <span class="text-danger">*</span></label>
-                    <textarea name="title" id="title" class="form-control" rows="3" required></textarea>
+                    <textarea name="title" id="title" class="form-control" rows="3" required
+                        placeholder="Tuliskan judul skripsi dalam Bahasa Indonesia"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="title_en">Judul Skripsi (English)</label>
+                    <textarea name="title_en" id="title_en" class="form-control" rows="3"
+                        placeholder="Thesis title in English (optional)"></textarea>
                 </div>
                 
                 <div class="form-group">

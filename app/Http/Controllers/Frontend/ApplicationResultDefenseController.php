@@ -84,6 +84,7 @@ class ApplicationResultDefenseController extends Controller
         $applicationResultDefense = ApplicationResultDefense::create([
             'application_id' => $request->input('application_id'),
             'final_title' => $request->input('final_title'),
+            'final_title_en' => $request->input('final_title_en'),
             'result' => $request->input('result'),
             'note' => $request->input('note'),
             'revision_deadline' => $request->input('revision_deadline'),
@@ -118,6 +119,7 @@ class ApplicationResultDefenseController extends Controller
     {
         $applicationResultDefense->update($request->only([
             'final_title',
+            'final_title_en',
             'result',
             'note',
             'revision_deadline',

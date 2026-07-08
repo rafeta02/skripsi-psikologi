@@ -27,6 +27,7 @@ class StoreApplicationResultDefenseRequest extends FormRequest
         $rules = [
             'application_id' => ['required', 'exists:applications,id'],
             'final_title' => ['required', 'string', 'max:500'],
+            'final_title_en' => ['nullable', 'string', 'max:500'],
             'result' => ['required', 'in:' . implode(',', array_keys(ApplicationResultDefense::RESULT_SELECT))],
             'note' => ['nullable', 'string', 'max:5000'],
             'revision_deadline' => ['nullable', 'date'],
@@ -56,6 +57,7 @@ class StoreApplicationResultDefenseRequest extends FormRequest
         $rules = [
             'application_id' => ['required', 'exists:applications,id'],
             'final_title' => ['required', 'string', 'max:500'],
+            'final_title_en' => ['nullable', 'string', 'max:500'],
             'result' => ['required', 'in:' . implode(',', array_keys(ApplicationResultDefense::RESULT_SELECT))],
             'note' => ['nullable', 'string', 'max:5000'],
             'revision_deadline' => ['nullable', 'date_format:' . config('panel.date_format')],

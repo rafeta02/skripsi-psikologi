@@ -57,7 +57,15 @@
                 @if($errors->has('final_title'))
                     <span class="text-danger">{{ $errors->first('final_title') }}</span>
                 @endif
-                <span class="help-block">{{ trans('cruds.applicationResultDefense.fields.final_title_helper') }}</span>
+                <span class="help-block">Judul akhir dalam Bahasa Indonesia (masuk Database Judul)</span>
+            </div>
+            <div class="form-group">
+                <label for="final_title_en">Judul Akhir (English)</label>
+                <input class="form-control {{ $errors->has('final_title_en') ? 'is-invalid' : '' }}" type="text" name="final_title_en" id="final_title_en" value="{{ old('final_title_en', $applicationResultDefense->final_title_en) }}" maxlength="500">
+                @if($errors->has('final_title_en'))
+                    <span class="text-danger">{{ $errors->first('final_title_en') }}</span>
+                @endif
+                <span class="help-block">Judul akhir dalam Bahasa Inggris (opsional, masuk Database Judul)</span>
             </div>
             <div class="form-group">
                 <label for="documentation">{{ trans('cruds.applicationResultDefense.fields.documentation') }}</label>

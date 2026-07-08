@@ -1,29 +1,13 @@
 @extends('layouts.mahasiswa')
 
 @section('content')
-<div class="container py-4">
-    <!-- Page Header -->
-    <div class="mb-4">
-        <h2 class="mb-1"><i class="fas fa-calendar-alt text-primary"></i> Jadwal Saya</h2>
-        <p class="text-muted mb-2">Jadwal seminar, sidang, dan bimbingan Anda</p>
-        <small class="text-muted">
-            <i class="fas fa-info-circle"></i> Total {{ count($schedules) }} jadwal
-        </small>
-    </div>
+<div class="mb-4">
+    <h2 class="h4 font-weight-bold mb-1">Jadwal Saya</h2>
+    <p class="text-muted mb-0">Jadwal seminar, sidang, dan bimbingan Anda</p>
+</div>
 
-    <!-- Info Card -->
-    @if(count($schedules) > 0)
-    <div class="alert alert-warning border-left" style="border-left: 4px solid #ffc107 !important;">
-        <div class="d-flex align-items-center">
-            <i class="fas fa-bell fa-2x mr-3"></i>
-            <div>
-                <h5 class="mb-1">Pengingat Jadwal</h5>
-                <p class="mb-0">Pastikan Anda hadir tepat waktu pada jadwal yang telah ditentukan. Hubungi admin jika ada perubahan mendadak.</p>
-            </div>
-        </div>
-    </div>
-    @endif
-
+<div class="row">
+    <div class="col-lg-8">
     @if(count($schedules) > 0)
         <div class="row">
             @foreach($schedules as $schedule)
@@ -114,30 +98,33 @@
         @if(($scheduleAccess['allowed'] ?? false))
             <div class="text-center mt-4 mb-4">
                 @can('application_schedule_create')
-                    <a href="{{ route('frontend.application-schedules.create') }}" class="btn btn-primary btn-lg">
+                    <a href="{{ route('frontend.application-schedules.create') }}" class="btn btn-primary">
                         <i class="fas fa-calendar-plus"></i> Ajukan Jadwal Baru
                     </a>
                 @endcan
             </div>
         @endif
     @else
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
-                <h3>Belum Ada Jadwal</h3>
-                <p class="text-muted mb-4">Anda belum memiliki jadwal. Setelah seminar MBKM/skripsi disetujui atau pendaftaran sidang diterima admin, ajukan jadwal dan tunggu verifikasi admin.</p>
+        <div class="mhs-card">
+            <div class="mhs-card-body text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5>Belum Ada Jadwal</h5>
+                <p class="text-muted mb-4">Ajukan jadwal setelah pendaftaran seminar/sidang disetujui admin.</p>
                 @if(($allowedForms['application_schedule']['allowed'] ?? false))
                     @can('application_schedule_create')
-                        <a href="{{ route('frontend.application-schedules.create') }}" class="btn btn-primary btn-lg">
+                        <a href="{{ route('frontend.application-schedules.create') }}" class="btn btn-primary">
                             <i class="fas fa-calendar-plus"></i> Ajukan Jadwal
                         </a>
                     @endcan
                 @endif
-                <a href="{{ route('mahasiswa.aplikasi') }}" class="btn btn-primary">
-                    <i class="fas fa-file-alt"></i> Lihat Aplikasi Saya
-                </a>
             </div>
         </div>
     @endif
+    </div>
+
+    <div class="col-lg-4">
+        @include('partials.mahasiswa.quick-actions')
+        @include('partials.mahasiswa.process-timeline')
+    </div>
 </div>
 @endsection

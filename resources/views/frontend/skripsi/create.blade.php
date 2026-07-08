@@ -253,8 +253,15 @@
                 <div class="form-group">
                     <label for="title">Judul Skripsi <span class="text-danger">*</span></label>
                     <textarea name="title" id="title" class="form-control" rows="3" required
-                        placeholder="Masukkan judul skripsi yang jelas dan deskriptif"></textarea>
+                        placeholder="Tuliskan judul skripsi dalam Bahasa Indonesia"></textarea>
                     <small class="form-text text-muted">Maksimal 500 karakter</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="title_en">Judul Skripsi (English)</label>
+                    <textarea name="title_en" id="title_en" class="form-control" rows="3"
+                        placeholder="Thesis title in English (optional)"></textarea>
+                    <small class="form-text text-muted">Opsional, maksimal 500 karakter</small>
                 </div>
                 
                 <div class="form-group">

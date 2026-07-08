@@ -70,8 +70,14 @@
 
                             <div class="form-group">
                                 <label class="form-label-modern required">Judul Akhir Skripsi</label>
-                                <input type="text" name="final_title" class="form-control-modern @error('final_title') is-invalid @enderror" value="{{ old('final_title') }}" required maxlength="500">
+                                <input type="text" name="final_title" class="form-control-modern @error('final_title') is-invalid @enderror" value="{{ old('final_title') }}" required maxlength="500" placeholder="Judul dalam Bahasa Indonesia">
                                 @error('final_title')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern">Judul Akhir Skripsi (English)</label>
+                                <input type="text" name="final_title_en" class="form-control-modern @error('final_title_en') is-invalid @enderror" value="{{ old('final_title_en') }}" maxlength="500" placeholder="Thesis title in English (optional)">
+                                @error('final_title_en')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
 
                             <div class="form-group">

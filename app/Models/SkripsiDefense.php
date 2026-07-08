@@ -28,6 +28,7 @@ class SkripsiDefense extends Model implements HasMedia
     protected $fillable = [
         'application_id',
         'title',
+        'title_en',
         'abstract',
         'status',
         'admin_note',

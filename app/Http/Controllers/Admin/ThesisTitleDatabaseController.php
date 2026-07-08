@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\ThesisTitleEntry;
+use App\Services\ThesisTitleDatabaseService;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class ThesisTitleDatabaseController extends Controller
+{
+    public function __construct(private ThesisTitleDatabaseService $titleService)
+    {
+    }
+
+    public function index(Request $request)
+    {
+        $query = trim($request->get('q', ''));
+
+        $entries = $this->titleService->getAllEntries();
+
+        if ($query !== '') {
+            $entries = $this->titleService->filterByKeywords($entries, $query);
+        }
+
+        $entries = $this->titleService->markDuplicates($entries);
+        $summary = $this->titleService->getSummary($entries);
+
+        return view('admin.thesisTitleDatabase.index', compact('entries', 'summary', 'query'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:500',
+            'title_en' => 'nullable|string|max:500',
+            'mahasiswa_nama' => 'nullable|string|max:255',
+            'nim' => 'nullable|string|max:30',
+            'prodi' => 'nullable|string|max:255',
+            'type' => 'nullable|in:skripsi,mbkm',
+            'year' => 'nullable|string|max:4',
+            'note' => 'nullable|string|max:2000',
+        ]);
+
+        $this->titleService->createManualEntry($validated, (int) auth()->id());
+
+        return redirect()
+            ->route('admin.thesis-title-database.index')
+            ->with('success', 'Judul berhasil ditambahkan ke database.');
+    }
+
+    public function destroy(ThesisTitleEntry $thesisTitleEntry)
+    {
+        $thesisTitleEntry->delete();
+
+        return redirect()
+            ->route('admin.thesis-title-database.index')
+            ->with('success', 'Entri manual berhasil dihapus.');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        try {
+            $result = $this->titleService->importFromCsv(
+                $request->file('csv_file'),
+                (int) auth()->id()
+            );
+        } catch (\RuntimeException $e) {
+            return redirect()
+                ->route('admin.thesis-title-database.index')
+                ->with('error', $e->getMessage());
+        }
+
+        $message = "Import selesai: {$result['imported']} judul ditambahkan";
+        if ($result['skipped'] > 0) {
+            $message .= ", {$result['skipped']} baris dilewati.";
+        }
+
+        return redirect()
+            ->route('admin.thesis-title-database.index')
+            ->with('success', $message)
+            ->with('import_errors', $result['errors']);
+    }
+
+    public function downloadTemplate(): StreamedResponse
+    {
+        $content = $this->titleService->getCsvTemplateContent();
+
+        return response()->streamDownload(function () use ($content) {
+            echo $content;
+        }, 'template-database-judul.csv', [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+}

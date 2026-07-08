@@ -35,6 +35,7 @@ class ApplicationResultDefense extends Model implements HasMedia
     protected $fillable = [
         'application_id',
         'final_title',
+        'final_title_en',
         'result',
         'note',
         'revision_deadline',

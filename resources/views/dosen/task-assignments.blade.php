@@ -1,43 +1,28 @@
 @extends('layouts.dosen')
 
 @section('content')
-<div class="container py-4">
-    <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col-lg-12">
-            <div class="card-modern" style="background: linear-gradient(135deg, var(--dosen-primary) 0%, var(--dosen-secondary) 100%); border: none;">
-                <div class="card-modern-body" style="padding: 2rem;">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-white font-weight-bold">
-                                <i class="fas fa-tasks mr-2"></i> Task Assignments
-                            </h2>
-                            <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                                <i class="fas fa-user mr-2"></i> {{ $dosen->nama }}
-                                <span class="mx-2">|</span>
-                                <i class="fas fa-id-card mr-2"></i> NIDN: {{ $dosen->nidn }}
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-right">
-                            <div style="color: rgba(255,255,255,0.9); font-size: var(--font-size-lg);">
-                                <div><i class="fas fa-clipboard-list mr-2"></i> <strong>{{ $assignments->count() }}</strong> Total Assignments</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+@php $pendingAssignmentCount = $assignments->where('status', 'assigned')->count(); @endphp
+@include('partials.dosen.page-header', [
+    'title' => 'Penugasan',
+    'subtitle' => $dosen->nama . ' · ' . $assignments->count() . ' total'
+        . ($pendingAssignmentCount > 0 ? ' · ' . $pendingAssignmentCount . ' belum ditanggapi' : ''),
+])
 
-    <!-- Assignments List -->
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card-modern">
-                <div class="card-modern-body p-0">
+@if($pendingAssignmentCount > 0)
+<div class="alert alert-warning alert-dismissible fade show">
+  <strong>{{ $pendingAssignmentCount }} penugasan</strong> belum disetujui atau ditolak. Klik <strong>Tinjau</strong> untuk memberikan respons.
+  <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+</div>
+@endif
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="mhs-card">
+            <div class="mhs-card-body p-0">
                     @if($assignments->count() > 0)
                         <div class="table-responsive">
-                            <table class="table-modern table-modern-striped mb-0">
-                                <thead>
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="thead-light">
                                     <tr>
                                         <th>#</th>
                                         <th>Mahasiswa</th>
@@ -54,38 +39,27 @@
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
                                             <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div style="width: 32px; height: 32px; background: var(--dosen-accent); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin-right: var(--spacing-2);">
-                                                        <i class="fas fa-user" style="font-size: 12px; color: white;"></i>
-                                                    </div>
-                                                    <div>
-                                                        <div class="font-weight-semibold">{{ $assignment->application->mahasiswa->nama ?? 'N/A' }}</div>
-                                                        <div class="text-xs text-gray-600">{{ $assignment->application->mahasiswa->nim ?? 'N/A' }}</div>
-                                                    </div>
-                                                </div>
+                                                <strong>{{ $assignment->application->mahasiswa->nama ?? 'N/A' }}</strong>
+                                                <br><small class="text-muted">{{ $assignment->application->mahasiswa->nim ?? 'N/A' }}</small>
                                             </td>
-                                            <td class="text-sm">{{ $assignment->application->mahasiswa->prodi->name ?? 'N/A' }}</td>
-                                            <td>
-                                                <span class="badge-modern badge-modern-primary">
-                                                    {{ strtoupper($assignment->application->type ?? 'N/A') }}
-                                                </span>
-                                            </td>
+                                            <td>{{ $assignment->application->mahasiswa->prodi->name ?? 'N/A' }}</td>
+                                            <td><span class="badge badge-primary">{{ strtoupper($assignment->application->type ?? 'N/A') }}</span></td>
                                             <td class="text-capitalize">
                                                 @if($assignment->role == 'supervisor')
-                                                    <span class="badge-modern badge-modern-success">Pembimbing</span>
+                                                    <span class="badge badge-success">Pembimbing</span>
                                                 @elseif($assignment->role == 'reviewer')
-                                                    <span class="badge-modern badge-modern-info">Penguji</span>
-                                                @elseif($assignment->role == 'examiner')
-                                                    <span class="badge-modern badge-modern-warning">Examiner</span>
+                                                    <span class="badge badge-info">Penguji</span>
+                                                @else
+                                                    <span class="badge badge-warning">{{ ucfirst($assignment->role) }}</span>
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($assignment->status == 'assigned')
-                                                    <span class="badge-modern badge-modern-warning">Belum Direspon</span>
+                                                    <span class="badge badge-warning">Menunggu</span>
                                                 @elseif($assignment->status == 'accepted')
-                                                    <span class="badge-modern badge-modern-success">Diterima</span>
+                                                    <span class="badge badge-success">Diterima</span>
                                                 @else
-                                                    <span class="badge-modern badge-modern-danger">Ditolak</span>
+                                                    <span class="badge badge-danger">Ditolak</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -94,13 +68,9 @@
                                             </td>
                                             <td>
                                                 @if($assignment->status == 'assigned')
-                                                    <a href="{{ route('dosen.review-proposal', $assignment->id) }}" class="btn-modern btn-modern-sm btn-modern-success">
-                                                        <i class="fas fa-clipboard-check"></i> Review
-                                                    </a>
+                                                    <a href="{{ route('dosen.review-proposal', $assignment->id) }}" class="btn btn-sm btn-primary">Tinjau</a>
                                                 @else
-                                                    <button class="btn-modern btn-modern-sm btn-modern-outline" onclick="showNote({{ $assignment->id }})">
-                                                        <i class="fas fa-eye"></i> Lihat
-                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="showNote({{ $assignment->id }})">Detail</button>
                                                 @endif
                                             </td>
                                         </tr>
@@ -111,17 +81,18 @@
 
                         
                     @else
-                        <div class="empty-state text-center py-5">
-                            <div style="width: 100px; height: 100px; background: var(--gray-100); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--spacing-4);">
-                                <i class="fas fa-tasks fa-3x text-muted"></i>
-                            </div>
-                            <h4 class="text-muted">Tidak Ada Task Assignment</h4>
-                            <p class="text-muted">Anda belum memiliki task assignment saat ini.</p>
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-tasks fa-2x mb-2 d-block"></i>
+                            Belum ada penugasan.
                         </div>
                     @endif
                 </div>
             </div>
         </div>
+
+    <div class="col-lg-4">
+        @include('partials.dosen.quick-actions')
+        @include('partials.dosen.activity-timeline')
     </div>
 </div>
 

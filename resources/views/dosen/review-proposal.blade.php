@@ -1,32 +1,24 @@
 @extends('layouts.dosen')
 
 @section('content')
-<div class="container py-4">
-    <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col-lg-12">
-            <div class="card-modern" style="background: linear-gradient(135deg, var(--dosen-primary) 0%, var(--dosen-secondary) 100%); border: none;">
-                <div class="card-modern-body" style="padding: 2rem;">
-                    <h2 class="mb-1 text-white font-weight-bold">
-                        <i class="fas fa-clipboard-check mr-2"></i> Review Proposal
-                    </h2>
-                    <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        @if($assignment->application?->type === 'mbkm')
-                            Tinjau pendaftaran Skripsi MBKM dan berikan keputusan beserta feedback
-                        @else
-                            Tinjau pendaftaran Skripsi Reguler dan berikan keputusan beserta feedback
-                        @endif
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
+@include('partials.dosen.page-header', [
+    'title' => 'Tinjau Proposal',
+    'subtitle' => $assignment->application?->type === 'mbkm'
+        ? 'Pendaftaran Skripsi MBKM — berikan keputusan dan feedback'
+        : 'Pendaftaran Skripsi Reguler — berikan keputusan dan feedback',
+])
+
+<div class="mb-3">
+    <a href="{{ route('dosen.task-assignments') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Kembali ke Penugasan
+    </a>
+</div>
 
     <!-- Application Info -->
     <div class="row mb-4">
         <div class="col-lg-12">
-            <div class="card-modern">
-                <div class="card-modern-body">
+            <div class="mhs-card">
+                <div class="mhs-card-body">
                     @php
                         $app = $assignment->application;
                         $mhs = $app?->mahasiswa;
@@ -308,7 +300,6 @@
             </div>
         </div>
     </div>
-</div>
 
 @push('scripts')
 <script>
