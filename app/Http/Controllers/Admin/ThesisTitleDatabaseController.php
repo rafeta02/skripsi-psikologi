@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ThesisTitleEntry;
 use App\Services\ThesisTitleDatabaseService;
+use Gate;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ThesisTitleDatabaseController extends Controller
@@ -16,6 +18,8 @@ class ThesisTitleDatabaseController extends Controller
 
     public function index(Request $request)
     {
+        abort_if(Gate::denies('thesis_title_database_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $query = trim($request->get('q', ''));
 
         $entries = $this->titleService->getAllEntries();
@@ -32,6 +36,8 @@ class ThesisTitleDatabaseController extends Controller
 
     public function store(Request $request)
     {
+        abort_if(Gate::denies('thesis_title_database_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $validated = $request->validate([
             'title' => 'required|string|max:500',
             'title_en' => 'nullable|string|max:500',
@@ -52,6 +58,8 @@ class ThesisTitleDatabaseController extends Controller
 
     public function destroy(ThesisTitleEntry $thesisTitleEntry)
     {
+        abort_if(Gate::denies('thesis_title_database_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $thesisTitleEntry->delete();
 
         return redirect()
@@ -61,6 +69,8 @@ class ThesisTitleDatabaseController extends Controller
 
     public function import(Request $request)
     {
+        abort_if(Gate::denies('thesis_title_database_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $request->validate([
             'csv_file' => 'required|file|mimes:csv,txt|max:5120',
         ]);
@@ -89,6 +99,8 @@ class ThesisTitleDatabaseController extends Controller
 
     public function downloadTemplate(): StreamedResponse
     {
+        abort_if(Gate::denies('thesis_title_database_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $content = $this->titleService->getCsvTemplateContent();
 
         return response()->streamDownload(function () use ($content) {

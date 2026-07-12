@@ -606,6 +606,22 @@ class PermissionsTableSeeder extends Seeder
                 'id'    => 149,
                 'title' => 'application_result_review_access',
             ],
+            [
+                'id'    => 150,
+                'title' => 'dosen_workload_pembimbing_access',
+            ],
+            [
+                'id'    => 151,
+                'title' => 'dosen_workload_penguji_access',
+            ],
+            [
+                'id'    => 152,
+                'title' => 'final_score_recap_access',
+            ],
+            [
+                'id'    => 153,
+                'title' => 'thesis_title_database_access',
+            ],
         ];
 
         Permission::insert($permissions);

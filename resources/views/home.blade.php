@@ -192,6 +192,75 @@
             </div>
         </div>
 
+        <!-- Monitoring & Rekap -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title font-weight-bold">
+                            <i class="fas fa-chart-pie"></i> Monitoring &amp; Rekap
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @can('dosen_workload_pembimbing_access')
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <a href="{{ route('admin.dosen-workload.rekap-pembimbing') }}" class="text-decoration-none">
+                                    <div class="info-box mb-0" style="min-height: 90px;">
+                                        <span class="info-box-icon bg-primary"><i class="fas fa-user-tie"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Rekap Pembimbing</span>
+                                            <span class="info-box-number text-sm font-weight-normal">Beban bimbingan dosen</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            @endcan
+                            @can('dosen_workload_penguji_access')
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <a href="{{ route('admin.dosen-workload.rekap-penguji') }}" class="text-decoration-none">
+                                    <div class="info-box mb-0" style="min-height: 90px;">
+                                        <span class="info-box-icon bg-warning"><i class="fas fa-gavel"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Rekap Penguji</span>
+                                            <span class="info-box-number text-sm font-weight-normal">Beban reviewer &amp; penguji</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            @endcan
+                            @can('final_score_recap_access')
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <a href="{{ route('admin.final-score-recap.index') }}" class="text-decoration-none">
+                                    <div class="info-box mb-0" style="min-height: 90px;">
+                                        <span class="info-box-icon bg-success"><i class="fas fa-chart-pie"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Rekap Nilai Akhir</span>
+                                            <span class="info-box-number text-sm font-weight-normal">Breakdown per komponen</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            @endcan
+                            @can('thesis_title_database_access')
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <a href="{{ route('admin.thesis-title-database.index') }}" class="text-decoration-none">
+                                    <div class="info-box mb-0" style="min-height: 90px;">
+                                        <span class="info-box-icon bg-info"><i class="fas fa-book"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Database Judul</span>
+                                            <span class="info-box-number text-sm font-weight-normal">Cek kemiripan judul</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            @endcan
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Applications -->
         <div class="row">
             <div class="col-lg-12">

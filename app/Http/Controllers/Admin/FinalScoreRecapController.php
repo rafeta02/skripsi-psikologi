@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationResultDefense;
 use App\Services\FinalScoreRecapService;
+use Gate;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class FinalScoreRecapController extends Controller
 {
@@ -15,6 +17,8 @@ class FinalScoreRecapController extends Controller
 
     public function index(Request $request)
     {
+        abort_if(Gate::denies('final_score_recap_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $filter = $request->get('filter', 'finalized');
         if (!in_array($filter, ['finalized', 'all'], true)) {
             $filter = 'finalized';
@@ -36,6 +40,8 @@ class FinalScoreRecapController extends Controller
 
     public function detail(ApplicationResultDefense $applicationResultDefense)
     {
+        abort_if(Gate::denies('final_score_recap_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $detail = $this->recapService->getDetail($applicationResultDefense);
         $componentLabels = $this->recapService->getComponentLabels();
 

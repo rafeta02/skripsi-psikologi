@@ -422,30 +422,38 @@
                             </li>
                         @endcan
 
-                        <li class="nav-item">
-                            <a href="{{ route("admin.dosen-workload.rekap-pembimbing") }}" class="nav-link {{ request()->is("admin/rekap-pembimbing*") ? "active" : "" }}">
-                                <i class="fa-fw nav-icon fas fa-user-tie"></i>
-                                <p>Rekap Pembimbing</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route("admin.dosen-workload.rekap-penguji") }}" class="nav-link {{ request()->is("admin/rekap-penguji*") ? "active" : "" }}">
-                                <i class="fa-fw nav-icon fas fa-gavel"></i>
-                                <p>Rekap Penguji</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route("admin.final-score-recap.index") }}" class="nav-link {{ request()->is("admin/rekap-nilai-akhir*") ? "active" : "" }}">
-                                <i class="fa-fw nav-icon fas fa-chart-pie"></i>
-                                <p>Rekap Nilai Akhir</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route("admin.thesis-title-database.index") }}" class="nav-link {{ request()->is("admin/database-judul*") ? "active" : "" }}">
-                                <i class="fa-fw nav-icon fas fa-book"></i>
-                                <p>Database Judul</p>
-                            </a>
-                        </li>
+                        @can('dosen_workload_pembimbing_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.dosen-workload.rekap-pembimbing") }}" class="nav-link {{ request()->is("admin/rekap-pembimbing*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-user-tie"></i>
+                                    <p>Rekap Pembimbing</p>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('dosen_workload_penguji_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.dosen-workload.rekap-penguji") }}" class="nav-link {{ request()->is("admin/rekap-penguji*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-gavel"></i>
+                                    <p>Rekap Penguji</p>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('final_score_recap_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.final-score-recap.index") }}" class="nav-link {{ request()->is("admin/rekap-nilai-akhir*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-chart-pie"></i>
+                                    <p>Rekap Nilai Akhir</p>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('thesis_title_database_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.thesis-title-database.index") }}" class="nav-link {{ request()->is("admin/database-judul*") ? "active" : "" }}">
+                                    <i class="fa-fw nav-icon fas fa-book"></i>
+                                    <p>Database Judul</p>
+                                </a>
+                            </li>
+                        @endcan
                     </ul>
                 </li>
                 <li class="nav-item">

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Dosen;
 use App\Services\DosenWorkloadService;
+use Gate;
+use Symfony\Component\HttpFoundation\Response;
 
 class DosenWorkloadController extends Controller
 {
@@ -14,6 +16,8 @@ class DosenWorkloadController extends Controller
 
     public function rekapPembimbing()
     {
+        abort_if(Gate::denies('dosen_workload_pembimbing_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $recap = $this->workloadService->getPembimbingRecap();
 
         $summary = [
@@ -28,6 +32,8 @@ class DosenWorkloadController extends Controller
 
     public function rekapPenguji()
     {
+        abort_if(Gate::denies('dosen_workload_penguji_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $recap = $this->workloadService->getPengujiRecap();
 
         $summary = [
@@ -42,6 +48,8 @@ class DosenWorkloadController extends Controller
 
     public function pembimbingDetail(Dosen $dosen)
     {
+        abort_if(Gate::denies('dosen_workload_pembimbing_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $items = $this->workloadService->getPembimbingDetail($dosen->id);
 
         return view('admin.dosenWorkload.partials.pembimbing-detail', compact('dosen', 'items'));
@@ -49,6 +57,8 @@ class DosenWorkloadController extends Controller
 
     public function pengujiDetail(Dosen $dosen)
     {
+        abort_if(Gate::denies('dosen_workload_penguji_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $items = $this->workloadService->getPengujiDetail($dosen->id);
 
         return view('admin.dosenWorkload.partials.penguji-detail', compact('dosen', 'items'));
