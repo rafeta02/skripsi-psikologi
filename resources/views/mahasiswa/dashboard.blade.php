@@ -68,7 +68,7 @@
 @endif
 
 <div class="row">
-    <div class="col-lg-7">
+    <div class="col-lg-12">
         @include('partials.mahasiswa.quick-actions')
 
         @if($activeApplication)
@@ -115,7 +115,7 @@
         @endif
     </div>
 
-    <div class="col-lg-5">
+    <div class="col-lg-12">
         @include('partials.mahasiswa.process-timeline')
 
         @if(count($schedules) > 0)
