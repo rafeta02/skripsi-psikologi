@@ -447,3 +447,222 @@
 .mhs-sidebar-overlay.show {
     display: block;
 }
+
+/* ========================================
+   Form typography (mahasiswa / dosen portal)
+   Ensures readable color & size after layout change
+   ======================================== */
+
+.mhs-content {
+    color: #212529;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.mhs-content p,
+.mhs-content li,
+.mhs-content td,
+.mhs-content th,
+.mhs-content .table {
+    color: #343a40;
+}
+
+.mhs-content .text-muted,
+.mhs-content .form-text,
+.mhs-content small,
+.mhs-content .small {
+    color: #6c757d !important;
+    font-size: 0.875rem;
+}
+
+/* Headings inside content (not welcome strip) */
+.mhs-content h1,
+.mhs-content h2,
+.mhs-content h3,
+.mhs-content h4,
+.mhs-content h5,
+.mhs-content h6 {
+    color: #1a0a33;
+    line-height: 1.35;
+}
+
+.mhs-content h1 { font-size: 1.75rem; }
+.mhs-content h2 { font-size: 1.5rem; }
+.mhs-content h3 { font-size: 1.35rem; }
+.mhs-content h4 { font-size: 1.2rem; }
+.mhs-content h5 { font-size: 1.1rem; }
+.mhs-content h6 { font-size: 1rem; }
+
+.mhs-content .mhs-welcome h1,
+.mhs-content .mhs-welcome p {
+    color: #fff !important;
+}
+
+/* Gradient page headers: force white text */
+.mhs-content .card-modern[style*="gradient"] h1,
+.mhs-content .card-modern[style*="gradient"] h2,
+.mhs-content .card-modern[style*="gradient"] h3,
+.mhs-content .card-modern[style*="gradient"] h4,
+.mhs-content .card-modern[style*="gradient"] h5,
+.mhs-content .card-modern[style*="gradient"] p,
+.mhs-content .card-modern[style*="gradient"] .text-white,
+.mhs-content .card-modern[style*="gradient"] i {
+    color: #fff !important;
+}
+
+.mhs-content .card-modern[style*="gradient"] p {
+    opacity: 0.95;
+    font-size: 0.95rem;
+}
+
+/* White form cards */
+.mhs-content .card-modern:not([style*="gradient"]),
+.mhs-content .card-modern:not([style*="gradient"]) .card-modern-body,
+.mhs-content .wizard-container,
+.mhs-content .card,
+.mhs-content .card-body {
+    color: #212529;
+}
+
+.mhs-content .card-modern:not([style*="gradient"]) h1,
+.mhs-content .card-modern:not([style*="gradient"]) h2,
+.mhs-content .card-modern:not([style*="gradient"]) h3,
+.mhs-content .card-modern:not([style*="gradient"]) h4,
+.mhs-content .card-modern:not([style*="gradient"]) h5,
+.mhs-content .card-modern:not([style*="gradient"]) h6,
+.mhs-content .wizard-container h1,
+.mhs-content .wizard-container h2,
+.mhs-content .wizard-container h3,
+.mhs-content .wizard-container h4,
+.mhs-content .wizard-container h5 {
+    color: #1a0a33;
+}
+
+/* Labels & form fields */
+.mhs-content label,
+.mhs-content .form-label-modern,
+.mhs-content .col-form-label {
+    display: block;
+    color: #343a40 !important;
+    font-size: 0.95rem !important;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    line-height: 1.4;
+}
+
+.mhs-content .form-label-modern.required::after,
+.mhs-content label.required::after {
+    content: ' *';
+    color: #dc3545 !important;
+    font-weight: 700;
+}
+
+.mhs-content .form-control,
+.mhs-content .form-control-modern,
+.mhs-content textarea,
+.mhs-content select,
+.mhs-content .custom-select {
+    color: #212529 !important;
+    background-color: #fff !important;
+    font-size: 1rem;
+}
+
+.mhs-content .form-control::placeholder,
+.mhs-content .form-control-modern::placeholder,
+.mhs-content textarea::placeholder {
+    color: #adb5bd !important;
+    opacity: 1;
+}
+
+.mhs-content .custom-file-label {
+    color: #495057 !important;
+    background-color: #fff !important;
+    font-size: 0.95rem;
+    font-weight: 400 !important;
+}
+
+.mhs-content .section-title {
+    color: #1a0a33 !important;
+    font-size: 1.1rem !important;
+    font-weight: 700;
+}
+
+.mhs-content .section-title.required-docs {
+    color: #c0392b !important;
+}
+
+.mhs-content .section-title.optional-docs {
+    color: #6c757d !important;
+}
+
+.mhs-content .text-primary {
+    color: #22004C !important;
+}
+
+.mhs-content .alert {
+    color: inherit;
+    font-size: 0.95rem;
+}
+
+.mhs-content .alert-info,
+.mhs-content .alert-info p,
+.mhs-content .alert-info strong,
+.mhs-content .alert-info h6 {
+    color: #0c5460 !important;
+}
+
+.mhs-content .alert-warning,
+.mhs-content .alert-warning p,
+.mhs-content .alert-warning strong {
+    color: #856404 !important;
+}
+
+.mhs-content .alert-success {
+    color: #155724 !important;
+}
+
+.mhs-content .alert-danger {
+    color: #721c24 !important;
+}
+
+.mhs-content .badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.mhs-content .table thead th {
+    color: #1a0a33;
+    font-size: 0.875rem;
+}
+
+.mhs-content .table tbody td {
+    color: #343a40;
+    font-size: 0.925rem;
+}
+
+/* Select2 readability inside portal */
+.mhs-content .select2-container--default .select2-selection--single,
+.mhs-content .select2-container--bootstrap4 .select2-selection--single {
+    min-height: 38px;
+    color: #212529;
+}
+
+.mhs-content .select2-container--default .select2-selection--single .select2-selection__rendered,
+.mhs-content .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+    color: #212529 !important;
+    line-height: 36px;
+}
+
+.mhs-content .wizard-header h2 {
+    color: #22004C !important;
+    font-size: 1.5rem !important;
+}
+
+.mhs-content .wizard-header p,
+.mhs-content .wizard-step-title {
+    color: #6c757d !important;
+}
+
+.mhs-content .wizard-step.active .wizard-step-title {
+    color: #22004C !important;
+}

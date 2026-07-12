@@ -128,6 +128,21 @@
         box-shadow: 0 10px 25px rgba(34, 0, 76, 0.3);
         color: white;
     }
+
+    .path-select-hint {
+        display: inline-block;
+        margin-top: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 30px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color, #4A0080) 100%);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .path-card:hover .path-select-hint {
+        box-shadow: 0 8px 20px rgba(34, 0, 76, 0.25);
+    }
     
     .page-header {
         text-align: center;
@@ -177,7 +192,7 @@
             <i class="fas fa-info-circle fa-2x text-primary mr-3"></i>
             <div>
                 <h5 class="font-weight-bold text-primary mb-2">Informasi Penting</h5>
-                <p class="mb-0">Silahkan pilih salah satu jalur skripsi di bawah ini. Pastikan Anda membaca dengan teliti perbedaan antara kedua jalur sebelum memilih.</p>
+                <p class="mb-0">Klik salah satu kartu di bawah untuk memilih jalur skripsi. Anda akan langsung diarahkan ke form pendaftaran.</p>
             </div>
         </div>
     </div>
@@ -235,9 +250,9 @@
                         </div>
                     </div>
                     
-                    <button type="button" class="btn btn-select-path" onclick="document.getElementById('path_skripsi').click()">
-                        <i class="fas fa-hand-pointer mr-2"></i> Pilih Jalur Ini
-                    </button>
+                    <div class="path-select-hint">
+                        <i class="fas fa-mouse-pointer mr-1"></i> Klik kartu ini untuk memilih
+                    </div>
                 </label>
             </div>
             
@@ -291,17 +306,11 @@
                         </div>
                     </div>
                     
-                    <button type="button" class="btn btn-select-path" onclick="document.getElementById('path_mbkm').click()">
-                        <i class="fas fa-hand-pointer mr-2"></i> Pilih Jalur Ini
-                    </button>
+                    <div class="path-select-hint">
+                        <i class="fas fa-mouse-pointer mr-1"></i> Klik kartu ini untuk memilih
+                    </div>
                 </label>
             </div>
-        </div>
-        
-        <div class="text-center mt-5">
-            <button type="submit" class="btn btn-select-path" style="font-size: 1.3rem; padding: 1.2rem 4rem;">
-                <i class="fas fa-arrow-right mr-2"></i> Lanjutkan
-            </button>
         </div>
     </form>
 </div>
@@ -310,31 +319,12 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        // Add click handler to path cards
-        $('.path-card').on('click', function(e) {
-            if ($(e.target).is('button')) {
-                e.preventDefault();
-            }
-            $(this).find('input[type="radio"]').prop('checked', true);
+        // Klik kartu → pilih jalur dan langsung lanjut
+        $('input[name="path_type"]').on('change', function() {
             $('.path-card').removeClass('selected');
-            $(this).addClass('selected');
-        });
-        
-        // Form validation
-        $('#pathSelectionForm').on('submit', function(e) {
-            if (!$('input[name="path_type"]:checked').length) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Perhatian',
-                    text: 'Silahkan pilih salah satu jalur skripsi terlebih dahulu!',
-                    confirmButtonColor: '#22004C'
-                });
-                return false;
-            }
-            
-            // Show loading
+            $('label[for="' + this.id + '"]').addClass('selected');
             $('#loadingSpinner').show();
+            $('#pathSelectionForm').submit();
         });
     });
 </script>
