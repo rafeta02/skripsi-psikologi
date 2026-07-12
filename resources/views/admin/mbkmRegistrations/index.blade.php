@@ -25,6 +25,9 @@
                         {{ trans('cruds.mbkmRegistration.fields.application') }}
                     </th>
                     <th>
+                        Ketua
+                    </th>
+                    <th>
                         {{ trans('cruds.mbkmRegistration.fields.research_group') }}
                     </th>
                     <th>
@@ -37,10 +40,10 @@
                         {{ trans('cruds.mbkmRegistration.fields.title_mbkm') }}
                     </th>
                     <th>
-                        {{ trans('cruds.mbkmRegistration.fields.title') }}
+                        Status Kelompok
                     </th>
                     <th>
-                        {{ trans('cruds.mbkmRegistration.fields.total_sks_taken') }}
+                        Syarat Anggota
                     </th>
                     <th>
                         {{ trans('cruds.mbkmRegistration.fields.note') }}
@@ -102,12 +105,13 @@
     columns: [
       { data: 'placeholder', name: 'placeholder' },
 { data: 'application_status', name: 'application.status' },
+{ data: 'ketua_nama', name: 'application.mahasiswa.nama' },
 { data: 'research_group_name', name: 'research_group.name' },
 { data: 'preference_supervision_nip', name: 'preference_supervision.nama' },
 { data: 'theme_name', name: 'theme.name' },
 { data: 'title_mbkm', name: 'title_mbkm' },
-{ data: 'title', name: 'title' },
-{ data: 'total_sks_taken', name: 'total_sks_taken' },
+{ data: 'group_status_label', name: 'group_status' },
+{ data: 'members_count', name: 'members_count', searchable: false, orderable: false },
 { data: 'note', name: 'note' },
 { data: 'actions', name: '{{ trans('global.actions') }}' }
     ],

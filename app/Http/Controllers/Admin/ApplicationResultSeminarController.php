@@ -213,10 +213,25 @@ class ApplicationResultSeminarController extends Controller
     {
         abort_if(Gate::denies('application_result_seminar_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationResultSeminar->load('application.mahasiswa.prodi', 'application.mahasiswa.jenjang', 'application.actions');
+        $applicationResultSeminar->load([
+            'application.mahasiswa.prodi',
+            'application.mahasiswa.jenjang',
+            'application.mbkmRegistration.groupMembers.mahasiswa',
+            'application.parentApplication.mbkmRegistration.groupMembers.mahasiswa',
+            'application.actions',
+        ]);
         $applicationResultSeminar->syncApplicationStatus();
 
-        return view('admin.applicationResultSeminars.show', compact('applicationResultSeminar'));
+        $mbkmGroupRegistration = null;
+        $app = $applicationResultSeminar->application;
+        if ($app && $app->type === 'mbkm') {
+            $mbkmGroupRegistration = $app->resolveOwnerMbkmRegistration();
+            if ($mbkmGroupRegistration && !$mbkmGroupRegistration->relationLoaded('groupMembers')) {
+                $mbkmGroupRegistration->load('groupMembers.mahasiswa');
+            }
+        }
+
+        return view('admin.applicationResultSeminars.show', compact('applicationResultSeminar', 'mbkmGroupRegistration'));
     }
 
     public function approve(Request $request, $id)

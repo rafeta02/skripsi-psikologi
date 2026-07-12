@@ -71,6 +71,14 @@
             </div>
             @endif
 
+            @if(($skripsiDefense->application->type ?? null) === 'mbkm')
+            <div class="alert alert-secondary mt-3">
+                <i class="fas fa-user mr-1"></i>
+                Jalur MBKM: mulai tahap <strong>sidang</strong>, pengajuan bersifat <strong>individu per mahasiswa</strong>
+                (bukan lagi satu form kelompok).
+            </div>
+            @endif
+
             <!-- Status Validasi -->
             <div class="card mt-3">
                 <div class="card-header {{ $skripsiDefense->isAccepted() ? 'bg-success' : ($skripsiDefense->isRejected() ? 'bg-danger' : 'bg-warning') }} text-white">

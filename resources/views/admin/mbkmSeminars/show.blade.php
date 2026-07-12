@@ -10,7 +10,7 @@
                 <div class="card-header bg-primary text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-user-graduate mr-2"></i>
-                        Informasi Mahasiswa
+                        Ketua Kelompok / Pengaju
                     </h3>
                 </div>
                 <div class="card-body">
@@ -61,6 +61,11 @@
                 </div>
             </div>
 
+            @include('admin.partials.mbkm-group-context', [
+                'mbkmGroupRegistration' => $mbkmGroupRegistration ?? null,
+                'mode' => 'compact',
+            ])
+
             <!-- MBKM Seminar Information Card -->
             <div class="card">
                 <div class="card-header bg-info text-white">
@@ -76,12 +81,13 @@
                     </div>
 
                     @php
-                        $mbkmRegistration = \App\Models\MbkmRegistration::where('application_id', $mbkmSeminar->application_id)->first();
+                        $mbkmRegistration = $mbkmGroupRegistration
+                            ?? \App\Models\MbkmRegistration::where('application_id', $mbkmSeminar->application_id)->first();
                     @endphp
 
                     @if($mbkmRegistration)
                         <hr>
-                        <h5 class="font-weight-bold mb-3">Informasi MBKM & Pendaftaran</h5>
+                        <h5 class="font-weight-bold mb-3">Informasi MBKM & Pendaftaran (Kelompok)</h5>
                         
                         <div class="row">
                             <div class="col-md-6">
@@ -92,8 +98,8 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="font-weight-bold">Tema Keilmuan:</label>
-                                    <p>{{ $mbkmRegistration->theme->name ?? 'N/A' }}</p>
+                                    <label class="font-weight-bold">Tema Riset:</label>
+                                    <p>{{ $mbkmRegistration->themes_label }}</p>
                                 </div>
                             </div>
                         </div>

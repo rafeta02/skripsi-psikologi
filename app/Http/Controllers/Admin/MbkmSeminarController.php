@@ -159,9 +159,26 @@ class MbkmSeminarController extends Controller
     {
         abort_if(Gate::denies('mbkm_seminar_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $mbkmSeminar->load('application.mahasiswa.prodi', 'application.actions', 'created_by', 'reviewer1', 'reviewer2');
+        $mbkmSeminar->load([
+            'application.mahasiswa.prodi',
+            'application.mahasiswa.jenjang',
+            'application.mbkmRegistration.groupMembers.mahasiswa',
+            'application.parentApplication.mbkmRegistration.groupMembers.mahasiswa',
+            'application.actions',
+            'created_by',
+            'reviewer1',
+            'reviewer2',
+        ]);
 
-        return view('admin.mbkmSeminars.show', compact('mbkmSeminar'));
+        $mbkmGroupRegistration = $mbkmSeminar->application
+            ? $mbkmSeminar->application->resolveOwnerMbkmRegistration()
+            : null;
+
+        if ($mbkmGroupRegistration && !$mbkmGroupRegistration->relationLoaded('groupMembers')) {
+            $mbkmGroupRegistration->load('groupMembers.mahasiswa');
+        }
+
+        return view('admin.mbkmSeminars.show', compact('mbkmSeminar', 'mbkmGroupRegistration'));
     }
 
     public function destroy(MbkmSeminar $mbkmSeminar)

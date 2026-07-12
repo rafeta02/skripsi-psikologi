@@ -61,6 +61,11 @@
                 </div>
             </div>
 
+            @include('admin.partials.mbkm-group-context', [
+                'mbkmGroupRegistration' => $mbkmGroupRegistration ?? null,
+                'mode' => 'compact',
+            ])
+
             <!-- Schedule Information Card -->
             <div class="card">
                 <div class="card-header bg-info text-white">

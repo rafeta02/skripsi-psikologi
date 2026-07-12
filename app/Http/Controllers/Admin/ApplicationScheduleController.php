@@ -192,9 +192,25 @@ class ApplicationScheduleController extends Controller
     {
         abort_if(Gate::denies('application_schedule_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationSchedule->load('application.mahasiswa.prodi', 'application.mahasiswa.jenjang', 'ruang', 'application.actions');
+        $applicationSchedule->load([
+            'application.mahasiswa.prodi',
+            'application.mahasiswa.jenjang',
+            'application.mbkmRegistration.groupMembers.mahasiswa',
+            'application.parentApplication.mbkmRegistration.groupMembers.mahasiswa',
+            'ruang',
+            'application.actions',
+        ]);
 
-        return view('admin.applicationSchedules.show', compact('applicationSchedule'));
+        $mbkmGroupRegistration = null;
+        $app = $applicationSchedule->application;
+        if ($app && $app->type === 'mbkm' && $applicationSchedule->schedule_type !== 'skripsi_defense') {
+            $mbkmGroupRegistration = $app->resolveOwnerMbkmRegistration();
+            if ($mbkmGroupRegistration && !$mbkmGroupRegistration->relationLoaded('groupMembers')) {
+                $mbkmGroupRegistration->load('groupMembers.mahasiswa');
+            }
+        }
+
+        return view('admin.applicationSchedules.show', compact('applicationSchedule', 'mbkmGroupRegistration'));
     }
 
     public function destroy(ApplicationSchedule $applicationSchedule)

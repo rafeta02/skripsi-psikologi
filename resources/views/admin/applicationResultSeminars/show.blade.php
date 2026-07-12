@@ -52,6 +52,18 @@
                 </div>
             </div>
 
+            @include('admin.partials.mbkm-group-context', [
+                'mbkmGroupRegistration' => $mbkmGroupRegistration ?? null,
+                'mode' => 'compact',
+            ])
+
+            @if(!empty($mbkmGroupRegistration))
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle mr-1"></i>
+                Hasil seminar ini berlaku untuk <strong>seluruh anggota kelompok</strong>. Setelah lulus &amp; divalidasi admin, setiap anggota mendaftar sidang secara individu.
+            </div>
+            @endif
+
             <!-- Result Seminar Details Card -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-info text-white">

@@ -5,12 +5,12 @@
     <div class="row">
         <!-- Main Content -->
         <div class="col-lg-8">
-            <!-- Student Information Card -->
+            <!-- Student Information Card (Ketua) -->
             <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-user-graduate mr-2"></i>
-                        Informasi Mahasiswa
+                        Ketua Kelompok
                     </h3>
                 </div>
                 <div class="card-body">
@@ -18,6 +18,10 @@
                         $mahasiswa = $mbkmRegistration->application->mahasiswa ?? null;
                     @endphp
                     @if($mahasiswa)
+                        <div class="alert alert-info py-2">
+                            <i class="fas fa-users mr-1"></i>
+                            Sampai sebelum sidang, proses MBKM berkelompok. Data di bawah adalah ketua yang mengajukan.
+                        </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <table class="table table-sm table-borderless">
@@ -61,12 +65,12 @@
                 </div>
             </div>
 
-            <!-- MBKM Information Card -->
+            <!-- MBKM Information Card (kelompok) -->
             <div class="card">
                 <div class="card-header bg-info text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-briefcase mr-2"></i>
-                        Informasi MBKM & Skripsi
+                        Informasi Kelompok MBKM
                     </h3>
                 </div>
                 <div class="card-body">
@@ -91,11 +95,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="font-weight-bold">Judul Skripsi:</label>
-                        <p class="text-justify">{{ $mbkmRegistration->title ?? 'N/A' }}</p>
-                    </div>
-
-                    <div class="form-group">
                         <label class="font-weight-bold">Preferensi Dosen Pembimbing:</label>
                         <p>{{ $mbkmRegistration->preference_supervision->nama ?? 'N/A' }}</p>
                     </div>
@@ -109,216 +108,23 @@
                 </div>
             </div>
 
-            <!-- Academic Information Card -->
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-graduation-cap mr-2"></i>
-                        Informasi Akademik
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Total SKS yang Telah Diambil:</label>
-                                <p>{{ $mbkmRegistration->total_sks_taken ?? '-' }} SKS</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Jumlah SKS MKP:</label>
-                                <p>{{ $mbkmRegistration->sks_mkp_taken ?? '-' }} SKS</p>
-                            </div>
-                        </div>
-                    </div>
+            @include('admin.partials.mbkm-group-context', [
+                'mbkmGroupRegistration' => $mbkmRegistration,
+                'mode' => 'full',
+            ])
 
-                    <h5 class="mt-3 mb-3"><strong>Nilai Mata Kuliah:</strong></h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless">
-                                <tr>
-                                    <th width="60%">MK Kuantitatif:</th>
-                                    <td><span class="badge badge-primary">{{ $mbkmRegistration->nilai_mk_kuantitatif ?? '-' }}</span></td>
-                                </tr>
-                                <tr>
-                                    <th>MK Kualitatif:</th>
-                                    <td><span class="badge badge-primary">{{ $mbkmRegistration->nilai_mk_kualitatif ?? '-' }}</span></td>
-                                </tr>
-                                <tr>
-                                    <th>MK Statistika Dasar:</th>
-                                    <td><span class="badge badge-primary">{{ $mbkmRegistration->nilai_mk_statistika_dasar ?? '-' }}</span></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless">
-                                <tr>
-                                    <th width="60%">MK Statistika Lanjutan:</th>
-                                    <td><span class="badge badge-primary">{{ $mbkmRegistration->nilai_mk_statistika_lanjutan ?? '-' }}</span></td>
-                                </tr>
-                                <tr>
-                                    <th>MK Konstruksi Tes:</th>
-                                    <td><span class="badge badge-primary">{{ $mbkmRegistration->nilai_mk_konstruksi_tes ?? '-' }}</span></td>
-                                </tr>
-                                <tr>
-                                    <th>MK TPS:</th>
-                                    <td><span class="badge badge-primary">{{ $mbkmRegistration->nilai_mk_tps ?? '-' }}</span></td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Group Members Card -->
-            @if($mbkmRegistration->groupMembers && $mbkmRegistration->groupMembers->count() > 0)
-            <div class="card">
-                <div class="card-header bg-purple text-white" style="background-color: #6f42c1;">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-users mr-2"></i>
-                        Anggota Kelompok MBKM
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th width="5%">No</th>
-                                    <th width="20%">NIM</th>
-                                    <th width="50%">Nama</th>
-                                    <th width="25%">Peran</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($mbkmRegistration->groupMembers as $index => $member)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $member->mahasiswa->nim ?? '-' }}</td>
-                                    <td>{{ $member->mahasiswa->nama ?? '-' }}</td>
-                                    <td>
-                                        @if($member->role == 'ketua')
-                                            <span class="badge badge-success">Ketua</span>
-                                        @else
-                                            <span class="badge badge-secondary">Anggota</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            <!-- Documents Card -->
+            <!-- Documents Card (kelompok) -->
             <div class="card">
                 <div class="card-header bg-warning text-dark">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-file-pdf mr-2"></i>
-                        Dokumen Persyaratan
+                        Dokumen Kelompok
                     </h3>
                 </div>
                 <div class="card-body">
-                    <!-- KHS Files -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">KHS (Kartu Hasil Studi):</label>
-                        @if($mbkmRegistration->khs_all->count() > 0)
-                            <div class="list-group">
-                                @foreach($mbkmRegistration->khs_all as $key => $media)
-                                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i class="fas fa-file-pdf text-danger mr-2"></i>
-                                            <span>KHS File {{ $key + 1 }}</span>
-                                            <br>
-                                            <small class="text-muted">{{ $media->file_name }}</small>
-                                        </div>
-                                        <div class="btn-group">
-                                            <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-eye"></i> View
-                                            </a>
-                                            <button type="button" class="btn btn-sm btn-info preview-doc" 
-                                                    data-url="{{ $media->getUrl() }}" 
-                                                    data-type="pdf">
-                                                <i class="fas fa-expand"></i> Preview
-                                            </button>
-                                            <a href="{{ $media->getUrl() }}" download class="btn btn-sm btn-success">
-                                                <i class="fas fa-download"></i> Download
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <p class="text-muted">Tidak ada file KHS</p>
-                        @endif
-                    </div>
-
-                    <!-- KRS File -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">KRS Semester Terakhir:</label>
-                        @if($mbkmRegistration->krs_latest)
-                            <div class="list-group">
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <i class="fas fa-file-pdf text-danger mr-2"></i>
-                                        <span>KRS Latest</span>
-                                        <br>
-                                        <small class="text-muted">{{ $mbkmRegistration->krs_latest->file_name }}</small>
-                                    </div>
-                                    <div class="btn-group">
-                                        <a href="{{ $mbkmRegistration->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-info preview-doc" 
-                                                data-url="{{ $mbkmRegistration->krs_latest->getUrl() }}" 
-                                                data-type="pdf">
-                                            <i class="fas fa-expand"></i> Preview
-                                        </button>
-                                        <a href="{{ $mbkmRegistration->krs_latest->getUrl() }}" download class="btn btn-sm btn-success">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            <p class="text-muted">Tidak ada file KRS</p>
-                        @endif
-                    </div>
-
-                    <!-- SPP File -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">Bukti Pembayaran SPP:</label>
-                        @if($mbkmRegistration->spp)
-                            <div class="list-group">
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <i class="fas fa-receipt text-success mr-2"></i>
-                                        <span>Bukti Pembayaran SPP</span>
-                                        <br>
-                                        <small class="text-muted">{{ $mbkmRegistration->spp->file_name }}</small>
-                                    </div>
-                                    <div class="btn-group">
-                                        <a href="{{ $mbkmRegistration->spp->getUrl() }}" target="_blank" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-info preview-doc" 
-                                                data-url="{{ $mbkmRegistration->spp->getUrl() }}" 
-                                                data-type="pdf">
-                                            <i class="fas fa-expand"></i> Preview
-                                        </button>
-                                        <a href="{{ $mbkmRegistration->spp->getUrl() }}" download class="btn btn-sm btn-success">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            <p class="text-muted">Tidak ada bukti pembayaran SPP</p>
-                        @endif
-                    </div>
+                    <p class="text-muted small mb-3">
+                        Dokumen individu (KHS, KRS, SPP, recognition) ada di detail tiap anggota di atas.
+                    </p>
 
                     <!-- Proposal MBKM File -->
                     <div class="form-group">
@@ -349,38 +155,6 @@
                             </div>
                         @else
                             <p class="text-muted">Tidak ada proposal MBKM</p>
-                        @endif
-                    </div>
-
-                    <!-- Recognition Form File -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">Form Konversi SKS:</label>
-                        @if($mbkmRegistration->recognition_form)
-                            <div class="list-group">
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <i class="fas fa-file-signature text-info mr-2"></i>
-                                        <span>Form Konversi SKS</span>
-                                        <br>
-                                        <small class="text-muted">{{ $mbkmRegistration->recognition_form->file_name }}</small>
-                                    </div>
-                                    <div class="btn-group">
-                                        <a href="{{ $mbkmRegistration->recognition_form->getUrl() }}" target="_blank" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-info preview-doc" 
-                                                data-url="{{ $mbkmRegistration->recognition_form->getUrl() }}" 
-                                                data-type="pdf">
-                                            <i class="fas fa-expand"></i> Preview
-                                        </button>
-                                        <a href="{{ $mbkmRegistration->recognition_form->getUrl() }}" download class="btn btn-sm btn-success">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            <p class="text-muted">Tidak ada form konversi SKS</p>
                         @endif
                     </div>
                 </div>
@@ -453,13 +227,37 @@
 
                     <div class="alert alert-primary">
                         <i class="fas fa-briefcase mr-2"></i>
-                        <strong>Jalur MBKM</strong>
+                        <strong>Jalur MBKM — Kelompok</strong>
+                        <div class="small mt-1 mb-0">Hingga sebelum sidang, satu pengajuan untuk seluruh anggota.</div>
                     </div>
 
                     <table class="table table-sm table-borderless">
                         <tr>
                             <th>ID Pendaftaran</th>
                             <td>: #{{ $mbkmRegistration->id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status Kelompok</th>
+                            <td>:
+                                @if(($mbkmRegistration->group_status ?? 'draft') === 'submitted')
+                                    <span class="badge badge-success">Diajukan</span>
+                                @else
+                                    <span class="badge badge-warning">Draft</span>
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Syarat Anggota</th>
+                            <td>:
+                                @php
+                                    $memberTotal = $mbkmRegistration->groupMembers->count();
+                                    $memberComplete = $mbkmRegistration->groupMembers->where('requirements_status', 'complete')->count();
+                                @endphp
+                                {{ $memberComplete }}/{{ $memberTotal }}
+                                @if($memberTotal > 0 && $memberComplete === $memberTotal)
+                                    <span class="badge badge-success ml-1">Lengkap</span>
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <th>Tanggal Daftar</th>
@@ -537,6 +335,10 @@
 
             <!-- Action Buttons Card -->
             @if($mbkmRegistration->application && $mbkmRegistration->application->status === 'submitted')
+            @php
+                $canApproveGroup = ($mbkmRegistration->group_status ?? 'draft') === 'submitted'
+                    && $mbkmRegistration->allMembersRequirementsComplete();
+            @endphp
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h3 class="card-title mb-0">
@@ -545,9 +347,16 @@
                     </h3>
                 </div>
                 <div class="card-body">
+                    @if(!$canApproveGroup)
+                        <div class="alert alert-warning small">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            Setujui hanya tersedia jika kelompok sudah diajukan ketua dan semua syarat individu lengkap.
+                        </div>
+                    @endif
                     <div class="d-grid gap-2">
                         <button type="button" class="btn btn-success btn-lg btn-block mb-2" 
-                                onclick="showApproveModal({{ $mbkmRegistration->id }})">
+                                onclick="showApproveModal({{ $mbkmRegistration->id }})"
+                                @if(!$canApproveGroup) disabled @endif>
                             <i class="fas fa-check-circle mr-2"></i> Setujui Pendaftaran
                         </button>
                         
@@ -619,7 +428,7 @@
                 <div class="modal-body">
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Pendaftaran MBKM akan disetujui dan mahasiswa dapat melanjutkan ke tahap berikutnya.
+                        Pengajuan <strong>kelompok</strong> MBKM akan disetujui. Status anggota ikut tersinkron sampai sebelum sidang.
                     </div>
                     <div class="form-group">
                         <label for="approve_notes">Catatan (Opsional)</label>

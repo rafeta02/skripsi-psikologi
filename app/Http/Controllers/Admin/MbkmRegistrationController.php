@@ -28,7 +28,8 @@ class MbkmRegistrationController extends Controller
         abort_if(Gate::denies('mbkm_registration_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = MbkmRegistration::with(['application', 'research_group', 'preference_supervision', 'theme', 'created_by'])->select(sprintf('%s.*', (new MbkmRegistration)->table));
+            $query = MbkmRegistration::with(['application.mahasiswa', 'research_group', 'preference_supervision', 'theme', 'themes', 'created_by', 'groupMembers'])
+                ->select(sprintf('%s.*', (new MbkmRegistration)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -62,23 +63,38 @@ class MbkmRegistrationController extends Controller
             });
 
             $table->addColumn('theme_name', function ($row) {
-                return $row->theme ? $row->theme->name : '';
+                return $row->themes_label ?: ($row->theme->name ?? '');
             });
 
             $table->editColumn('title_mbkm', function ($row) {
                 return $row->title_mbkm ? $row->title_mbkm : '';
             });
-            $table->editColumn('title', function ($row) {
-                return $row->title ? $row->title : '';
+            $table->addColumn('group_status_label', function ($row) {
+                $status = $row->group_status ?? 'draft';
+                if ($status === 'submitted') {
+                    return '<span class="badge badge-success">Diajukan</span>';
+                }
+
+                return '<span class="badge badge-warning">Draft</span>';
             });
-            $table->editColumn('total_sks_taken', function ($row) {
-                return $row->total_sks_taken ? $row->total_sks_taken : '';
+            $table->addColumn('members_count', function ($row) {
+                $total = $row->groupMembers ? $row->groupMembers->count() : 0;
+                $complete = $row->groupMembers
+                    ? $row->groupMembers->where('requirements_status', 'complete')->count()
+                    : 0;
+
+                return $total > 0 ? "{$complete}/{$total}" : '-';
+            });
+            $table->addColumn('ketua_nama', function ($row) {
+                return $row->application && $row->application->mahasiswa
+                    ? $row->application->mahasiswa->nama
+                    : '';
             });
             $table->editColumn('note', function ($row) {
                 return $row->note ? $row->note : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'research_group', 'preference_supervision', 'theme']);
+            $table->rawColumns(['actions', 'placeholder', 'application', 'research_group', 'preference_supervision', 'theme', 'group_status_label']);
 
             return $table->make(true);
         }
@@ -218,7 +234,18 @@ class MbkmRegistrationController extends Controller
     {
         abort_if(Gate::denies('mbkm_registration_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $mbkmRegistration->load('application', 'research_group', 'preference_supervision', 'theme', 'created_by');
+        $mbkmRegistration->load([
+            'application.mahasiswa.prodi',
+            'application.mahasiswa.jenjang',
+            'application.actions.actionBy',
+            'research_group',
+            'preference_supervision',
+            'themes',
+            'theme',
+            'created_by',
+            'groupMembers.mahasiswa',
+            'groupMembers.media',
+        ]);
 
         return view('admin.mbkmRegistrations.show', compact('mbkmRegistration'));
     }

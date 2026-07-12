@@ -133,6 +133,33 @@ class Application extends Model implements HasMedia
         return $this->hasOne(MbkmRegistration::class);
     }
 
+    /**
+     * Registrasi MBKM milik ketua (owner). Mirror memakai parent application.
+     */
+    public function resolveOwnerMbkmRegistration(): ?MbkmRegistration
+    {
+        if ($this->type !== 'mbkm') {
+            return null;
+        }
+
+        $owner = $this;
+        if ($this->is_group_mirror && $this->parent_application_id) {
+            $owner = $this->relationLoaded('parentApplication')
+                ? $this->parentApplication
+                : self::find($this->parent_application_id);
+        }
+
+        if (!$owner) {
+            return null;
+        }
+
+        if ($owner->relationLoaded('mbkmRegistration')) {
+            return $owner->mbkmRegistration;
+        }
+
+        return $owner->mbkmRegistration()->first();
+    }
+
     public function skripsiSeminar()
     {
         return $this->hasOne(SkripsiSeminar::class);
