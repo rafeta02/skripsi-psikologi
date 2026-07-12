@@ -256,7 +256,10 @@ class MbkmRegistrationController extends Controller
     
     public function edit($applicationId)
     {
-        $application = Application::with('mbkmRegistration.themes')->findOrFail($applicationId);
+        $application = Application::with([
+            'mbkmRegistration.themes',
+            'mbkmRegistration.groupMembers.mahasiswa',
+        ])->findOrFail($applicationId);
         
         // Verify ownership
         $user = Auth::user();
