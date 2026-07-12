@@ -224,6 +224,22 @@ class MbkmRegistrationController extends Controller
             ], 422);
         }
 
+        if ($registration->approval_date) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pendaftaran ini sudah disetujui admin sebelumnya.',
+            ], 422);
+        }
+
+        if (ApplicationAssignment::where('application_id', $registration->application_id)
+            ->where('role', 'supervisor')
+            ->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pendaftaran ini sudah diteruskan ke dosen pembimbing.',
+            ], 422);
+        }
+
         if (!$registration->allMembersRequirementsComplete()) {
             return response()->json([
                 'success' => false,

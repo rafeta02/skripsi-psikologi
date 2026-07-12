@@ -231,6 +231,7 @@
                 <div class="card-body">
                     @php
                         $status = $mbkmRegistration->application->status ?? 'unknown';
+                        $adminAlreadyApproved = !empty($mbkmRegistration->approval_date);
                         $statusConfig = [
                             'submitted' => ['badge' => 'info', 'icon' => 'clock', 'text' => 'Menunggu Review'],
                             'approved' => ['badge' => 'success', 'icon' => 'check-circle', 'text' => 'Disetujui'],
@@ -238,6 +239,9 @@
                             'revision' => ['badge' => 'warning', 'icon' => 'edit', 'text' => 'Perlu Revisi'],
                         ];
                         $config = $statusConfig[$status] ?? ['badge' => 'secondary', 'icon' => 'question', 'text' => 'Unknown'];
+                        if ($adminAlreadyApproved && $status === 'submitted') {
+                            $config = ['badge' => 'success', 'icon' => 'check-circle', 'text' => 'Disetujui Admin'];
+                        }
                     @endphp
                     
                     <div class="text-center mb-3">
@@ -245,6 +249,9 @@
                             <i class="fas fa-{{ $config['icon'] }} mr-2"></i>
                             {{ $config['text'] }}
                         </span>
+                        @if($adminAlreadyApproved && $status === 'submitted')
+                            <div class="small text-muted mt-2">Menunggu persetujuan dosen pembimbing</div>
+                        @endif
                     </div>
 
                     <div class="alert alert-primary">
@@ -356,11 +363,20 @@
             </div>
 
             <!-- Action Buttons Card -->
-            @if($mbkmRegistration->application && $mbkmRegistration->application->status === 'submitted')
             @php
-                $canApproveGroup = ($mbkmRegistration->group_status ?? 'draft') === 'submitted'
+                $supervisorAssignment = $supervisorAssignment ?? \App\Models\ApplicationAssignment::where('application_id', $mbkmRegistration->application_id)
+                    ->where('role', 'supervisor')
+                    ->with('lecturer')
+                    ->first();
+                $showAdminActions = $mbkmRegistration->application
+                    && $mbkmRegistration->application->status === 'submitted'
+                    && empty($mbkmRegistration->approval_date)
+                    && !$supervisorAssignment;
+                $canApproveGroup = $showAdminActions
+                    && ($mbkmRegistration->group_status ?? 'draft') === 'submitted'
                     && $mbkmRegistration->allMembersRequirementsComplete();
             @endphp
+            @if($showAdminActions)
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h3 class="card-title mb-0">

@@ -216,7 +216,10 @@ class MbkmGroupProgressService
             ]);
         }
 
-        $registration->update(['group_status' => 'submitted']);
+        $registration->update([
+            'group_status' => 'submitted',
+            'revision_notes' => null,
+        ]);
 
         if ($registration->application) {
             $registration->application->update(['status' => 'submitted']);
