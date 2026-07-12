@@ -47,8 +47,12 @@ class MbkmRegistrationController extends Controller
             abort(403, 'Unauthorized access');
         }
         
-        // Check if registration already exists
-        if ($application->mbkmRegistration) {
+        // Check if registration already exists (bypass tenant scope — akses via ownership aplikasi)
+        $existingRegistration = MbkmRegistration::withoutGlobalScopes()
+            ->where('application_id', $application->id)
+            ->first();
+
+        if ($existingRegistration) {
             return redirect()->route('frontend.mbkm.edit', $application->id)
                 ->with('info', 'Form pendaftaran sudah ada. Silahkan edit jika diperlukan.');
         }
@@ -231,11 +235,7 @@ class MbkmRegistrationController extends Controller
     
     public function show($applicationId)
     {
-        $application = Application::with([
-            'mbkmRegistration.groupMembers.mahasiswa',
-            'mbkmRegistration.themes',
-            'mahasiswa',
-        ])->findOrFail($applicationId);
+        $application = Application::with(['mahasiswa'])->findOrFail($applicationId);
 
         // Mirror → tampilkan milik ketua
         if ($application->is_group_mirror && $application->parent_application_id) {
@@ -249,6 +249,14 @@ class MbkmRegistrationController extends Controller
             abort(403, 'Unauthorized access');
         }
 
+        $registration = MbkmRegistration::withoutGlobalScopes()
+            ->with(['groupMembers.mahasiswa', 'themes', 'preference_supervision', 'research_group'])
+            ->where('application_id', $application->id)
+            ->first();
+
+        // Attach for blade compatibility
+        $application->setRelation('mbkmRegistration', $registration);
+
         $isGroupFollower = $groupService->isFollowerAnggota((int) $user->mahasiswa_id);
         
         return view('frontend.mbkm.show', compact('application', 'isGroupFollower'));
@@ -256,19 +264,40 @@ class MbkmRegistrationController extends Controller
     
     public function edit($applicationId)
     {
-        $application = Application::with([
-            'mbkmRegistration.themes',
-            'mbkmRegistration.groupMembers.mahasiswa',
-        ])->findOrFail($applicationId);
+        $application = Application::findOrFail($applicationId);
         
         // Verify ownership
         $user = Auth::user();
         if ($application->mahasiswa_id != $user->mahasiswa_id) {
             abort(403, 'Unauthorized access');
         }
+
+        // Support alias route that may pass registration id
+        $registration = MbkmRegistration::withoutGlobalScopes()
+            ->with(['themes', 'groupMembers.mahasiswa'])
+            ->where('application_id', $application->id)
+            ->first();
+
+        if (!$registration) {
+            $registration = MbkmRegistration::withoutGlobalScopes()
+                ->with(['themes', 'groupMembers.mahasiswa', 'application'])
+                ->find($applicationId);
+
+            if ($registration && $registration->application) {
+                $application = $registration->application;
+                if ((int) $application->mahasiswa_id !== (int) $user->mahasiswa_id) {
+                    abort(403, 'Unauthorized access');
+                }
+            }
+        }
+
+        if (!$registration) {
+            return redirect()->route('frontend.mbkm.create', $application->id)
+                ->with('info', 'Silakan lengkapi form pendaftaran terlebih dahulu.');
+        }
         
         // Check if can edit
-        if (!in_array($application->status, ['submitted', 'rejected'])) {
+        if (!in_array($application->status, ['submitted', 'rejected', 'revision'])) {
             return redirect()->route('frontend.mbkm.show', $application->id)
                 ->with('error', 'Pendaftaran tidak dapat diedit pada status ini.');
         }
@@ -285,7 +314,6 @@ class MbkmRegistrationController extends Controller
                 'nama' => $d->nama,
             ])->values())
             ->toArray();
-        $registration = $application->mbkmRegistration;
         
         return view('frontend.mbkm.edit', compact(
             'application',
@@ -298,12 +326,21 @@ class MbkmRegistrationController extends Controller
     
     public function update(Request $request, $applicationId)
     {
-        $application = Application::with('mbkmRegistration')->findOrFail($applicationId);
+        $application = Application::findOrFail($applicationId);
         
         // Verify ownership
         $user = Auth::user();
         if ($application->mahasiswa_id != $user->mahasiswa_id) {
             abort(403, 'Unauthorized access');
+        }
+
+        $registration = MbkmRegistration::withoutGlobalScopes()
+            ->where('application_id', $application->id)
+            ->first();
+
+        if (!$registration) {
+            return redirect()->route('frontend.mbkm.create', $application->id)
+                ->with('error', 'Data pendaftaran tidak ditemukan.');
         }
         
         $validated = $request->validate([
@@ -354,7 +391,6 @@ class MbkmRegistrationController extends Controller
             unset($validated['group_members']);
             $validated['theme_id'] = $themeIds[0];
 
-            $registration = $application->mbkmRegistration;
             $registration->update($validated);
             $registration->themes()->sync($themeIds);
 
