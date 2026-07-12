@@ -37,7 +37,7 @@ class MbkmRegistrationController extends Controller
 
             $table->editColumn('actions', function ($row) {
                 $viewGate      = 'mbkm_registration_show';
-                $editGate      = 'mbkm_registration_edit';
+                $editGate      = 'mbkm_registration_admin_edit_disabled';
                 $deleteGate    = 'mbkm_registration_delete';
                 $crudRoutePart = 'mbkm-registrations';
 
@@ -150,84 +150,12 @@ class MbkmRegistrationController extends Controller
 
     public function edit(MbkmRegistration $mbkmRegistration)
     {
-        abort_if(Gate::denies('mbkm_registration_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $research_groups = ResearchGroup::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $preference_supervisions = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        $mbkmRegistration->load('application', 'research_group', 'preference_supervision', 'theme', 'created_by');
-
-        return view('admin.mbkmRegistrations.edit', compact('applications', 'mbkmRegistration', 'preference_supervisions', 'research_groups', 'themes'));
+        abort(Response::HTTP_FORBIDDEN, 'Admin tidak dapat mengedit form mahasiswa.');
     }
 
     public function update(UpdateMbkmRegistrationRequest $request, MbkmRegistration $mbkmRegistration)
     {
-        $mbkmRegistration->update($request->all());
-
-        if (count($mbkmRegistration->khs_all) > 0) {
-            foreach ($mbkmRegistration->khs_all as $media) {
-                if (! in_array($media->file_name, $request->input('khs_all', []))) {
-                    $media->delete();
-                }
-            }
-        }
-        $media = $mbkmRegistration->khs_all->pluck('file_name')->toArray();
-        foreach ($request->input('khs_all', []) as $file) {
-            if (count($media) === 0 || ! in_array($file, $media)) {
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('khs_all');
-            }
-        }
-
-        if ($request->input('krs_latest', false)) {
-            if (! $mbkmRegistration->krs_latest || $request->input('krs_latest') !== $mbkmRegistration->krs_latest->file_name) {
-                if ($mbkmRegistration->krs_latest) {
-                    $mbkmRegistration->krs_latest->delete();
-                }
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('krs_latest'))))->toMediaCollection('krs_latest');
-            }
-        } elseif ($mbkmRegistration->krs_latest) {
-            $mbkmRegistration->krs_latest->delete();
-        }
-
-        if ($request->input('spp', false)) {
-            if (! $mbkmRegistration->spp || $request->input('spp') !== $mbkmRegistration->spp->file_name) {
-                if ($mbkmRegistration->spp) {
-                    $mbkmRegistration->spp->delete();
-                }
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('spp'))))->toMediaCollection('spp');
-            }
-        } elseif ($mbkmRegistration->spp) {
-            $mbkmRegistration->spp->delete();
-        }
-
-        if ($request->input('proposal_mbkm', false)) {
-            if (! $mbkmRegistration->proposal_mbkm || $request->input('proposal_mbkm') !== $mbkmRegistration->proposal_mbkm->file_name) {
-                if ($mbkmRegistration->proposal_mbkm) {
-                    $mbkmRegistration->proposal_mbkm->delete();
-                }
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('proposal_mbkm'))))->toMediaCollection('proposal_mbkm');
-            }
-        } elseif ($mbkmRegistration->proposal_mbkm) {
-            $mbkmRegistration->proposal_mbkm->delete();
-        }
-
-        if ($request->input('recognition_form', false)) {
-            if (! $mbkmRegistration->recognition_form || $request->input('recognition_form') !== $mbkmRegistration->recognition_form->file_name) {
-                if ($mbkmRegistration->recognition_form) {
-                    $mbkmRegistration->recognition_form->delete();
-                }
-                $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('recognition_form'))))->toMediaCollection('recognition_form');
-            }
-        } elseif ($mbkmRegistration->recognition_form) {
-            $mbkmRegistration->recognition_form->delete();
-        }
-
-        return redirect()->route('admin.mbkm-registrations.index');
+        abort(Response::HTTP_FORBIDDEN, 'Admin tidak dapat mengedit form mahasiswa.');
     }
 
     public function show(MbkmRegistration $mbkmRegistration)

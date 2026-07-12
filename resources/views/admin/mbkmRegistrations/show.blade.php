@@ -19,11 +19,6 @@
                     <a class="btn btn-default" href="{{ route('admin.mbkm-registrations.index') }}">
                         <i class="fas fa-arrow-left mr-1"></i> Kembali
                     </a>
-                    @can('mbkm_registration_edit')
-                        <a class="btn btn-info" href="{{ route('admin.mbkm-registrations.edit', $mbkmRegistration->id) }}">
-                            <i class="fas fa-edit mr-1"></i> Edit
-                        </a>
-                    @endcan
                 </div>
             </div>
         </div>
@@ -407,11 +402,6 @@
                     <a class="btn btn-default btn-block" href="{{ route('admin.mbkm-registrations.index') }}">
                         <i class="fas fa-arrow-left mr-2"></i> Kembali ke Daftar
                     </a>
-                    @can('mbkm_registration_edit')
-                        <a class="btn btn-info btn-block" href="{{ route('admin.mbkm-registrations.edit', $mbkmRegistration->id) }}">
-                            <i class="fas fa-edit mr-2"></i> Edit Pendaftaran
-                        </a>
-                    @endcan
                 </div>
             </div>
         </div>
