@@ -51,19 +51,35 @@ class AppServiceProvider extends ServiceProvider
 
         \App\Models\ApplicationScore::observe(\App\Observers\ApplicationScoreObserver::class);
 
-        View::composer('layouts.mahasiswa', function ($view) {
+        View::composer([
+            'layouts.mahasiswa',
+            'partials.mahasiswa.*',
+            'mahasiswa.*',
+        ], function ($view) {
             $mahasiswaId = Auth::user()?->mahasiswa_id;
-            $allowedForms = $mahasiswaId
-                ? (new FormAccessService())->getAllowedForms($mahasiswaId)
-                : [];
+            $allowedForms = [];
+            $portalNav = [];
+            $quickActions = [];
+            $processTimeline = [];
 
-            $portal = new MahasiswaPortalService();
+            try {
+                $allowedForms = $mahasiswaId
+                    ? (new FormAccessService())->getAllowedForms($mahasiswaId)
+                    : [];
+
+                $portal = new MahasiswaPortalService();
+                $portalNav = $portal->getNavigation($allowedForms);
+                $quickActions = $portal->getQuickActions($allowedForms);
+                $processTimeline = $mahasiswaId ? $portal->getProcessTimeline($mahasiswaId) : [];
+            } catch (\Throwable $e) {
+                report($e);
+            }
 
             $view->with([
                 'allowedForms' => $allowedForms,
-                'portalNav' => $portal->getNavigation($allowedForms),
-                'quickActions' => $portal->getQuickActions($allowedForms),
-                'processTimeline' => $mahasiswaId ? $portal->getProcessTimeline($mahasiswaId) : [],
+                'portalNav' => $portalNav,
+                'quickActions' => $quickActions,
+                'processTimeline' => $processTimeline,
             ]);
         });
 

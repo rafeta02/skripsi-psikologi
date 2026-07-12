@@ -367,6 +367,16 @@ class MbkmRegistrationController extends Controller
         $myMember = $registration
             ? $registration->groupMembers->firstWhere('mahasiswa_id', (int) $user->mahasiswa_id)
             : null;
+
+        // Ketua tanpa row member (data lama): pastikan ada / fallback ke ketua di list
+        if (!$myMember && $registration && (int) $application->mahasiswa_id === (int) $user->mahasiswa_id) {
+            $myMember = $registration->groupMembers->firstWhere('role', 'ketua')
+                ?? $registration->groupMembers->first();
+        }
+
+        if ($myMember) {
+            $myMember->load('media');
+        }
         $submitCheck = $registration
             ? $groupService->canSubmitGroup($registration)
             : ['allowed' => false, 'message' => null, 'summary' => ['total' => 0, 'complete' => 0, 'pending' => 0, 'ready' => false]];

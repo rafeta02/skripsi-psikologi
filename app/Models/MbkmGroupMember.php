@@ -73,6 +73,14 @@ class MbkmGroupMember extends Model implements HasMedia
         $this->addMediaConversion('preview')->fit('crop', 120, 120);
     }
 
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('khs_all');
+        $this->addMediaCollection('krs_latest')->singleFile();
+        $this->addMediaCollection('spp')->singleFile();
+        $this->addMediaCollection('recognition_form')->singleFile();
+    }
+
     public function mbkm_registration()
     {
         return $this->belongsTo(MbkmRegistration::class, 'mbkm_registration_id');

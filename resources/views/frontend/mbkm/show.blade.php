@@ -130,7 +130,7 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body">
-                                <h6 class="text-muted">Judul Kegiatan MBKM</h6>
+                                <h6 class="text-muted">Judul Kegiatan MBKM (Kelompok)</h6>
                                 <p>{{ $application->mbkmRegistration->title_mbkm ?? '-' }}</p>
                             </div>
                         </div>
@@ -138,7 +138,7 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body">
-                                <h6 class="text-muted">Judul Skripsi (individu Anda)</h6>
+                                <h6 class="text-muted">Judul Skripsi (Individu)</h6>
                                 <p>{{ ($myMember->title ?? null) ?: ($application->mbkmRegistration->title ?? '-') }}</p>
                             </div>
                         </div>
@@ -146,19 +146,24 @@
                 </div>
             </div>
 
+            @php
+                $nilaiSource = $myMember ?? $application->mbkmRegistration;
+                $docIndividu = $myMember;
+            @endphp
+
             <!-- Grades -->
             <div class="mb-4">
-                <h5 class="text-primary mb-3">Data Nilai</h5>
+                <h5 class="text-primary mb-3">Data Nilai (Individu)</h5>
                 <div class="row">
                     <div class="col-md-4">
                         <table class="table table-sm">
                             <tr>
                                 <td>MK Kuantitatif</td>
-                                <td><strong>{{ $application->mbkmRegistration->nilai_mk_kuantitatif }}</strong></td>
+                                <td><strong>{{ $nilaiSource->nilai_mk_kuantitatif ?? '-' }}</strong></td>
                             </tr>
                             <tr>
                                 <td>MK Kualitatif</td>
-                                <td><strong>{{ $application->mbkmRegistration->nilai_mk_kualitatif }}</strong></td>
+                                <td><strong>{{ $nilaiSource->nilai_mk_kualitatif ?? '-' }}</strong></td>
                             </tr>
                         </table>
                     </div>
@@ -166,11 +171,11 @@
                         <table class="table table-sm">
                             <tr>
                                 <td>Statistika Dasar</td>
-                                <td><strong>{{ $application->mbkmRegistration->nilai_mk_statistika_dasar }}</strong></td>
+                                <td><strong>{{ $nilaiSource->nilai_mk_statistika_dasar ?? '-' }}</strong></td>
                             </tr>
                             <tr>
                                 <td>Statistika Lanjutan</td>
-                                <td><strong>{{ $application->mbkmRegistration->nilai_mk_statistika_lanjutan }}</strong></td>
+                                <td><strong>{{ $nilaiSource->nilai_mk_statistika_lanjutan ?? '-' }}</strong></td>
                             </tr>
                         </table>
                     </div>
@@ -178,11 +183,11 @@
                         <table class="table table-sm">
                             <tr>
                                 <td>Konstruksi Tes</td>
-                                <td><strong>{{ $application->mbkmRegistration->nilai_mk_konstruksi_tes }}</strong></td>
+                                <td><strong>{{ $nilaiSource->nilai_mk_konstruksi_tes ?? '-' }}</strong></td>
                             </tr>
                             <tr>
                                 <td>TPS</td>
-                                <td><strong>{{ $application->mbkmRegistration->nilai_mk_tps }}</strong></td>
+                                <td><strong>{{ $nilaiSource->nilai_mk_tps ?? '-' }}</strong></td>
                             </tr>
                         </table>
                     </div>
@@ -196,10 +201,16 @@
                     <div class="col-md-4">
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> KHS</h6>
-                                @if($application->mbkmRegistration->khs_all && count($application->mbkmRegistration->khs_all) > 0)
+                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> KHS <small class="text-muted">(individu)</small></h6>
+                                @if($docIndividu && $docIndividu->khs_all && count($docIndividu->khs_all) > 0)
+                                    @foreach($docIndividu->khs_all as $file)
+                                    <a href="{{ $file->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block mb-1">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                    @endforeach
+                                @elseif($application->mbkmRegistration->khs_all && count($application->mbkmRegistration->khs_all) > 0)
                                     @foreach($application->mbkmRegistration->khs_all as $file)
-                                    <a href="{{ $file->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
+                                    <a href="{{ $file->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block mb-1">
                                         <i class="fas fa-download"></i> Download
                                     </a>
                                     @endforeach
@@ -212,8 +223,12 @@
                     <div class="col-md-4">
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> KRS</h6>
-                                @if($application->mbkmRegistration->krs_latest)
+                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> KRS <small class="text-muted">(individu)</small></h6>
+                                @if($docIndividu && $docIndividu->krs_latest)
+                                    <a href="{{ $docIndividu->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                @elseif($application->mbkmRegistration->krs_latest)
                                     <a href="{{ $application->mbkmRegistration->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
                                     </a>
@@ -226,8 +241,12 @@
                     <div class="col-md-4">
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> SPP</h6>
-                                @if($application->mbkmRegistration->spp)
+                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> SPP <small class="text-muted">(individu)</small></h6>
+                                @if($docIndividu && $docIndividu->spp)
+                                    <a href="{{ $docIndividu->spp->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                @elseif($application->mbkmRegistration->spp)
                                     <a href="{{ $application->mbkmRegistration->spp->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
                                     </a>
@@ -240,7 +259,7 @@
                     <div class="col-md-4">
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> Proposal MBKM</h6>
+                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> Proposal MBKM <small class="text-muted">(kelompok)</small></h6>
                                 @if($application->mbkmRegistration->proposal_mbkm)
                                     <a href="{{ $application->mbkmRegistration->proposal_mbkm->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
@@ -254,8 +273,12 @@
                     <div class="col-md-4">
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> Form Rekognisi</h6>
-                                @if($application->mbkmRegistration->recognition_form)
+                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> Form Rekognisi <small class="text-muted">(individu)</small></h6>
+                                @if($docIndividu && $docIndividu->recognition_form)
+                                    <a href="{{ $docIndividu->recognition_form->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                @elseif($application->mbkmRegistration->recognition_form)
                                     <a href="{{ $application->mbkmRegistration->recognition_form->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
                                     </a>

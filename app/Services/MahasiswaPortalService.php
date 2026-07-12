@@ -108,7 +108,7 @@ class MahasiswaPortalService
                 default => ucfirst($app->stage),
             };
 
-            $mirrorNote = $app->is_group_mirror ? ' (kelompok)' : '';
+            $mirrorNote = !empty($app->is_group_mirror) ? ' (kelompok)' : '';
 
             $steps[] = [
                 'label' => "{$stageLabel} ({$typeLabel}){$mirrorNote}",
@@ -120,7 +120,7 @@ class MahasiswaPortalService
                 'icon' => $this->stageIcon($app->stage),
             ];
 
-            $scheduleSource = ($app->is_group_mirror && $app->parentApplication)
+            $scheduleSource = (!empty($app->is_group_mirror) && $app->parentApplication)
                 ? $app->parentApplication
                 : $app;
 
@@ -141,11 +141,11 @@ class MahasiswaPortalService
                 ];
             }
 
-            $resultAppId = ($app->is_group_mirror && $app->parent_application_id)
+            $resultAppId = (!empty($app->is_group_mirror) && $app->parent_application_id)
                 ? $app->parent_application_id
                 : $app->id;
 
-            if ($app->stage === 'seminar' && $app->type === 'skripsi' && !$app->is_group_mirror) {
+            if ($app->stage === 'seminar' && $app->type === 'skripsi' && empty($app->is_group_mirror)) {
                 $result = ApplicationResultReview::where('application_id', $app->id)->first();
                 if ($result) {
                     $steps[] = $this->resultStep('Laporan Review Proposal', $result->result, $result->created_at, 'frontend.application-result-reviews.show', $result->id);
