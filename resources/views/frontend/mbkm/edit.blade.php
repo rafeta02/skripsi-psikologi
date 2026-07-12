@@ -263,15 +263,15 @@
             </div>
             <div class="wizard-step" data-step="2">
                 <div class="wizard-step-number">2</div>
-                <div class="wizard-step-title">Data Topik</div>
+                <div class="wizard-step-title">Data Kelompok</div>
             </div>
             <div class="wizard-step" data-step="3">
                 <div class="wizard-step-number">3</div>
-                <div class="wizard-step-title">Kelompok</div>
+                <div class="wizard-step-title">Anggota</div>
             </div>
             <div class="wizard-step" data-step="4">
                 <div class="wizard-step-number">4</div>
-                <div class="wizard-step-title">Nilai</div>
+                <div class="wizard-step-title">Syarat Individu</div>
             </div>
             <div class="wizard-step" data-step="5">
                 <div class="wizard-step-number">5</div>
@@ -322,9 +322,10 @@
                 </div>
             </div>
             
-            <!-- Step 2: Data Topik -->
+            <!-- Step 2: Data Kelompok -->
             <div class="form-section" data-section="2">
-                <h4 class="mb-4">Data Topik MBKM & Skripsi</h4>
+                <h4 class="mb-4">Data Kelompok MBKM</h4>
+                <div class="alert alert-secondary">Field di langkah ini milik <strong>kelompok</strong> (diisi ketua).</div>
                 
                 @php
                     $selectedThemeIds = collect(old('theme_ids', $registration->themes->pluck('id')->all()));
@@ -342,18 +343,6 @@
                 <div class="form-group">
                     <label for="title_mbkm">Judul Kegiatan MBKM <span class="text-danger">*</span></label>
                     <textarea name="title_mbkm" id="title_mbkm" class="form-control" rows="2" required>{{ old('title_mbkm', $registration->title_mbkm) }}</textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="title">Judul Skripsi (Individu Ketua) <span class="text-danger">*</span></label>
-                    <textarea name="title" id="title" class="form-control" rows="3" required
-                        placeholder="Tuliskan judul skripsi dalam Bahasa Indonesia">{{ old('title', $ind->title ?? $registration->title) }}</textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="title_en">Judul Skripsi English (Individu)</label>
-                    <textarea name="title_en" id="title_en" class="form-control" rows="3"
-                        placeholder="Thesis title in English (optional)">{{ old('title_en', $ind->title_en ?? $registration->title_en) }}</textarea>
                 </div>
                 
                 <div class="form-group">
@@ -405,9 +394,24 @@
                 <div id="groupMembersInputs"></div>
             </div>
             
-            <!-- Step 4: Nilai-nilai -->
+            <!-- Step 4: Syarat Individu Ketua -->
             <div class="form-section" data-section="4">
-                <h4 class="mb-4">Data Nilai</h4>
+                <h4 class="mb-4">Syarat Individu (Ketua)</h4>
+                <div class="alert alert-info">Judul skripsi dan nilai ini milik <strong>Anda sebagai individu</strong>. Anggota mengisi di halaman mereka sendiri.</div>
+
+                <div class="form-group">
+                    <label for="title">Judul Skripsi <span class="text-danger">*</span></label>
+                    <textarea name="title" id="title" class="form-control" rows="3" required
+                        placeholder="Tuliskan judul skripsi dalam Bahasa Indonesia">{{ old('title', $ind->title ?? $registration->title) }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="title_en">Judul Skripsi (English)</label>
+                    <textarea name="title_en" id="title_en" class="form-control" rows="3"
+                        placeholder="Thesis title in English (optional)">{{ old('title_en', $ind->title_en ?? $registration->title_en) }}</textarea>
+                </div>
+
+                <h5 class="mt-4 mb-3">Nilai</h5>
                 
                 <div class="row">
                     <div class="col-md-6">
@@ -475,7 +479,9 @@
                 <h4 class="mb-4">Dokumen</h4>
                 
                 <div class="alert alert-info">
-                    Proposal = kelompok. KHS/KRS/SPP = individu ketua. Kosongkan file jika tidak diganti.
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Proposal MBKM = dokumen <strong>kelompok</strong>. KHS/KRS/SPP = dokumen <strong>individu</strong> Anda.
+                    Kosongkan file jika tidak diganti.
                 </div>
 
                 <h5 class="mb-3">Dokumen Kelompok</h5>
@@ -752,13 +758,15 @@
         let summary = `
             <div class="row">
                 <div class="col-md-6">
+                    <h6 class="text-muted">Kelompok</h6>
                     <p><strong>Research Group:</strong><br>${researchGroup}</p>
                     <p><strong>Dosen Pembimbing:</strong><br>${supervisor}</p>
                     <p><strong>Tema Riset:</strong><br>${themes}</p>
-                    <p><strong>Anggota Kelompok:</strong><br>${groupMemberSummary}</p>
+                    <p><strong>Judul MBKM:</strong><br>${titleMbkm}</p>
+                    <p><strong>Anggota:</strong><br>${groupMemberSummary}</p>
                 </div>
                 <div class="col-md-6">
-                    <p><strong>Judul MBKM:</strong><br>${titleMbkm}</p>
+                    <h6 class="text-muted">Individu (Ketua)</h6>
                     <p><strong>Judul Skripsi:</strong><br>${title}</p>
                     <p><strong>Total SKS:</strong><br>${totalSks}</p>
                 </div>
