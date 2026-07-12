@@ -2,6 +2,33 @@
 @section('content')
 
 <div class="content">
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-1">
+                        <i class="fas fa-users text-primary mr-2"></i>
+                        Detail Pengajuan MBKM Kelompok
+                        <small class="text-muted">#{{ $mbkmRegistration->id }}</small>
+                    </h3>
+                    <p class="text-muted mb-0">
+                        Review pengajuan kelompok — proses berkelompok sampai sebelum sidang.
+                    </p>
+                </div>
+                <div class="mt-2 mt-md-0">
+                    <a class="btn btn-default" href="{{ route('admin.mbkm-registrations.index') }}">
+                        <i class="fas fa-arrow-left mr-1"></i> Kembali
+                    </a>
+                    @can('mbkm_registration_edit')
+                        <a class="btn btn-info" href="{{ route('admin.mbkm-registrations.edit', $mbkmRegistration->id) }}">
+                            <i class="fas fa-edit mr-1"></i> Edit
+                        </a>
+                    @endcan
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Main Content -->
         <div class="col-lg-8">
