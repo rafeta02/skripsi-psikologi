@@ -253,129 +253,178 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'Auth', 
     }
 });
 Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['auth']], function () {
-    // Profile
-    Route::get('frontend/profile', 'ProfileController@index')->name('profile.index');
-    Route::post('frontend/profile', 'ProfileController@update')->name('profile.update');
-    Route::post('frontend/profile/destroy', 'ProfileController@destroy')->name('profile.destroy');
-    Route::post('frontend/profile/password', 'ProfileController@password')->name('profile.password');
+    /*
+     |--------------------------------------------------------------------------
+     | URL mahasiswa: /mahasiswa/...
+     | Nama route tetap frontend.* agar pemanggilan route() tidak berubah.
+     |--------------------------------------------------------------------------
+     */
+    Route::prefix('mahasiswa')->group(function () {
+        // Akun / profil umum (Frontend ProfileController)
+        Route::get('akun', 'ProfileController@index')->name('profile.index');
+        Route::post('akun', 'ProfileController@update')->name('profile.update');
+        Route::post('akun/destroy', 'ProfileController@destroy')->name('profile.destroy');
+        Route::post('akun/password', 'ProfileController@password')->name('profile.password');
 
-    // Mahasiswa Profile
-    Route::get('frontend/mahasiswa-profile/create', 'ProfileController@createMahasiswaProfile')->name('mahasiswa-profile.create');
-    Route::post('frontend/mahasiswa-profile/create', 'ProfileController@storeMahasiswaProfile')->name('mahasiswa-profile.store');
-    Route::get('frontend/mahasiswa-profile', 'ProfileController@editMahasiswaProfile')->name('mahasiswa-profile.edit');
-    Route::post('frontend/mahasiswa-profile', 'ProfileController@updateMahasiswaProfile')->name('mahasiswa-profile.update');
+        // Lengkapi data mahasiswa
+        Route::get('data-diri/create', 'ProfileController@createMahasiswaProfile')->name('mahasiswa-profile.create');
+        Route::post('data-diri/create', 'ProfileController@storeMahasiswaProfile')->name('mahasiswa-profile.store');
+        Route::get('data-diri', 'ProfileController@editMahasiswaProfile')->name('mahasiswa-profile.edit');
+        Route::post('data-diri', 'ProfileController@updateMahasiswaProfile')->name('mahasiswa-profile.update');
 
-    // Dosen Profile
+        // Path Selection
+        Route::get('choose-path', 'PathSelectionController@index')->name('choose-path');
+        Route::post('choose-path', 'PathSelectionController@store')->name('choose-path.store');
+
+        // Applications
+        Route::get('applications', 'ApplicationController@index')->name('applications.index');
+        Route::get('applications/{application}', 'ApplicationController@show')->name('applications.show');
+
+        // Skripsi Reguler
+        Route::prefix('skripsi')->group(function () {
+            Route::get('/', 'SkripsiRegistrationController@index')->name('skripsi.index');
+            Route::get('/{application}/create', 'SkripsiRegistrationController@create')->name('skripsi.create');
+            Route::post('/{application}/store', 'SkripsiRegistrationController@store')->name('skripsi.store');
+            Route::get('/{application}', 'SkripsiRegistrationController@show')->name('skripsi.show');
+            Route::get('/{application}/edit', 'SkripsiRegistrationController@edit')->name('skripsi.edit');
+            Route::put('/{application}', 'SkripsiRegistrationController@update')->name('skripsi.update');
+        });
+
+        Route::prefix('skripsi-registrations')->group(function () {
+            Route::get('/', 'SkripsiRegistrationController@index')->name('skripsi-registrations.index');
+            Route::get('/create', 'SkripsiRegistrationController@create')->name('skripsi-registrations.create');
+            Route::post('/', 'SkripsiRegistrationController@store')->name('skripsi-registrations.store');
+            Route::get('/{id}', 'SkripsiRegistrationController@show')->name('skripsi-registrations.show');
+            Route::get('/{id}/edit', 'SkripsiRegistrationController@edit')->name('skripsi-registrations.edit');
+            Route::put('/{id}', 'SkripsiRegistrationController@update')->name('skripsi-registrations.update');
+            Route::delete('/{id}', 'SkripsiRegistrationController@destroy')->name('skripsi-registrations.destroy');
+            Route::delete('/destroy', 'SkripsiRegistrationController@massDestroy')->name('skripsi-registrations.massDestroy');
+            Route::post('/media', 'SkripsiRegistrationController@storeMedia')->name('skripsi-registrations.storeMedia');
+        });
+
+        // MBKM
+        Route::prefix('mbkm')->group(function () {
+            Route::get('/', 'MbkmRegistrationController@index')->name('mbkm.index');
+            Route::get('/search-mahasiswa', 'MbkmRegistrationController@searchMahasiswa')->name('mbkm.search-mahasiswa');
+            Route::get('/member-requirements', 'MbkmRegistrationController@memberRequirements')->name('mbkm.member-requirements');
+            Route::post('/member-requirements', 'MbkmRegistrationController@updateMemberRequirements')->name('mbkm.member-requirements.update');
+            Route::get('/{application}/create', 'MbkmRegistrationController@create')->name('mbkm.create');
+            Route::post('/{application}/store', 'MbkmRegistrationController@store')->name('mbkm.store');
+            Route::post('/{application}/submit-group', 'MbkmRegistrationController@submitGroup')->name('mbkm.submit-group');
+            Route::get('/{application}', 'MbkmRegistrationController@show')->name('mbkm.show');
+            Route::get('/{application}/edit', 'MbkmRegistrationController@edit')->name('mbkm.edit');
+            Route::put('/{application}', 'MbkmRegistrationController@update')->name('mbkm.update');
+        });
+
+        Route::prefix('mbkm-registrations')->group(function () {
+            Route::get('/', 'MbkmRegistrationController@index')->name('mbkm-registrations.index');
+            Route::get('/create', 'MbkmRegistrationController@create')->name('mbkm-registrations.create');
+            Route::post('/', 'MbkmRegistrationController@store')->name('mbkm-registrations.store');
+            Route::get('/{id}', 'MbkmRegistrationController@show')->name('mbkm-registrations.show');
+            Route::get('/{id}/edit', 'MbkmRegistrationController@edit')->name('mbkm-registrations.edit');
+            Route::put('/{id}', 'MbkmRegistrationController@update')->name('mbkm-registrations.update');
+            Route::delete('/{id}', 'MbkmRegistrationController@destroy')->name('mbkm-registrations.destroy');
+            Route::delete('/destroy', 'MbkmRegistrationController@massDestroy')->name('mbkm-registrations.massDestroy');
+            Route::post('/media', 'MbkmRegistrationController@storeMedia')->name('mbkm-registrations.storeMedia');
+        });
+
+        // Seminar / Sidang / Laporan / Jadwal
+        Route::delete('skripsi-seminars/destroy', 'SkripsiSeminarController@massDestroy')->name('skripsi-seminars.massDestroy');
+        Route::post('skripsi-seminars/media', 'SkripsiSeminarController@storeMedia')->name('skripsi-seminars.storeMedia');
+        Route::post('skripsi-seminars/ckmedia', 'SkripsiSeminarController@storeCKEditorImages')->name('skripsi-seminars.storeCKEditorImages');
+        Route::resource('skripsi-seminars', 'SkripsiSeminarController');
+
+        Route::delete('mbkm-seminars/destroy', 'MbkmSeminarController@massDestroy')->name('mbkm-seminars.massDestroy');
+        Route::post('mbkm-seminars/media', 'MbkmSeminarController@storeMedia')->name('mbkm-seminars.storeMedia');
+        Route::post('mbkm-seminars/ckmedia', 'MbkmSeminarController@storeCKEditorImages')->name('mbkm-seminars.storeCKEditorImages');
+        Route::resource('mbkm-seminars', 'MbkmSeminarController');
+
+        Route::delete('skripsi-defenses/destroy', 'SkripsiDefenseController@massDestroy')->name('skripsi-defenses.massDestroy');
+        Route::post('skripsi-defenses/media', 'SkripsiDefenseController@storeMedia')->name('skripsi-defenses.storeMedia');
+        Route::post('skripsi-defenses/ckmedia', 'SkripsiDefenseController@storeCKEditorImages')->name('skripsi-defenses.storeCKEditorImages');
+        Route::resource('skripsi-defenses', 'SkripsiDefenseController');
+
+        Route::post('application-result-seminars/media', 'ApplicationResultSeminarController@storeMedia')->name('application-result-seminars.storeMedia');
+        Route::resource('application-result-seminars', 'ApplicationResultSeminarController')->only([
+            'index', 'create', 'store', 'show',
+        ]);
+
+        Route::post('application-result-reviews/media', 'ApplicationResultReviewController@storeMedia')->name('application-result-reviews.storeMedia');
+        Route::resource('application-result-reviews', 'ApplicationResultReviewController')->only([
+            'index', 'create', 'store', 'show',
+        ]);
+
+        Route::post('application-reports/media', 'ApplicationReportController@storeMedia')->name('application-reports.storeMedia');
+        Route::post('application-reports/ckmedia', 'ApplicationReportController@storeCKEditorImages')->name('application-reports.storeCKEditorImages');
+        Route::resource('application-reports', 'ApplicationReportController')->only([
+            'index', 'create', 'store', 'show',
+        ]);
+
+        Route::resource('application-schedules', 'ApplicationScheduleController')->only([
+            'index', 'create', 'store', 'show', 'edit', 'update', 'destroy',
+        ]);
+
+        Route::post('application-result-defenses/media', 'ApplicationResultDefenseController@storeMedia')->name('application-result-defenses.storeMedia');
+        Route::resource('application-result-defenses', 'ApplicationResultDefenseController')->only([
+            'index', 'create', 'store', 'show',
+        ]);
+    });
+
+    // Profil dosen tetap di /frontend (bukan milik mahasiswa)
     Route::get('frontend/dosen-profile/create', 'ProfileController@createDosenProfile')->name('dosen-profile.create');
     Route::post('frontend/dosen-profile/create', 'ProfileController@storeDosenProfile')->name('dosen-profile.store');
     Route::get('frontend/dosen-profile', 'ProfileController@editDosenProfile')->name('dosen-profile.edit');
     Route::post('frontend/dosen-profile', 'ProfileController@updateDosenProfile')->name('dosen-profile.update');
-    
-    // Path Selection - Choose between Skripsi Reguler or MBKM
-    Route::get('frontend/choose-path', 'PathSelectionController@index')->name('choose-path');
-    Route::post('frontend/choose-path', 'PathSelectionController@store')->name('choose-path.store');
-    
-    // Applications - General application routes
-    Route::get('frontend/applications', 'ApplicationController@index')->name('applications.index');
-    Route::get('frontend/applications/{application}', 'ApplicationController@show')->name('applications.show');
-    
-    // Skripsi Reguler Routes
-    Route::prefix('frontend/skripsi')->group(function () {
-        Route::get('/', 'SkripsiRegistrationController@index')->name('skripsi.index');
-        Route::get('/{application}/create', 'SkripsiRegistrationController@create')->name('skripsi.create');
-        Route::post('/{application}/store', 'SkripsiRegistrationController@store')->name('skripsi.store');
-        Route::get('/{application}', 'SkripsiRegistrationController@show')->name('skripsi.show');
-        Route::get('/{application}/edit', 'SkripsiRegistrationController@edit')->name('skripsi.edit');
-        Route::put('/{application}', 'SkripsiRegistrationController@update')->name('skripsi.update');
+});
+
+/*
+ |--------------------------------------------------------------------------
+ | Redirect URL lama /frontend/... → /mahasiswa/...
+ |--------------------------------------------------------------------------
+ */
+Route::middleware('auth')->group(function () {
+    $permanent = 301;
+
+    Route::redirect('frontend/profile', '/mahasiswa/akun', $permanent);
+    Route::redirect('frontend/mahasiswa-profile/create', '/mahasiswa/data-diri/create', $permanent);
+    Route::redirect('frontend/mahasiswa-profile', '/mahasiswa/data-diri', $permanent);
+    Route::redirect('frontend/choose-path', '/mahasiswa/choose-path', $permanent);
+    Route::redirect('frontend/applications', '/mahasiswa/applications', $permanent);
+    Route::get('frontend/applications/{application}', function ($application) use ($permanent) {
+        return redirect("/mahasiswa/applications/{$application}", $permanent);
     });
-    
-    // Skripsi Registration Alias Routes (for backward compatibility)
-    Route::prefix('frontend/skripsi-registrations')->group(function () {
-        Route::get('/', 'SkripsiRegistrationController@index')->name('skripsi-registrations.index');
-        Route::get('/create', 'SkripsiRegistrationController@create')->name('skripsi-registrations.create');
-        Route::post('/', 'SkripsiRegistrationController@store')->name('skripsi-registrations.store');
-        Route::get('/{id}', 'SkripsiRegistrationController@show')->name('skripsi-registrations.show');
-        Route::get('/{id}/edit', 'SkripsiRegistrationController@edit')->name('skripsi-registrations.edit');
-        Route::put('/{id}', 'SkripsiRegistrationController@update')->name('skripsi-registrations.update');
-        Route::delete('/{id}', 'SkripsiRegistrationController@destroy')->name('skripsi-registrations.destroy');
-        Route::delete('/destroy', 'SkripsiRegistrationController@massDestroy')->name('skripsi-registrations.massDestroy');
-        Route::post('/media', 'SkripsiRegistrationController@storeMedia')->name('skripsi-registrations.storeMedia');
-    });
-    
-    // MBKM Routes
-    Route::prefix('frontend/mbkm')->group(function () {
-        Route::get('/', 'MbkmRegistrationController@index')->name('mbkm.index');
-        Route::get('/search-mahasiswa', 'MbkmRegistrationController@searchMahasiswa')->name('mbkm.search-mahasiswa');
-        Route::get('/member-requirements', 'MbkmRegistrationController@memberRequirements')->name('mbkm.member-requirements');
-        Route::post('/member-requirements', 'MbkmRegistrationController@updateMemberRequirements')->name('mbkm.member-requirements.update');
-        Route::get('/{application}/create', 'MbkmRegistrationController@create')->name('mbkm.create');
-        Route::post('/{application}/store', 'MbkmRegistrationController@store')->name('mbkm.store');
-        Route::post('/{application}/submit-group', 'MbkmRegistrationController@submitGroup')->name('mbkm.submit-group');
-        Route::get('/{application}', 'MbkmRegistrationController@show')->name('mbkm.show');
-        Route::get('/{application}/edit', 'MbkmRegistrationController@edit')->name('mbkm.edit');
-        Route::put('/{application}', 'MbkmRegistrationController@update')->name('mbkm.update');
-    });
-    
-    // MBKM Registration Alias Routes (for backward compatibility)
-    Route::prefix('frontend/mbkm-registrations')->group(function () {
-        Route::get('/', 'MbkmRegistrationController@index')->name('mbkm-registrations.index');
-        Route::get('/create', 'MbkmRegistrationController@create')->name('mbkm-registrations.create');
-        Route::post('/', 'MbkmRegistrationController@store')->name('mbkm-registrations.store');
-        Route::get('/{id}', 'MbkmRegistrationController@show')->name('mbkm-registrations.show');
-        Route::get('/{id}/edit', 'MbkmRegistrationController@edit')->name('mbkm-registrations.edit');
-        Route::put('/{id}', 'MbkmRegistrationController@update')->name('mbkm-registrations.update');
-        Route::delete('/{id}', 'MbkmRegistrationController@destroy')->name('mbkm-registrations.destroy');
-        Route::delete('/destroy', 'MbkmRegistrationController@massDestroy')->name('mbkm-registrations.massDestroy');
-        Route::post('/media', 'MbkmRegistrationController@storeMedia')->name('mbkm-registrations.storeMedia');
-    });
-    
-    // Skripsi Seminar Routes
-    Route::delete('skripsi-seminars/destroy', 'SkripsiSeminarController@massDestroy')->name('skripsi-seminars.massDestroy');
-    Route::post('skripsi-seminars/media', 'SkripsiSeminarController@storeMedia')->name('skripsi-seminars.storeMedia');
-    Route::post('skripsi-seminars/ckmedia', 'SkripsiSeminarController@storeCKEditorImages')->name('skripsi-seminars.storeCKEditorImages');
-    Route::resource('skripsi-seminars', 'SkripsiSeminarController');
-    
-    // MBKM Seminar Routes
-    Route::delete('mbkm-seminars/destroy', 'MbkmSeminarController@massDestroy')->name('mbkm-seminars.massDestroy');
-    Route::post('mbkm-seminars/media', 'MbkmSeminarController@storeMedia')->name('mbkm-seminars.storeMedia');
-    Route::post('mbkm-seminars/ckmedia', 'MbkmSeminarController@storeCKEditorImages')->name('mbkm-seminars.storeCKEditorImages');
-    Route::resource('mbkm-seminars', 'MbkmSeminarController');
-    
-    // Skripsi Defense Routes
-    Route::delete('skripsi-defenses/destroy', 'SkripsiDefenseController@massDestroy')->name('skripsi-defenses.massDestroy');
-    Route::post('skripsi-defenses/media', 'SkripsiDefenseController@storeMedia')->name('skripsi-defenses.storeMedia');
-    Route::post('skripsi-defenses/ckmedia', 'SkripsiDefenseController@storeCKEditorImages')->name('skripsi-defenses.storeCKEditorImages');
-    Route::resource('skripsi-defenses', 'SkripsiDefenseController');
 
-    // Laporan Hasil Seminar MBKM
-    Route::post('application-result-seminars/media', 'ApplicationResultSeminarController@storeMedia')->name('application-result-seminars.storeMedia');
-    Route::resource('application-result-seminars', 'ApplicationResultSeminarController')->only([
-        'index', 'create', 'store', 'show',
-    ]);
+    Route::get('frontend/skripsi/{any?}', function (?string $any = null) use ($permanent) {
+        return redirect('/mahasiswa/skripsi' . ($any ? '/' . $any : ''), $permanent);
+    })->where('any', '.*');
 
-    // Laporan Hasil Review Proposal (Skripsi Reguler)
-    Route::post('application-result-reviews/media', 'ApplicationResultReviewController@storeMedia')->name('application-result-reviews.storeMedia');
-    Route::resource('application-result-reviews', 'ApplicationResultReviewController')->only([
-        'index', 'create', 'store', 'show',
-    ]);
+    Route::get('frontend/skripsi-registrations/{any?}', function (?string $any = null) use ($permanent) {
+        return redirect('/mahasiswa/skripsi-registrations' . ($any ? '/' . $any : ''), $permanent);
+    })->where('any', '.*');
 
-    // Laporan Kendala (opsional, kapan saja selama proses skripsi/MBKM)
-    Route::post('application-reports/media', 'ApplicationReportController@storeMedia')->name('application-reports.storeMedia');
-    Route::post('application-reports/ckmedia', 'ApplicationReportController@storeCKEditorImages')->name('application-reports.storeCKEditorImages');
-    Route::resource('application-reports', 'ApplicationReportController')->only([
-        'index', 'create', 'store', 'show',
-    ]);
+    Route::get('frontend/mbkm/{any?}', function (?string $any = null) use ($permanent) {
+        return redirect('/mahasiswa/mbkm' . ($any ? '/' . $any : ''), $permanent);
+    })->where('any', '.*');
 
-    // Jadwal seminar / sidang (mahasiswa ajukan, admin verifikasi)
-    Route::resource('application-schedules', 'ApplicationScheduleController')->only([
-        'index', 'create', 'store', 'show', 'edit', 'update', 'destroy',
-    ]);
+    Route::get('frontend/mbkm-registrations/{any?}', function (?string $any = null) use ($permanent) {
+        return redirect('/mahasiswa/mbkm-registrations' . ($any ? '/' . $any : ''), $permanent);
+    })->where('any', '.*');
 
-    // Hasil sidang skripsi / MBKM (tahap 15)
-    Route::post('application-result-defenses/media', 'ApplicationResultDefenseController@storeMedia')->name('application-result-defenses.storeMedia');
-    Route::resource('application-result-defenses', 'ApplicationResultDefenseController')->only([
-        'index', 'create', 'store', 'show',
-    ]);
+    // Resource lama tanpa prefix frontend/
+    foreach ([
+        'skripsi-seminars',
+        'mbkm-seminars',
+        'skripsi-defenses',
+        'application-result-seminars',
+        'application-result-reviews',
+        'application-reports',
+        'application-schedules',
+        'application-result-defenses',
+    ] as $resource) {
+        Route::get($resource . '/{any?}', function (?string $any = null) use ($resource, $permanent) {
+            return redirect('/mahasiswa/' . $resource . ($any ? '/' . $any : ''), $permanent);
+        })->where('any', '.*');
+    }
 });
 
 Route::group(['prefix' => 'dosen', 'as' => 'dosen.', 'namespace' => 'Dosen', 'middleware' => ['auth']], function () {
