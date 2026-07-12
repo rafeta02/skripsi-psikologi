@@ -340,17 +340,9 @@ class MbkmRegistrationController extends Controller
 
         try {
             \DB::transaction(function () use ($registration, $request) {
-                // Update registration
-                $registration->update([
-                    'revision_notes' => $request->notes,
-                ]);
+                app(\App\Services\MbkmGroupProgressService::class)
+                    ->reopenGroupForRevision($registration, $request->notes);
 
-                // Update application status
-                $registration->application->update([
-                    'status' => 'revision',
-                ]);
-
-                // Log action
                 \App\Models\ApplicationAction::create([
                     'application_id' => $registration->application_id,
                     'action_type' => \App\Models\ApplicationAction::ACTION_REVISION_REQUESTED,
@@ -361,7 +353,7 @@ class MbkmRegistrationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Revisi diminta, mahasiswa akan menerima notifikasi'
+                'message' => 'Revisi diminta. Form kelompok dibuka kembali agar mahasiswa dapat mengedit dan submit ulang.'
             ]);
         } catch (\Exception $e) {
             return response()->json([

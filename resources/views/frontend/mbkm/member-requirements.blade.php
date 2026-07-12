@@ -36,8 +36,21 @@
                 <strong>Kelompok:</strong> {{ $registration->title_mbkm ?? '-' }}<br>
                 <strong>Ketua:</strong> {{ $registration->application->mahasiswa->nama ?? '-' }}<br>
                 <strong>Status kelompok:</strong>
-                {{ ($registration->group_status ?? 'draft') === 'submitted' ? 'Sudah diajukan ke admin' : 'Draft — menunggu semua anggota lengkap' }}
+                @if(($registration->group_status ?? 'draft') === 'submitted')
+                    Sudah diajukan ke admin
+                @elseif(($registration->application->status ?? '') === 'revision')
+                    Revisi — form dibuka untuk diperbaiki
+                @else
+                    Draft — menunggu semua anggota lengkap
+                @endif
             </div>
+
+            @if(($registration->application->status ?? '') === 'revision' && $registration->revision_notes)
+                <div class="alert alert-warning">
+                    <strong>Catatan revisi admin:</strong>
+                    <p class="mb-0 mt-1">{{ $registration->revision_notes }}</p>
+                </div>
+            @endif
 
             @if($locked)
                 <div class="alert alert-warning">Pengajuan kelompok sudah dikirim. Data individu terkunci.</div>

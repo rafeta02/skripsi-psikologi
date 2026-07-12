@@ -172,6 +172,7 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 - Peran: Admin
 - Keputusan:
   - Setujui: otomatis buat `ApplicationAssignment` sesuai pilihan mahasiswa (role=`supervisor`, status=`assigned`); status mirror anggota ikut tersinkron
+  - Minta revisi: status aplikasi `revision`, `group_status` kembali `draft` agar ketua dapat mengedit form kelompok & anggota memperbarui syarat individu, lalu submit ulang
   - Tolak (Revisi berkas): mahasiswa memperbaiki pada `MbkmRegistration` yang sama hingga memenuhi syarat
   - Tidak Memenuhi Syarat (ineligible): alur MBKM dihentikan; mahasiswa hanya boleh melanjutkan melalui alur Skripsi Reguler (`Application` + `SkripsiRegistration`)
 

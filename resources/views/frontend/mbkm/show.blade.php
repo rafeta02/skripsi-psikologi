@@ -68,12 +68,21 @@
                             <td>:
                                 @if(($application->mbkmRegistration->group_status ?? 'draft') === 'submitted')
                                     <span class="badge badge-success">Diajukan ke admin</span>
+                                @elseif($application->status === 'revision')
+                                    <span class="badge badge-warning">Revisi — form dibuka untuk diperbaiki</span>
                                 @else
                                     <span class="badge badge-warning">Draft — menunggu syarat individu</span>
                                 @endif
                             </td>
                         </tr>
                     </table>
+
+                    @if($application->mbkmRegistration->revision_notes)
+                        <div class="alert alert-warning mt-2">
+                            <strong><i class="fas fa-edit mr-1"></i> Catatan revisi admin:</strong>
+                            <p class="mb-0 mt-1">{{ $application->mbkmRegistration->revision_notes }}</p>
+                        </div>
+                    @endif
 
                     @if($application->mbkmRegistration->groupMembers && $application->mbkmRegistration->groupMembers->count() > 0)
                         <h6 class="text-primary mt-3 mb-2">Anggota & Syarat Individu</h6>
@@ -300,7 +309,8 @@
                 
                 @if(!empty($isKetua) && ($application->mbkmRegistration->group_status ?? 'draft') === 'draft')
                     <a href="{{ route('frontend.mbkm.edit', $application->id) }}" class="btn btn-warning">
-                        <i class="fas fa-edit mr-2"></i> Edit Draft
+                        <i class="fas fa-edit mr-2"></i>
+                        {{ $application->status === 'revision' ? 'Edit Revisi Kelompok' : 'Edit Draft' }}
                     </a>
                     <a href="{{ route('frontend.mbkm.member-requirements') }}" class="btn btn-outline-primary">
                         Syarat Individu Saya
@@ -309,21 +319,28 @@
                         <form action="{{ route('frontend.mbkm.submit-group', $application->id) }}" method="POST" class="d-inline">
                             @csrf
                             <button type="submit" class="btn btn-success"
-                                onclick="return confirm('Kirim pengajuan kelompok ke admin?')">
-                                <i class="fas fa-paper-plane mr-2"></i> Submit Pengajuan Kelompok
+                                onclick="return confirm('{{ $application->status === 'revision' ? 'Kirim ulang pengajuan kelompok ke admin?' : 'Kirim pengajuan kelompok ke admin?' }}')">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                {{ $application->status === 'revision' ? 'Submit Ulang Pengajuan' : 'Submit Pengajuan Kelompok' }}
                             </button>
                         </form>
                     @else
                         <button type="button" class="btn btn-success" disabled title="{{ $submitCheck['message'] ?? '' }}">
-                            <i class="fas fa-paper-plane mr-2"></i> Submit Pengajuan Kelompok
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            {{ $application->status === 'revision' ? 'Submit Ulang Pengajuan' : 'Submit Pengajuan Kelompok' }}
                         </button>
                         @if(!empty($submitCheck['message']))
                             <div class="small text-muted mt-2">{{ $submitCheck['message'] }}</div>
                         @endif
                     @endif
-                @elseif(!empty($isGroupFollower))
+                @elseif(!empty($isGroupFollower) && ($application->mbkmRegistration->group_status ?? 'draft') === 'draft')
                     <a href="{{ route('frontend.mbkm.member-requirements') }}" class="btn btn-primary">
-                        <i class="fas fa-user-edit mr-2"></i> Lengkapi Syarat Individu
+                        <i class="fas fa-user-edit mr-2"></i>
+                        {{ $application->status === 'revision' ? 'Perbarui Syarat Individu' : 'Lengkapi Syarat Individu' }}
+                    </a>
+                @elseif(!empty($isGroupFollower))
+                    <a href="{{ route('frontend.mbkm.member-requirements') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-eye mr-2"></i> Lihat Syarat Individu
                     </a>
                 @elseif(in_array($application->status, ['submitted', 'rejected', 'revision']) && ($application->mbkmRegistration->group_status ?? '') !== 'submitted')
                     <a href="{{ route('frontend.mbkm.edit', $application->id) }}" class="btn btn-warning">

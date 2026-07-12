@@ -236,8 +236,23 @@
 <div class="container py-4">
     <div class="wizard-container">
         <div class="wizard-header">
-            <h2><i class="fas fa-edit mr-2"></i> Edit Draft Kelompok MBKM</h2>
-            <p class="text-muted">Perbarui data kelompok dan syarat individu ketua. Submit pengajuan dilakukan di halaman detail setelah semua anggota lengkap.</p>
+            <h2>
+                <i class="fas fa-edit mr-2"></i>
+                {{ ($application->status ?? '') === 'revision' ? 'Revisi Form Kelompok MBKM' : 'Edit Draft Kelompok MBKM' }}
+            </h2>
+            <p class="text-muted">
+                @if(($application->status ?? '') === 'revision')
+                    Perbaiki data sesuai catatan admin, lalu submit ulang pengajuan di halaman detail.
+                @else
+                    Perbarui data kelompok dan syarat individu ketua. Submit pengajuan dilakukan di halaman detail setelah semua anggota lengkap.
+                @endif
+            </p>
+            @if(($application->status ?? '') === 'revision' && !empty($registration->revision_notes))
+                <div class="alert alert-warning text-left mt-3 mb-0">
+                    <strong><i class="fas fa-exclamation-triangle mr-1"></i> Catatan revisi admin:</strong>
+                    <p class="mb-0 mt-1">{{ $registration->revision_notes }}</p>
+                </div>
+            @endif
         </div>
         
         <!-- Wizard Steps -->

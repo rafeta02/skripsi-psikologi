@@ -224,6 +224,22 @@ class MbkmGroupProgressService
         }
     }
 
+    /**
+     * Buka kembali form kelompok agar ketua/anggota bisa revisi setelah admin minta revisi.
+     */
+    public function reopenGroupForRevision(MbkmRegistration $registration, string $notes): void
+    {
+        $registration->update([
+            'revision_notes' => $notes,
+            'group_status' => 'draft',
+        ]);
+
+        if ($registration->application) {
+            $registration->application->update(['status' => 'revision']);
+            $this->syncMirrorsFromOwner($registration->application);
+        }
+    }
+
     public function assertMemberEligible(int $mahasiswaId, ?int $exceptRegistrationId = null): void
     {
         if (!Mahasiswa::where('id', $mahasiswaId)->exists()) {

@@ -425,9 +425,15 @@ class MbkmRegistrationController extends Controller
                 ->with('info', 'Silakan lengkapi form pendaftaran terlebih dahulu.');
         }
 
-        if ($registration->isGroupSubmitted()) {
+        if ($registration->isGroupSubmitted() && $application->status !== 'revision') {
             return redirect()->route('frontend.mbkm.show', $application->id)
                 ->with('error', 'Pengajuan kelompok sudah dikirim dan tidak dapat diedit.');
+        }
+
+        // Revisi admin: pastikan form terbuka (group_status draft)
+        if ($application->status === 'revision' && $registration->isGroupSubmitted()) {
+            $registration->update(['group_status' => 'draft']);
+            $registration->refresh();
         }
         
         // Check if can edit
@@ -480,9 +486,14 @@ class MbkmRegistrationController extends Controller
                 ->with('error', 'Data pendaftaran tidak ditemukan.');
         }
         
-        if ($registration->isGroupSubmitted()) {
+        if ($registration->isGroupSubmitted() && $application->status !== 'revision') {
             return redirect()->route('frontend.mbkm.show', $application->id)
                 ->with('error', 'Pengajuan kelompok sudah dikirim. Hubungi admin untuk revisi.');
+        }
+
+        if ($application->status === 'revision' && $registration->isGroupSubmitted()) {
+            $registration->update(['group_status' => 'draft']);
+            $registration->refresh();
         }
 
         $ketuaMember = MbkmGroupMember::where('mbkm_registration_id', $registration->id)
@@ -571,13 +582,21 @@ class MbkmRegistrationController extends Controller
                 ->firstOrFail();
 
             $groupService->saveIndividualRequirements($ketuaMember, $validated, $request);
-            
-            $application->update(['status' => 'submitted']);
+
+            $wasRevision = $application->status === 'revision';
+
+            // Simpan draft: jangan anggap sudah diajukan ke admin.
+            // Status revision tetap revision sampai ketua submit ulang kelompok.
+            if (!$wasRevision && !in_array($application->status, ['approved', 'scheduled', 'result', 'done'], true)) {
+                $application->update(['status' => 'submitted']);
+            }
             
             DB::commit();
             
             return redirect()->route('frontend.mbkm.show', $application->id)
-                ->with('success', 'Draft kelompok diperbarui. Submit pengajuan setelah semua anggota lengkap.');
+                ->with('success', $wasRevision
+                    ? 'Revisi draft kelompok disimpan. Submit ulang pengajuan setelah perbaikan selesai.'
+                    : 'Draft kelompok diperbarui. Submit pengajuan setelah semua anggota lengkap.');
                 
         } catch (ValidationException $e) {
             DB::rollBack();
