@@ -83,13 +83,18 @@ class MbkmRegistrationController extends Controller
     {
         $application = Application::findOrFail($applicationId);
         
-        // Verify ownership
         $user = Auth::user();
         if ($application->mahasiswa_id != $user->mahasiswa_id) {
             abort(403, 'Unauthorized access');
         }
+
+        if (MbkmRegistration::withoutGlobalScopes()->where('application_id', $application->id)->exists()) {
+            return redirect()->route('frontend.mbkm.edit', $application->id)
+                ->with('info', 'Form pendaftaran sudah ada.');
+        }
         
         $validated = $request->validate([
+            // Kelompok
             'research_group_id' => 'required|exists:research_groups,id',
             'preference_supervision_id' => [
                 'required',
@@ -106,6 +111,12 @@ class MbkmRegistrationController extends Controller
             'theme_ids' => 'required|array|min:1',
             'theme_ids.*' => 'required|exists:keilmuans,id',
             'title_mbkm' => 'required|string|max:500',
+            'note' => 'nullable|string',
+            'proposal_mbkm' => 'required|file|mimes:pdf|max:10240',
+            'group_members' => 'nullable|array',
+            'group_members.*.mahasiswa_id' => 'nullable|exists:mahasiswas,id',
+            'group_members.*.role' => 'nullable|in:ketua,anggota',
+            // Individu ketua
             'title' => 'required|string|max:500',
             'title_en' => 'nullable|string|max:500',
             'total_sks_taken' => 'required|integer|min:0',
@@ -116,83 +127,179 @@ class MbkmRegistrationController extends Controller
             'nilai_mk_konstruksi_tes' => 'required|string|max:10',
             'nilai_mk_tps' => 'required|string|max:10',
             'sks_mkp_taken' => 'required|integer|min:0',
-            'note' => 'nullable|string',
             'khs_all' => 'required|array',
             'khs_all.*' => 'required|file|mimes:pdf|max:5120',
             'krs_latest' => 'required|file|mimes:pdf|max:5120',
             'spp' => 'required|file|mimes:pdf|max:5120',
-            'proposal_mbkm' => 'required|file|mimes:pdf|max:10240',
             'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
-            // Group members (optional)
-            'group_members' => 'nullable|array',
-            'group_members.*.mahasiswa_id' => 'nullable|exists:mahasiswas,id',
-            'group_members.*.role' => 'nullable|in:ketua,anggota',
         ]);
         
         try {
             DB::beginTransaction();
             
             $themeIds = $validated['theme_ids'];
-            unset($validated['theme_ids']);
+            $groupService = app(MbkmGroupProgressService::class);
 
-            $validated['application_id'] = $application->id;
-            $validated['created_by_id'] = $user->id;
-            // Simpan tema pertama di theme_id untuk kompatibilitas data lama
-            $validated['theme_id'] = $themeIds[0];
-            unset($validated['group_members']);
-            
-            $registration = MbkmRegistration::create($validated);
+            $registration = MbkmRegistration::create([
+                'application_id' => $application->id,
+                'created_by_id' => $user->id,
+                'research_group_id' => $validated['research_group_id'],
+                'preference_supervision_id' => $validated['preference_supervision_id'],
+                'theme_id' => $themeIds[0],
+                'title_mbkm' => $validated['title_mbkm'],
+                'note' => $validated['note'] ?? null,
+                'group_status' => 'draft',
+                // Kompatibilitas tampilan lama: salin judul ketua ke registration
+                'title' => $validated['title'],
+                'title_en' => $validated['title_en'] ?? null,
+                'total_sks_taken' => $validated['total_sks_taken'],
+                'sks_mkp_taken' => $validated['sks_mkp_taken'],
+                'nilai_mk_kuantitatif' => $validated['nilai_mk_kuantitatif'],
+                'nilai_mk_kualitatif' => $validated['nilai_mk_kualitatif'],
+                'nilai_mk_statistika_dasar' => $validated['nilai_mk_statistika_dasar'],
+                'nilai_mk_statistika_lanjutan' => $validated['nilai_mk_statistika_lanjutan'],
+                'nilai_mk_konstruksi_tes' => $validated['nilai_mk_konstruksi_tes'],
+                'nilai_mk_tps' => $validated['nilai_mk_tps'],
+            ]);
+
             $registration->themes()->sync($themeIds);
-            
-            // Handle file uploads
-            if ($request->hasFile('khs_all')) {
-                foreach ($request->file('khs_all') as $file) {
-                    $registration->addMedia($file)->toMediaCollection('khs_all');
-                }
-            }
-            
-            if ($request->hasFile('krs_latest')) {
-                $registration->addMedia($request->file('krs_latest'))->toMediaCollection('krs_latest');
-            }
-            
-            if ($request->hasFile('spp')) {
-                $registration->addMedia($request->file('spp'))->toMediaCollection('spp');
-            }
-            
+
             if ($request->hasFile('proposal_mbkm')) {
                 $registration->addMedia($request->file('proposal_mbkm'))->toMediaCollection('proposal_mbkm');
             }
-            
-            if ($request->hasFile('recognition_form')) {
-                $registration->addMedia($request->file('recognition_form'))->toMediaCollection('recognition_form');
-            }
-            
-            // Handle group members + mirror progress
-            $groupService = app(MbkmGroupProgressService::class);
+
             $groupService->syncGroupMembers(
-                $registration,
+                $registration->fresh(['application']),
                 $request->input('group_members', []),
                 (int) $user->mahasiswa_id
             );
-            
-            // Update application status
+
+            $ketuaMember = MbkmGroupMember::where('mbkm_registration_id', $registration->id)
+                ->where('mahasiswa_id', $user->mahasiswa_id)
+                ->firstOrFail();
+
+            $groupService->saveIndividualRequirements($ketuaMember, $validated, $request);
+
             $application->update(['status' => 'submitted']);
             
             DB::commit();
             
             return redirect()->route('frontend.mbkm.show', $application->id)
-                ->with('success', 'Pendaftaran MBKM berhasil disimpan. Menunggu verifikasi admin.');
+                ->with('success', 'Draft kelompok tersimpan. Lengkapi syarat individu semua anggota, lalu submit pengajuan kelompok.');
                 
         } catch (ValidationException $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->withErrors($e->errors());
+            return redirect()->back()->withInput()->withErrors($e->errors());
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Form syarat individu untuk anggota kelompok.
+     */
+    public function memberRequirements()
+    {
+        $user = Auth::user();
+        $mahasiswaId = (int) $user->mahasiswa_id;
+        $groupService = app(MbkmGroupProgressService::class);
+
+        $member = $groupService->findMemberRecord($mahasiswaId);
+        if (!$member) {
+            return redirect()->route('frontend.choose-path')
+                ->with('error', 'Anda belum tergabung dalam kelompok MBKM.');
+        }
+
+        $registration = MbkmRegistration::withoutGlobalScopes()
+            ->with(['application.mahasiswa', 'themes', 'research_group', 'preference_supervision', 'groupMembers.mahasiswa'])
+            ->findOrFail($member->mbkm_registration_id);
+
+        $locked = $registration->isGroupSubmitted();
+
+        return view('frontend.mbkm.member-requirements', compact('member', 'registration', 'locked'));
+    }
+
+    public function updateMemberRequirements(Request $request)
+    {
+        $user = Auth::user();
+        $mahasiswaId = (int) $user->mahasiswa_id;
+        $groupService = app(MbkmGroupProgressService::class);
+
+        $member = $groupService->findMemberRecord($mahasiswaId);
+        if (!$member) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $registration = MbkmRegistration::withoutGlobalScopes()->findOrFail($member->mbkm_registration_id);
+        if ($registration->isGroupSubmitted()) {
+            return redirect()->route('frontend.mbkm.member-requirements')
+                ->with('error', 'Pengajuan kelompok sudah dikirim. Syarat individu tidak dapat diubah.');
+        }
+
+        $needsFiles = !$member->hasCompleteDocuments();
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:500',
+            'title_en' => 'nullable|string|max:500',
+            'total_sks_taken' => 'required|integer|min:0',
+            'nilai_mk_kuantitatif' => 'required|string|max:10',
+            'nilai_mk_kualitatif' => 'required|string|max:10',
+            'nilai_mk_statistika_dasar' => 'required|string|max:10',
+            'nilai_mk_statistika_lanjutan' => 'required|string|max:10',
+            'nilai_mk_konstruksi_tes' => 'required|string|max:10',
+            'nilai_mk_tps' => 'required|string|max:10',
+            'sks_mkp_taken' => 'required|integer|min:0',
+            'khs_all' => ($needsFiles ? 'required' : 'nullable') . '|array',
+            'khs_all.*' => 'nullable|file|mimes:pdf|max:5120',
+            'krs_latest' => ($needsFiles ? 'required' : 'nullable') . '|file|mimes:pdf|max:5120',
+            'spp' => ($needsFiles ? 'required' : 'nullable') . '|file|mimes:pdf|max:5120',
+            'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
+        ]);
+
+        if ($needsFiles && (!$request->hasFile('khs_all') || !$request->hasFile('krs_latest') || !$request->hasFile('spp'))) {
+            return redirect()->back()->withInput()->with('error', 'Dokumen KHS, KRS, dan SPP wajib diunggah.');
+        }
+
+        try {
+            DB::beginTransaction();
+            $groupService->saveIndividualRequirements($member, $validated, $request);
+            DB::commit();
+
+            return redirect()->route('frontend.mbkm.member-requirements')
+                ->with('success', 'Syarat individu berhasil disimpan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Ketua submit pengajuan kelompok ke admin setelah semua individu lengkap.
+     */
+    public function submitGroup($applicationId)
+    {
+        $application = Application::findOrFail($applicationId);
+        $user = Auth::user();
+
+        if ((int) $application->mahasiswa_id !== (int) $user->mahasiswa_id) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $registration = MbkmRegistration::withoutGlobalScopes()
+            ->with('groupMembers')
+            ->where('application_id', $application->id)
+            ->firstOrFail();
+
+        try {
+            app(MbkmGroupProgressService::class)->submitGroup($registration);
+
+            return redirect()->route('frontend.mbkm.show', $application->id)
+                ->with('success', 'Pengajuan kelompok berhasil dikirim. Menunggu verifikasi admin.');
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors());
         }
     }
 
@@ -254,12 +361,24 @@ class MbkmRegistrationController extends Controller
             ->where('application_id', $application->id)
             ->first();
 
-        // Attach for blade compatibility
         $application->setRelation('mbkmRegistration', $registration);
 
         $isGroupFollower = $groupService->isFollowerAnggota((int) $user->mahasiswa_id);
+        $myMember = $registration
+            ? $registration->groupMembers->firstWhere('mahasiswa_id', (int) $user->mahasiswa_id)
+            : null;
+        $submitCheck = $registration
+            ? $groupService->canSubmitGroup($registration)
+            : ['allowed' => false, 'message' => null, 'summary' => ['total' => 0, 'complete' => 0, 'pending' => 0, 'ready' => false]];
+        $isKetua = !$isGroupFollower && (int) $application->mahasiswa_id === (int) $user->mahasiswa_id;
         
-        return view('frontend.mbkm.show', compact('application', 'isGroupFollower'));
+        return view('frontend.mbkm.show', compact(
+            'application',
+            'isGroupFollower',
+            'myMember',
+            'submitCheck',
+            'isKetua'
+        ));
     }
     
     public function edit($applicationId)
@@ -295,6 +414,11 @@ class MbkmRegistrationController extends Controller
             return redirect()->route('frontend.mbkm.create', $application->id)
                 ->with('info', 'Silakan lengkapi form pendaftaran terlebih dahulu.');
         }
+
+        if ($registration->isGroupSubmitted()) {
+            return redirect()->route('frontend.mbkm.show', $application->id)
+                ->with('error', 'Pengajuan kelompok sudah dikirim dan tidak dapat diedit.');
+        }
         
         // Check if can edit
         if (!in_array($application->status, ['submitted', 'rejected', 'revision'])) {
@@ -314,10 +438,13 @@ class MbkmRegistrationController extends Controller
                 'nama' => $d->nama,
             ])->values())
             ->toArray();
+
+        $ketuaMember = $registration->groupMembers->firstWhere('mahasiswa_id', (int) $user->mahasiswa_id);
         
         return view('frontend.mbkm.edit', compact(
             'application',
             'registration',
+            'ketuaMember',
             'keilmuans',
             'researchGroups',
             'dosensByGroup'
@@ -343,6 +470,17 @@ class MbkmRegistrationController extends Controller
                 ->with('error', 'Data pendaftaran tidak ditemukan.');
         }
         
+        if ($registration->isGroupSubmitted()) {
+            return redirect()->route('frontend.mbkm.show', $application->id)
+                ->with('error', 'Pengajuan kelompok sudah dikirim. Hubungi admin untuk revisi.');
+        }
+
+        $ketuaMember = MbkmGroupMember::where('mbkm_registration_id', $registration->id)
+            ->where('mahasiswa_id', $user->mahasiswa_id)
+            ->first();
+
+        $needsFiles = !$ketuaMember || !$ketuaMember->hasCompleteDocuments();
+        
         $validated = $request->validate([
             'research_group_id' => 'required|exists:research_groups,id',
             'preference_supervision_id' => [
@@ -360,6 +498,11 @@ class MbkmRegistrationController extends Controller
             'theme_ids' => 'required|array|min:1',
             'theme_ids.*' => 'required|exists:keilmuans,id',
             'title_mbkm' => 'required|string|max:500',
+            'note' => 'nullable|string',
+            'group_members' => 'nullable|array',
+            'group_members.*.mahasiswa_id' => 'nullable|exists:mahasiswas,id',
+            'group_members.*.role' => 'nullable|in:ketua,anggota',
+            'proposal_mbkm' => 'nullable|file|mimes:pdf|max:10240',
             'title' => 'required|string|max:500',
             'title_en' => 'nullable|string|max:500',
             'total_sks_taken' => 'required|integer|min:0',
@@ -370,72 +513,65 @@ class MbkmRegistrationController extends Controller
             'nilai_mk_konstruksi_tes' => 'required|string|max:10',
             'nilai_mk_tps' => 'required|string|max:10',
             'sks_mkp_taken' => 'required|integer|min:0',
-            'note' => 'nullable|string',
-            'group_members' => 'nullable|array',
-            'group_members.*.mahasiswa_id' => 'nullable|exists:mahasiswas,id',
-            'group_members.*.role' => 'nullable|in:ketua,anggota',
-            'khs_all' => 'nullable|array',
+            'khs_all' => ($needsFiles ? 'required' : 'nullable') . '|array',
             'khs_all.*' => 'nullable|file|mimes:pdf|max:5120',
-            'krs_latest' => 'nullable|file|mimes:pdf|max:5120',
-            'spp' => 'nullable|file|mimes:pdf|max:5120',
-            'proposal_mbkm' => 'nullable|file|mimes:pdf|max:10240',
+            'krs_latest' => ($needsFiles ? 'required' : 'nullable') . '|file|mimes:pdf|max:5120',
+            'spp' => ($needsFiles ? 'required' : 'nullable') . '|file|mimes:pdf|max:5120',
             'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
         ]);
         
         try {
             DB::beginTransaction();
+            $groupService = app(MbkmGroupProgressService::class);
             
             $themeIds = $validated['theme_ids'];
-            unset($validated['theme_ids']);
-            $groupMembersInput = $request->input('group_members', []);
-            unset($validated['group_members']);
-            $validated['theme_id'] = $themeIds[0];
 
-            $registration->update($validated);
+            $registration->update([
+                'research_group_id' => $validated['research_group_id'],
+                'preference_supervision_id' => $validated['preference_supervision_id'],
+                'theme_id' => $themeIds[0],
+                'title_mbkm' => $validated['title_mbkm'],
+                'note' => $validated['note'] ?? null,
+                'title' => $validated['title'],
+                'title_en' => $validated['title_en'] ?? null,
+                'total_sks_taken' => $validated['total_sks_taken'],
+                'sks_mkp_taken' => $validated['sks_mkp_taken'],
+                'nilai_mk_kuantitatif' => $validated['nilai_mk_kuantitatif'],
+                'nilai_mk_kualitatif' => $validated['nilai_mk_kualitatif'],
+                'nilai_mk_statistika_dasar' => $validated['nilai_mk_statistika_dasar'],
+                'nilai_mk_statistika_lanjutan' => $validated['nilai_mk_statistika_lanjutan'],
+                'nilai_mk_konstruksi_tes' => $validated['nilai_mk_konstruksi_tes'],
+                'nilai_mk_tps' => $validated['nilai_mk_tps'],
+            ]);
             $registration->themes()->sync($themeIds);
 
-            app(MbkmGroupProgressService::class)->syncGroupMembers(
-                $registration,
-                $groupMembersInput,
-                (int) $user->mahasiswa_id
-            );
-            
-            // Handle file uploads
-            if ($request->hasFile('khs_all')) {
-                $registration->clearMediaCollection('khs_all');
-                foreach ($request->file('khs_all') as $file) {
-                    $registration->addMedia($file)->toMediaCollection('khs_all');
-                }
-            }
-            
-            if ($request->hasFile('krs_latest')) {
-                $registration->clearMediaCollection('krs_latest');
-                $registration->addMedia($request->file('krs_latest'))->toMediaCollection('krs_latest');
-            }
-            
-            if ($request->hasFile('spp')) {
-                $registration->clearMediaCollection('spp');
-                $registration->addMedia($request->file('spp'))->toMediaCollection('spp');
-            }
-            
             if ($request->hasFile('proposal_mbkm')) {
                 $registration->clearMediaCollection('proposal_mbkm');
                 $registration->addMedia($request->file('proposal_mbkm'))->toMediaCollection('proposal_mbkm');
             }
+
+            $groupService->syncGroupMembers(
+                $registration->fresh(['application']),
+                $request->input('group_members', []),
+                (int) $user->mahasiswa_id
+            );
+
+            $ketuaMember = MbkmGroupMember::where('mbkm_registration_id', $registration->id)
+                ->where('mahasiswa_id', $user->mahasiswa_id)
+                ->firstOrFail();
+
+            $groupService->saveIndividualRequirements($ketuaMember, $validated, $request);
             
-            if ($request->hasFile('recognition_form')) {
-                $registration->clearMediaCollection('recognition_form');
-                $registration->addMedia($request->file('recognition_form'))->toMediaCollection('recognition_form');
-            }
-            
-            // Update application status back to submitted
             $application->update(['status' => 'submitted']);
             
             DB::commit();
             
             return redirect()->route('frontend.mbkm.show', $application->id)
-                ->with('success', 'Pendaftaran MBKM berhasil diperbarui.');
+                ->with('success', 'Draft kelompok diperbarui. Submit pengajuan setelah semua anggota lengkap.');
                 
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->withErrors($e->errors());
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()

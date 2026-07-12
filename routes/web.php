@@ -306,8 +306,11 @@ Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['
     Route::prefix('frontend/mbkm')->group(function () {
         Route::get('/', 'MbkmRegistrationController@index')->name('mbkm.index');
         Route::get('/search-mahasiswa', 'MbkmRegistrationController@searchMahasiswa')->name('mbkm.search-mahasiswa');
+        Route::get('/member-requirements', 'MbkmRegistrationController@memberRequirements')->name('mbkm.member-requirements');
+        Route::post('/member-requirements', 'MbkmRegistrationController@updateMemberRequirements')->name('mbkm.member-requirements.update');
         Route::get('/{application}/create', 'MbkmRegistrationController@create')->name('mbkm.create');
         Route::post('/{application}/store', 'MbkmRegistrationController@store')->name('mbkm.store');
+        Route::post('/{application}/submit-group', 'MbkmRegistrationController@submitGroup')->name('mbkm.submit-group');
         Route::get('/{application}', 'MbkmRegistrationController@show')->name('mbkm.show');
         Route::get('/{application}/edit', 'MbkmRegistrationController@edit')->name('mbkm.edit');
         Route::put('/{application}', 'MbkmRegistrationController@update')->name('mbkm.update');

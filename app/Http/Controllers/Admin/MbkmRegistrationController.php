@@ -260,7 +260,21 @@ class MbkmRegistrationController extends Controller
      */
     public function approve(Request $request, $id)
     {
-        $registration = MbkmRegistration::with('application')->findOrFail($id);
+        $registration = MbkmRegistration::with(['application', 'groupMembers'])->findOrFail($id);
+
+        if (($registration->group_status ?? 'draft') !== 'submitted') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengajuan kelompok belum di-submit oleh ketua (masih draft / menunggu syarat individu).',
+            ], 422);
+        }
+
+        if (!$registration->allMembersRequirementsComplete()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Belum semua anggota kelompok melengkapi syarat individu.',
+            ], 422);
+        }
         
         $request->validate([
             'notes' => 'nullable|string',

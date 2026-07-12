@@ -79,6 +79,122 @@ class MbkmGroupProgressService
         $this->resyncAllMirrorsFromOwner($ketuaMahasiswaId);
     }
 
+    /**
+     * Simpan syarat individu (judul skripsi, nilai, dokumen) ke MbkmGroupMember.
+     */
+    public function saveIndividualRequirements(MbkmGroupMember $member, array $data, $request = null): MbkmGroupMember
+    {
+        $member->fill([
+            'title' => $data['title'] ?? $member->title,
+            'title_en' => $data['title_en'] ?? $member->title_en,
+            'total_sks_taken' => $data['total_sks_taken'] ?? $member->total_sks_taken,
+            'sks_mkp_taken' => $data['sks_mkp_taken'] ?? $member->sks_mkp_taken,
+            'nilai_mk_kuantitatif' => $data['nilai_mk_kuantitatif'] ?? $member->nilai_mk_kuantitatif,
+            'nilai_mk_kualitatif' => $data['nilai_mk_kualitatif'] ?? $member->nilai_mk_kualitatif,
+            'nilai_mk_statistika_dasar' => $data['nilai_mk_statistika_dasar'] ?? $member->nilai_mk_statistika_dasar,
+            'nilai_mk_statistika_lanjutan' => $data['nilai_mk_statistika_lanjutan'] ?? $member->nilai_mk_statistika_lanjutan,
+            'nilai_mk_konstruksi_tes' => $data['nilai_mk_konstruksi_tes'] ?? $member->nilai_mk_konstruksi_tes,
+            'nilai_mk_tps' => $data['nilai_mk_tps'] ?? $member->nilai_mk_tps,
+        ]);
+        $member->save();
+
+        if ($request) {
+            if ($request->hasFile('khs_all')) {
+                $member->clearMediaCollection('khs_all');
+                foreach ($request->file('khs_all') as $file) {
+                    $member->addMedia($file)->toMediaCollection('khs_all');
+                }
+            }
+
+            if ($request->hasFile('krs_latest')) {
+                $member->clearMediaCollection('krs_latest');
+                $member->addMedia($request->file('krs_latest'))->toMediaCollection('krs_latest');
+            }
+
+            if ($request->hasFile('spp')) {
+                $member->clearMediaCollection('spp');
+                $member->addMedia($request->file('spp'))->toMediaCollection('spp');
+            }
+
+            if ($request->hasFile('recognition_form')) {
+                $member->clearMediaCollection('recognition_form');
+                $member->addMedia($request->file('recognition_form'))->toMediaCollection('recognition_form');
+            }
+        }
+
+        $member->refreshRequirementsStatus();
+
+        return $member->fresh();
+    }
+
+    public function findMemberRecord(int $mahasiswaId): ?MbkmGroupMember
+    {
+        return MbkmGroupMember::with(['mbkm_registration' => function ($q) {
+                $q->withoutGlobalScopes();
+            }, 'mahasiswa'])
+            ->where('mahasiswa_id', $mahasiswaId)
+            ->whereIn('mbkm_registration_id', function ($q) {
+                $q->select('id')
+                    ->from('mbkm_registrations')
+                    ->whereNull('deleted_at')
+                    ->whereIn('group_status', ['draft', 'submitted']);
+            })
+            ->latest('id')
+            ->first();
+    }
+
+    public function canSubmitGroup(MbkmRegistration $registration): array
+    {
+        if ($registration->isGroupSubmitted()) {
+            return [
+                'allowed' => false,
+                'message' => 'Pengajuan kelompok sudah dikirim ke admin.',
+                'summary' => $registration->membersRequirementsSummary(),
+            ];
+        }
+
+        if (!$registration->getMedia('proposal_mbkm')->count()) {
+            return [
+                'allowed' => false,
+                'message' => 'Unggah proposal MBKM kelompok terlebih dahulu.',
+                'summary' => $registration->membersRequirementsSummary(),
+            ];
+        }
+
+        $summary = $registration->membersRequirementsSummary();
+
+        if (!$summary['ready']) {
+            return [
+                'allowed' => false,
+                'message' => "Masih ada {$summary['pending']} anggota yang belum melengkapi syarat individu ({$summary['complete']}/{$summary['total']}).",
+                'summary' => $summary,
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'message' => null,
+            'summary' => $summary,
+        ];
+    }
+
+    public function submitGroup(MbkmRegistration $registration): void
+    {
+        $check = $this->canSubmitGroup($registration);
+        if (!$check['allowed']) {
+            throw ValidationException::withMessages([
+                'group_submit' => $check['message'],
+            ]);
+        }
+
+        $registration->update(['group_status' => 'submitted']);
+
+        if ($registration->application) {
+            $registration->application->update(['status' => 'submitted']);
+            $this->syncMirrorsFromOwner($registration->application);
+        }
+    }
+
     public function assertMemberEligible(int $mahasiswaId, ?int $exceptRegistrationId = null): void
     {
         if (!Mahasiswa::where('id', $mahasiswaId)->exists()) {

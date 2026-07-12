@@ -245,15 +245,15 @@
             </div>
             <div class="wizard-step" data-step="2">
                 <div class="wizard-step-number">2</div>
-                <div class="wizard-step-title">Data Topik</div>
+                <div class="wizard-step-title">Data Kelompok</div>
             </div>
             <div class="wizard-step" data-step="3">
                 <div class="wizard-step-number">3</div>
-                <div class="wizard-step-title">Kelompok</div>
+                <div class="wizard-step-title">Anggota</div>
             </div>
             <div class="wizard-step" data-step="4">
                 <div class="wizard-step-number">4</div>
-                <div class="wizard-step-title">Nilai</div>
+                <div class="wizard-step-title">Syarat Individu</div>
             </div>
             <div class="wizard-step" data-step="5">
                 <div class="wizard-step-number">5</div>
@@ -303,9 +303,10 @@
                 </div>
             </div>
             
-            <!-- Step 2: Data Topik -->
+            <!-- Step 2: Data Topik Kelompok -->
             <div class="form-section" data-section="2">
-                <h4 class="mb-4">Data Topik MBKM & Skripsi</h4>
+                <h4 class="mb-4">Data Kelompok MBKM</h4>
+                <div class="alert alert-secondary">Field di langkah ini milik <strong>kelompok</strong> (diisi ketua).</div>
                 
                 <div class="form-group">
                     <label for="theme_ids">Tema Riset <span class="text-danger">*</span></label>
@@ -319,25 +320,13 @@
                 
                 <div class="form-group">
                     <label for="title_mbkm">Judul Kegiatan MBKM <span class="text-danger">*</span></label>
-                    <textarea name="title_mbkm" id="title_mbkm" class="form-control" rows="2" required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="title">Judul Skripsi <span class="text-danger">*</span></label>
-                    <textarea name="title" id="title" class="form-control" rows="3" required
-                        placeholder="Tuliskan judul skripsi dalam Bahasa Indonesia"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="title_en">Judul Skripsi (English)</label>
-                    <textarea name="title_en" id="title_en" class="form-control" rows="3"
-                        placeholder="Thesis title in English (optional)"></textarea>
+                    <textarea name="title_mbkm" id="title_mbkm" class="form-control" rows="2" required>{{ old('title_mbkm') }}</textarea>
                 </div>
                 
                 <div class="form-group">
                     <label for="note">Catatan Tambahan</label>
                     <textarea name="note" id="note" class="form-control" rows="3"
-                        placeholder="Masukkan catatan atau keterangan tambahan jika ada"></textarea>
+                        placeholder="Masukkan catatan atau keterangan tambahan jika ada">{{ old('note') }}</textarea>
                 </div>
             </div>
 
@@ -383,9 +372,24 @@
                 <div id="groupMembersInputs"></div>
             </div>
             
-            <!-- Step 4: Nilai-nilai -->
+            <!-- Step 4: Syarat Individu Ketua -->
             <div class="form-section" data-section="4">
-                <h4 class="mb-4">Data Nilai</h4>
+                <h4 class="mb-4">Syarat Individu (Ketua)</h4>
+                <div class="alert alert-info">Judul skripsi dan nilai ini milik <strong>Anda sebagai individu</strong>. Anggota mengisi di halaman mereka sendiri.</div>
+
+                <div class="form-group">
+                    <label for="title">Judul Skripsi <span class="text-danger">*</span></label>
+                    <textarea name="title" id="title" class="form-control" rows="3" required
+                        placeholder="Tuliskan judul skripsi dalam Bahasa Indonesia">{{ old('title') }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="title_en">Judul Skripsi (English)</label>
+                    <textarea name="title_en" id="title_en" class="form-control" rows="3"
+                        placeholder="Thesis title in English (optional)">{{ old('title_en') }}</textarea>
+                </div>
+                
+                <h5 class="mt-4 mb-3">Nilai</h5>
                 
                 <div class="row">
                     <div class="col-md-6">
@@ -450,12 +454,21 @@
             
             <!-- Step 5: Upload Dokumen -->
             <div class="form-section" data-section="5">
-                <h4 class="mb-4">Upload Dokumen Persyaratan</h4>
+                <h4 class="mb-4">Dokumen</h4>
                 
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle mr-2"></i>
-                    Semua dokumen harus dalam format PDF
+                    Proposal MBKM = dokumen <strong>kelompok</strong>. KHS/KRS/SPP = dokumen <strong>individu</strong> Anda.
                 </div>
+
+                <h5 class="mb-3">Dokumen Kelompok</h5>
+                <div class="form-group">
+                    <label for="proposal_mbkm">Proposal MBKM <span class="text-danger">*</span></label>
+                    <input type="file" name="proposal_mbkm" id="proposal_mbkm" class="form-control-file" required accept=".pdf">
+                    <small class="form-text text-muted">Max 10MB</small>
+                </div>
+
+                <h5 class="mt-4 mb-3">Dokumen Individu (Ketua)</h5>
                 
                 <div class="form-group">
                     <label for="khs_all">KHS Seluruh Semester <span class="text-danger">*</span></label>
@@ -476,12 +489,6 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="proposal_mbkm">Proposal MBKM <span class="text-danger">*</span></label>
-                    <input type="file" name="proposal_mbkm" id="proposal_mbkm" class="form-control-file" required accept=".pdf">
-                    <small class="form-text text-muted">Max 10MB</small>
-                </div>
-                
-                <div class="form-group">
                     <label for="recognition_form">Form Rekognisi (Opsional)</label>
                     <input type="file" name="recognition_form" id="recognition_form" class="form-control-file" accept=".pdf">
                     <small class="form-text text-muted">Max 5MB</small>
@@ -494,7 +501,7 @@
                 
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle mr-2"></i>
-                    Pastikan semua data yang Anda masukkan sudah benar. Setelah submit, data akan menunggu verifikasi dari admin dan persetujuan dosen pembimbing.
+                    Menyimpan draft kelompok. Setelah semua anggota melengkapi syarat individu, Anda dapat <strong>Submit Pengajuan Kelompok</strong> ke admin.
                 </div>
                 
                 <div class="card">
@@ -526,7 +533,7 @@
                     Selanjutnya <i class="fas fa-arrow-right ml-2"></i>
                 </button>
                 <button type="submit" class="btn btn-success" id="btnSubmit" style="display: none;">
-                    <i class="fas fa-check mr-2"></i> Submit Pendaftaran
+                    <i class="fas fa-save mr-2"></i> Simpan Draft Kelompok
                 </button>
             </div>
         </form>

@@ -64,32 +64,52 @@
                             <td>: {{ $application->mbkmRegistration->preference_supervision->nama ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Total SKS</strong></td>
-                            <td>: {{ $application->mbkmRegistration->total_sks_taken ?? '-' }}</td>
+                            <td><strong>Status Kelompok</strong></td>
+                            <td>:
+                                @if(($application->mbkmRegistration->group_status ?? 'draft') === 'submitted')
+                                    <span class="badge badge-success">Diajukan ke admin</span>
+                                @else
+                                    <span class="badge badge-warning">Draft — menunggu syarat individu</span>
+                                @endif
+                            </td>
                         </tr>
                     </table>
 
                     @if($application->mbkmRegistration->groupMembers && $application->mbkmRegistration->groupMembers->count() > 0)
-                        <h6 class="text-primary mt-3 mb-2">Anggota Kelompok</h6>
+                        <h6 class="text-primary mt-3 mb-2">Anggota & Syarat Individu</h6>
                         <ul class="list-group list-group-flush border rounded mb-3">
                             @foreach($application->mbkmRegistration->groupMembers as $member)
-                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                                    <span>
-                                        <strong>{{ $member->mahasiswa->nama ?? '-' }}</strong>
-                                        <small class="text-muted ml-2">{{ $member->mahasiswa->nim ?? '' }}</small>
-                                    </span>
-                                    <span class="badge badge-{{ $member->role === 'ketua' ? 'success' : 'secondary' }} text-capitalize">
-                                        {{ $member->role ?? 'anggota' }}
-                                    </span>
+                                <li class="list-group-item py-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <strong>{{ $member->mahasiswa->nama ?? '-' }}</strong>
+                                            <small class="text-muted ml-2">{{ $member->mahasiswa->nim ?? '' }}</small>
+                                            <span class="badge badge-{{ $member->role === 'ketua' ? 'success' : 'secondary' }} ml-1 text-capitalize">{{ $member->role ?? 'anggota' }}</span>
+                                        </span>
+                                        <span class="badge badge-{{ ($member->requirements_status ?? '') === 'complete' ? 'success' : 'warning' }}">
+                                            {{ ($member->requirements_status ?? '') === 'complete' ? 'Syarat lengkap' : 'Belum lengkap' }}
+                                        </span>
+                                    </div>
+                                    @if($member->title)
+                                        <small class="text-muted d-block mt-1">Judul: {{ $member->title }}</small>
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>
+                        @if(!empty($submitCheck['summary']))
+                            <p class="small text-muted mb-2">
+                                Progress: {{ $submitCheck['summary']['complete'] ?? 0 }}/{{ $submitCheck['summary']['total'] ?? 0 }} anggota lengkap
+                            </p>
+                        @endif
                     @endif
 
                     @if(!empty($isGroupFollower))
                         <div class="alert alert-info mb-0">
                             <i class="fas fa-users mr-1"></i>
-                            Anda adalah anggota kelompok. Form tahap MBKM diisi ketua; status Anda ikut terbarui hingga sebelum sidang.
+                            Anda anggota kelompok. Lengkapi syarat individu di halaman khusus, lalu ketua yang submit pengajuan kelompok.
+                            <div class="mt-2">
+                                <a href="{{ route('frontend.mbkm.member-requirements') }}" class="btn btn-sm btn-primary">Lengkapi Syarat Individu</a>
+                            </div>
                         </div>
                     @endif
                     @else
@@ -118,8 +138,8 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body">
-                                <h6 class="text-muted">Judul Skripsi</h6>
-                                <p>{{ $application->mbkmRegistration->title ?? '-' }}</p>
+                                <h6 class="text-muted">Judul Skripsi (individu Anda)</h6>
+                                <p>{{ ($myMember->title ?? null) ?: ($application->mbkmRegistration->title ?? '-') }}</p>
                             </div>
                         </div>
                     </div>
@@ -255,10 +275,37 @@
                     <i class="fas fa-arrow-left mr-2"></i> Kembali
                 </a>
                 
-                @if(in_array($application->status, ['submitted', 'rejected']))
-                <a href="{{ route('frontend.mbkm.edit', $application->id) }}" class="btn btn-warning">
-                    <i class="fas fa-edit mr-2"></i> Edit Pendaftaran
-                </a>
+                @if(!empty($isKetua) && ($application->mbkmRegistration->group_status ?? 'draft') === 'draft')
+                    <a href="{{ route('frontend.mbkm.edit', $application->id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit mr-2"></i> Edit Draft
+                    </a>
+                    <a href="{{ route('frontend.mbkm.member-requirements') }}" class="btn btn-outline-primary">
+                        Syarat Individu Saya
+                    </a>
+                    @if(!empty($submitCheck['allowed']))
+                        <form action="{{ route('frontend.mbkm.submit-group', $application->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-success"
+                                onclick="return confirm('Kirim pengajuan kelompok ke admin?')">
+                                <i class="fas fa-paper-plane mr-2"></i> Submit Pengajuan Kelompok
+                            </button>
+                        </form>
+                    @else
+                        <button type="button" class="btn btn-success" disabled title="{{ $submitCheck['message'] ?? '' }}">
+                            <i class="fas fa-paper-plane mr-2"></i> Submit Pengajuan Kelompok
+                        </button>
+                        @if(!empty($submitCheck['message']))
+                            <div class="small text-muted mt-2">{{ $submitCheck['message'] }}</div>
+                        @endif
+                    @endif
+                @elseif(!empty($isGroupFollower))
+                    <a href="{{ route('frontend.mbkm.member-requirements') }}" class="btn btn-primary">
+                        <i class="fas fa-user-edit mr-2"></i> Lengkapi Syarat Individu
+                    </a>
+                @elseif(in_array($application->status, ['submitted', 'rejected', 'revision']) && ($application->mbkmRegistration->group_status ?? '') !== 'submitted')
+                    <a href="{{ route('frontend.mbkm.edit', $application->id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit mr-2"></i> Edit Pendaftaran
+                    </a>
                 @endif
             </div>
         </div>

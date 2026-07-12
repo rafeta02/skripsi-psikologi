@@ -27,13 +27,10 @@ class PathSelectionController extends Controller
 
         $groupService = app(MbkmGroupProgressService::class);
 
-        // Anggota kelompok: arahkan ke form ketua
+        // Anggota kelompok: arahkan ke form syarat individu
         if ($groupService->isFollowerAnggota($mahasiswa->id)) {
-            $ownerApp = $groupService->resolveOwnerApplication($mahasiswa->id, 'registration');
-            if ($ownerApp) {
-                return redirect()->route('frontend.mbkm.show', $ownerApp->id)
-                    ->with('info', 'Anda tergabung sebagai anggota kelompok MBKM. Progres mengikuti form ketua.');
-            }
+            return redirect()->route('frontend.mbkm.member-requirements')
+                ->with('info', 'Anda tergabung sebagai anggota kelompok MBKM. Lengkapi syarat individu Anda.');
         }
         
         $activeApplication = Application::where('mahasiswa_id', $mahasiswa->id)

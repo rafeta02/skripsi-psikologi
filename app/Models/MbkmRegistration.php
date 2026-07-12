@@ -50,6 +50,7 @@ class MbkmRegistration extends Model implements HasMedia
         'nilai_mk_tps',
         'sks_mkp_taken',
         'note',
+        'group_status',
         'approval_date',
         'rejection_reason',
         'revision_notes',
@@ -57,6 +58,11 @@ class MbkmRegistration extends Model implements HasMedia
         'updated_at',
         'deleted_at',
         'created_by_id',
+    ];
+
+    public const GROUP_STATUS_SELECT = [
+        'draft'     => 'Draft (menunggu syarat individu)',
+        'submitted' => 'Diajukan ke admin',
     ];
 
     protected function serializeDate(DateTimeInterface $date)
@@ -139,5 +145,43 @@ class MbkmRegistration extends Model implements HasMedia
     public function groupMembers()
     {
         return $this->hasMany(MbkmGroupMember::class, 'mbkm_registration_id');
+    }
+
+    public function isGroupDraft(): bool
+    {
+        return ($this->group_status ?? 'draft') === 'draft';
+    }
+
+    public function isGroupSubmitted(): bool
+    {
+        return ($this->group_status ?? 'draft') === 'submitted';
+    }
+
+    public function allMembersRequirementsComplete(): bool
+    {
+        $members = $this->groupMembers()->get();
+
+        if ($members->isEmpty()) {
+            return false;
+        }
+
+        return $members->every(fn (MbkmGroupMember $m) => $m->isRequirementsComplete());
+    }
+
+    public function membersRequirementsSummary(): array
+    {
+        $members = $this->relationLoaded('groupMembers')
+            ? $this->groupMembers
+            : $this->groupMembers()->with('mahasiswa')->get();
+
+        $total = $members->count();
+        $complete = $members->where('requirements_status', 'complete')->count();
+
+        return [
+            'total' => $total,
+            'complete' => $complete,
+            'pending' => max(0, $total - $complete),
+            'ready' => $total > 0 && $complete === $total,
+        ];
     }
 }

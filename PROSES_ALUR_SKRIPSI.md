@@ -151,15 +151,22 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 
 ## Alur 2 — Skripsi MBKM
 
-> **Kelompok:** Sebelum sidang (`SkripsiDefense`), seluruh tahap MBKM adalah **1 kelompok = 1 form** (diisi ketua). Anggota dicatat di `MbkmGroupMember` dan mendapat Application mirror (`is_group_mirror=true`) agar status/progres mereka ikut ter-check. Mulai pendaftaran sidang, tiap mahasiswa mendaftar **individu**.
+> **Kelompok vs Individu:**  
+> - **Kelompok (ketua):** Research Group, dosen, tema riset, judul kegiatan MBKM, daftar anggota, proposal MBKM.  
+> - **Individu (ketua & tiap anggota):** judul skripsi, nilai MK/SKS, KHS/KRS/SPP.  
+> Ketua simpan **draft** → semua anggota lengkapi syarat individu → ketua **Submit Pengajuan Kelompok** → admin verifikasi.  
+> Mirror Application tetap dipakai agar status tahap (sampai sebelum sidang) ikut ke semua anggota. Sidang tetap per individu.
 
 1) Pendaftaran MBKM
 - Peran: Mahasiswa (ketua kelompok)
-- Form: `MbkmRegistration` (pilih `Dosen` pembimbing, Tema Riset, `ResearchGroup`, unggah KRS/KHS/SPP/proposal MBKM, dst.)
-- Anggota Kelompok:
-  - Form: `MbkmGroupMember` (role `ketua`/`anggota`) pada wizard pendaftaran
-  - Sistem membuat Application mirror per anggota (stage/status mengikuti ketua)
-  - Anggota tidak membuat path/form sendiri; portal mereka menampilkan progres kelompok
+- Form kelompok: `MbkmRegistration` (dosen, tema, judul MBKM, proposal, anggota)
+- Form individu ketua: disimpan di `MbkmGroupMember` (judul skripsi, nilai, dokumen pribadi)
+- `group_status=draft` sampai semua anggota `requirements_status=complete`, lalu ketua submit → `group_status=submitted`
+
+1b) Syarat Individu Anggota
+- Peran: Anggota kelompok
+- Halaman: `frontend.mbkm.member-requirements`
+- Wajib lengkap sebelum ketua bisa submit pengajuan kelompok
 
 2) Verifikasi Pendaftaran MBKM
 - Peran: Admin

@@ -230,11 +230,14 @@
 @endpush
 
 @section('content')
+@php
+    $ind = $ketuaMember ?? null;
+@endphp
 <div class="container py-4">
     <div class="wizard-container">
         <div class="wizard-header">
-            <h2><i class="fas fa-edit mr-2"></i> Edit Pendaftaran Skripsi MBKM</h2>
-            <p class="text-muted">Perbarui data pendaftaran MBKM Anda</p>
+            <h2><i class="fas fa-edit mr-2"></i> Edit Draft Kelompok MBKM</h2>
+            <p class="text-muted">Perbarui data kelompok dan syarat individu ketua. Submit pengajuan dilakukan di halaman detail setelah semua anggota lengkap.</p>
         </div>
         
         <!-- Wizard Steps -->
@@ -327,15 +330,15 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="title">Judul Skripsi <span class="text-danger">*</span></label>
+                    <label for="title">Judul Skripsi (Individu Ketua) <span class="text-danger">*</span></label>
                     <textarea name="title" id="title" class="form-control" rows="3" required
-                        placeholder="Tuliskan judul skripsi dalam Bahasa Indonesia">{{ old('title', $registration->title) }}</textarea>
+                        placeholder="Tuliskan judul skripsi dalam Bahasa Indonesia">{{ old('title', $ind->title ?? $registration->title) }}</textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="title_en">Judul Skripsi (English)</label>
+                    <label for="title_en">Judul Skripsi English (Individu)</label>
                     <textarea name="title_en" id="title_en" class="form-control" rows="3"
-                        placeholder="Thesis title in English (optional)">{{ old('title_en', $registration->title_en) }}</textarea>
+                        placeholder="Thesis title in English (optional)">{{ old('title_en', $ind->title_en ?? $registration->title_en) }}</textarea>
                 </div>
                 
                 <div class="form-group">
@@ -395,13 +398,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="total_sks_taken">Total SKS yang Ditempuh <span class="text-danger">*</span></label>
-                            <input type="number" name="total_sks_taken" id="total_sks_taken" class="form-control" required min="0" value="{{ old('total_sks_taken', $registration->total_sks_taken) }}">
+                            <input type="number" name="total_sks_taken" id="total_sks_taken" class="form-control" required min="0" value="{{ old('total_sks_taken', $ind->total_sks_taken ?? $registration->total_sks_taken) }}">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="sks_mkp_taken">SKS MKP yang Ditempuh <span class="text-danger">*</span></label>
-                            <input type="number" name="sks_mkp_taken" id="sks_mkp_taken" class="form-control" required min="0" value="{{ old('sks_mkp_taken', $registration->sks_mkp_taken) }}">
+                            <input type="number" name="sks_mkp_taken" id="sks_mkp_taken" class="form-control" required min="0" value="{{ old('sks_mkp_taken', $ind->sks_mkp_taken ?? $registration->sks_mkp_taken) }}">
                         </div>
                     </div>
                 </div>
@@ -410,13 +413,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="nilai_mk_kuantitatif">Nilai MK Kuantitatif <span class="text-danger">*</span></label>
-                            <input type="text" name="nilai_mk_kuantitatif" id="nilai_mk_kuantitatif" class="form-control" required maxlength="10" value="{{ old('nilai_mk_kuantitatif', $registration->nilai_mk_kuantitatif) }}">
+                            <input type="text" name="nilai_mk_kuantitatif" id="nilai_mk_kuantitatif" class="form-control" required maxlength="10" value="{{ old('nilai_mk_kuantitatif', $ind->nilai_mk_kuantitatif ?? $registration->nilai_mk_kuantitatif) }}">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="nilai_mk_kualitatif">Nilai MK Kualitatif <span class="text-danger">*</span></label>
-                            <input type="text" name="nilai_mk_kualitatif" id="nilai_mk_kualitatif" class="form-control" required maxlength="10" value="{{ old('nilai_mk_kualitatif', $registration->nilai_mk_kualitatif) }}">
+                            <input type="text" name="nilai_mk_kualitatif" id="nilai_mk_kualitatif" class="form-control" required maxlength="10" value="{{ old('nilai_mk_kualitatif', $ind->nilai_mk_kualitatif ?? $registration->nilai_mk_kualitatif) }}">
                         </div>
                     </div>
                 </div>
@@ -425,13 +428,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="nilai_mk_statistika_dasar">Nilai MK Statistika Dasar <span class="text-danger">*</span></label>
-                            <input type="text" name="nilai_mk_statistika_dasar" id="nilai_mk_statistika_dasar" class="form-control" required maxlength="10" value="{{ old('nilai_mk_statistika_dasar', $registration->nilai_mk_statistika_dasar) }}">
+                            <input type="text" name="nilai_mk_statistika_dasar" id="nilai_mk_statistika_dasar" class="form-control" required maxlength="10" value="{{ old('nilai_mk_statistika_dasar', $ind->nilai_mk_statistika_dasar ?? $registration->nilai_mk_statistika_dasar) }}">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="nilai_mk_statistika_lanjutan">Nilai MK Statistika Lanjutan <span class="text-danger">*</span></label>
-                            <input type="text" name="nilai_mk_statistika_lanjutan" id="nilai_mk_statistika_lanjutan" class="form-control" required maxlength="10" value="{{ old('nilai_mk_statistika_lanjutan', $registration->nilai_mk_statistika_lanjutan) }}">
+                            <input type="text" name="nilai_mk_statistika_lanjutan" id="nilai_mk_statistika_lanjutan" class="form-control" required maxlength="10" value="{{ old('nilai_mk_statistika_lanjutan', $ind->nilai_mk_statistika_lanjutan ?? $registration->nilai_mk_statistika_lanjutan) }}">
                         </div>
                     </div>
                 </div>
@@ -440,13 +443,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="nilai_mk_konstruksi_tes">Nilai MK Konstruksi Tes <span class="text-danger">*</span></label>
-                            <input type="text" name="nilai_mk_konstruksi_tes" id="nilai_mk_konstruksi_tes" class="form-control" required maxlength="10" value="{{ old('nilai_mk_konstruksi_tes', $registration->nilai_mk_konstruksi_tes) }}">
+                            <input type="text" name="nilai_mk_konstruksi_tes" id="nilai_mk_konstruksi_tes" class="form-control" required maxlength="10" value="{{ old('nilai_mk_konstruksi_tes', $ind->nilai_mk_konstruksi_tes ?? $registration->nilai_mk_konstruksi_tes) }}">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="nilai_mk_tps">Nilai MK TPS <span class="text-danger">*</span></label>
-                            <input type="text" name="nilai_mk_tps" id="nilai_mk_tps" class="form-control" required maxlength="10" value="{{ old('nilai_mk_tps', $registration->nilai_mk_tps) }}">
+                            <input type="text" name="nilai_mk_tps" id="nilai_mk_tps" class="form-control" required maxlength="10" value="{{ old('nilai_mk_tps', $ind->nilai_mk_tps ?? $registration->nilai_mk_tps) }}">
                         </div>
                     </div>
                 </div>
@@ -454,54 +457,13 @@
             
             <!-- Step 5: Upload Dokumen -->
             <div class="form-section" data-section="5">
-                <h4 class="mb-4">Upload Dokumen Persyaratan</h4>
+                <h4 class="mb-4">Dokumen</h4>
                 
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    Semua dokumen harus dalam format PDF. Kosongkan jika tidak ingin mengganti dokumen yang sudah diunggah.
+                    Proposal = kelompok. KHS/KRS/SPP = individu ketua. Kosongkan file jika tidak diganti.
                 </div>
-                
-                <div class="form-group">
-                    <label for="khs_all">KHS Seluruh Semester</label>
-                    @if($registration->khs_all && count($registration->khs_all) > 0)
-                        <div class="mb-2">
-                            @foreach($registration->khs_all as $media)
-                                <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary mr-1 mb-1">
-                                    <i class="fas fa-file-pdf"></i> {{ $media->file_name }}
-                                </a>
-                            @endforeach
-                        </div>
-                    @endif
-                    <input type="file" name="khs_all[]" id="khs_all" class="form-control-file" multiple accept=".pdf">
-                    <small class="form-text text-muted">Opsional — unggah ulang untuk mengganti. Max 5MB per file</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="krs_latest">KRS Semester Terbaru</label>
-                    @if($registration->krs_latest)
-                        <div class="mb-2">
-                            <a href="{{ $registration->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-file-pdf"></i> {{ $registration->krs_latest->file_name }}
-                            </a>
-                        </div>
-                    @endif
-                    <input type="file" name="krs_latest" id="krs_latest" class="form-control-file" accept=".pdf">
-                    <small class="form-text text-muted">Opsional — unggah ulang untuk mengganti. Max 5MB</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="spp">Bukti Pembayaran SPP</label>
-                    @if($registration->spp)
-                        <div class="mb-2">
-                            <a href="{{ $registration->spp->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-file-pdf"></i> {{ $registration->spp->file_name }}
-                            </a>
-                        </div>
-                    @endif
-                    <input type="file" name="spp" id="spp" class="form-control-file" accept=".pdf">
-                    <small class="form-text text-muted">Opsional — unggah ulang untuk mengganti. Max 5MB</small>
-                </div>
-                
+
+                <h5 class="mb-3">Dokumen Kelompok</h5>
                 <div class="form-group">
                     <label for="proposal_mbkm">Proposal MBKM</label>
                     @if($registration->proposal_mbkm)
@@ -512,20 +474,58 @@
                         </div>
                     @endif
                     <input type="file" name="proposal_mbkm" id="proposal_mbkm" class="form-control-file" accept=".pdf">
-                    <small class="form-text text-muted">Opsional — unggah ulang untuk mengganti. Max 10MB</small>
+                </div>
+
+                <h5 class="mt-4 mb-3">Dokumen Individu (Ketua)</h5>
+                
+                <div class="form-group">
+                    <label for="khs_all">KHS Seluruh Semester</label>
+                    @if($ind && $ind->khs_all && count($ind->khs_all) > 0)
+                        <div class="mb-2">
+                            @foreach($ind->khs_all as $media)
+                                <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary mr-1 mb-1">
+                                    <i class="fas fa-file-pdf"></i> {{ $media->file_name }}
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                    <input type="file" name="khs_all[]" id="khs_all" class="form-control-file" multiple accept=".pdf">
+                </div>
+                
+                <div class="form-group">
+                    <label for="krs_latest">KRS Semester Terbaru</label>
+                    @if($ind && $ind->krs_latest)
+                        <div class="mb-2">
+                            <a href="{{ $ind->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-file-pdf"></i> {{ $ind->krs_latest->file_name }}
+                            </a>
+                        </div>
+                    @endif
+                    <input type="file" name="krs_latest" id="krs_latest" class="form-control-file" accept=".pdf">
+                </div>
+                
+                <div class="form-group">
+                    <label for="spp">Bukti Pembayaran SPP</label>
+                    @if($ind && $ind->spp)
+                        <div class="mb-2">
+                            <a href="{{ $ind->spp->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-file-pdf"></i> {{ $ind->spp->file_name }}
+                            </a>
+                        </div>
+                    @endif
+                    <input type="file" name="spp" id="spp" class="form-control-file" accept=".pdf">
                 </div>
                 
                 <div class="form-group">
                     <label for="recognition_form">Form Rekognisi (Opsional)</label>
-                    @if($registration->recognition_form)
+                    @if($ind && $ind->recognition_form)
                         <div class="mb-2">
-                            <a href="{{ $registration->recognition_form->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-file-pdf"></i> {{ $registration->recognition_form->file_name }}
+                            <a href="{{ $ind->recognition_form->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-file-pdf"></i> {{ $ind->recognition_form->file_name }}
                             </a>
                         </div>
                     @endif
                     <input type="file" name="recognition_form" id="recognition_form" class="form-control-file" accept=".pdf">
-                    <small class="form-text text-muted">Max 5MB</small>
                 </div>
             </div>
             
