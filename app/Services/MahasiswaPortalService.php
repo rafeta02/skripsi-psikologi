@@ -91,6 +91,8 @@ class MahasiswaPortalService
                 'skripsiDefense',
                 'schedules',
                 'resultDefense',
+                'parentApplication.schedules',
+                'parentApplication.mbkmSeminar',
             ])
             ->orderBy('created_at')
             ->get();
@@ -106,8 +108,10 @@ class MahasiswaPortalService
                 default => ucfirst($app->stage),
             };
 
+            $mirrorNote = $app->is_group_mirror ? ' (kelompok)' : '';
+
             $steps[] = [
-                'label' => "{$stageLabel} ({$typeLabel})",
+                'label' => "{$stageLabel} ({$typeLabel}){$mirrorNote}",
                 'sublabel' => $this->statusLabel($app->status),
                 'status' => $this->stepStatus($app->status),
                 'badge' => $this->statusBadge($app->status),
@@ -116,7 +120,11 @@ class MahasiswaPortalService
                 'icon' => $this->stageIcon($app->stage),
             ];
 
-            foreach ($app->schedules->sortByDesc('waktu') as $schedule) {
+            $scheduleSource = ($app->is_group_mirror && $app->parentApplication)
+                ? $app->parentApplication
+                : $app;
+
+            foreach ($scheduleSource->schedules->sortByDesc('waktu') as $schedule) {
                 $scheduleLabel = ApplicationSchedule::SCHEDULE_TYPE_SELECT[$schedule->schedule_type] ?? $schedule->schedule_type;
                 $validation = $schedule->adminValidationStatus();
 
@@ -133,7 +141,11 @@ class MahasiswaPortalService
                 ];
             }
 
-            if ($app->stage === 'seminar' && $app->type === 'skripsi') {
+            $resultAppId = ($app->is_group_mirror && $app->parent_application_id)
+                ? $app->parent_application_id
+                : $app->id;
+
+            if ($app->stage === 'seminar' && $app->type === 'skripsi' && !$app->is_group_mirror) {
                 $result = ApplicationResultReview::where('application_id', $app->id)->first();
                 if ($result) {
                     $steps[] = $this->resultStep('Laporan Review Proposal', $result->result, $result->created_at, 'frontend.application-result-reviews.show', $result->id);
@@ -141,7 +153,7 @@ class MahasiswaPortalService
             }
 
             if ($app->stage === 'seminar' && $app->type === 'mbkm') {
-                $result = ApplicationResultSeminar::where('application_id', $app->id)->first();
+                $result = ApplicationResultSeminar::where('application_id', $resultAppId)->first();
                 if ($result) {
                     $steps[] = $this->resultStep('Laporan Hasil Seminar', $result->result, $result->created_at, 'frontend.application-result-seminars.show', $result->id);
                 }

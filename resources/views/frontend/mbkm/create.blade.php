@@ -109,11 +109,22 @@
         border-top: 1px solid #e0e0e0;
     }
     
-    /* Select2 Bootstrap4 Theme Customization */
-    .select2-container--bootstrap4 .select2-selection {
-        border-radius: 8px !important;
-        border: 1px solid #ced4da !important;
+    .select2-container--bootstrap4 .select2-selection--multiple {
         min-height: 38px !important;
+        padding: 4px 8px !important;
+    }
+
+    .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        color: white !important;
+        border-radius: 4px !important;
+        padding: 2px 8px !important;
+    }
+
+    .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove {
+        color: white !important;
+        margin-right: 4px !important;
     }
     
     .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
@@ -238,14 +249,18 @@
             </div>
             <div class="wizard-step" data-step="3">
                 <div class="wizard-step-number">3</div>
-                <div class="wizard-step-title">Nilai</div>
+                <div class="wizard-step-title">Kelompok</div>
             </div>
             <div class="wizard-step" data-step="4">
                 <div class="wizard-step-number">4</div>
-                <div class="wizard-step-title">Dokumen</div>
+                <div class="wizard-step-title">Nilai</div>
             </div>
             <div class="wizard-step" data-step="5">
                 <div class="wizard-step-number">5</div>
+                <div class="wizard-step-title">Dokumen</div>
+            </div>
+            <div class="wizard-step" data-step="6">
+                <div class="wizard-step-number">6</div>
                 <div class="wizard-step-title">Konfirmasi</div>
             </div>
         </div>
@@ -274,20 +289,17 @@
                     <select name="research_group_id" id="research_group_id" class="form-control" required>
                         <option value="">-- Pilih Research Group --</option>
                         @foreach($researchGroups as $id => $name)
-                            <option value="{{ $id }}">{{ $name }}</option>
+                            <option value="{{ $id }}" {{ old('research_group_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
                         @endforeach
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label for="preference_supervision_id">Pilih Dosen Pembimbing <span class="text-danger">*</span></label>
-                    <select name="preference_supervision_id" id="preference_supervision_id" class="form-control" required>
-                        <option value="">-- Pilih Dosen Pembimbing --</option>
-                        @foreach($dosens as $id => $name)
-                            <option value="{{ $id }}">{{ $name }}</option>
-                        @endforeach
+                    <select name="preference_supervision_id" id="preference_supervision_id" class="form-control" required disabled>
+                        <option value="">-- Pilih Research Group terlebih dahulu --</option>
                     </select>
-                    <small class="form-text text-muted">Dosen ini akan menilai dan menerima/menolak penugasan Anda</small>
+                    <small class="form-text text-muted">Dosen difilter sesuai research group yang dipilih</small>
                 </div>
             </div>
             
@@ -296,13 +308,13 @@
                 <h4 class="mb-4">Data Topik MBKM & Skripsi</h4>
                 
                 <div class="form-group">
-                    <label for="theme_id">Bidang Keilmuan <span class="text-danger">*</span></label>
-                    <select name="theme_id" id="theme_id" class="form-control" required>
-                        <option value="">-- Pilih Bidang Keilmuan --</option>
+                    <label for="theme_ids">Tema Riset <span class="text-danger">*</span></label>
+                    <select name="theme_ids[]" id="theme_ids" class="form-control" multiple required>
                         @foreach($keilmuans as $id => $name)
-                            <option value="{{ $id }}">{{ $name }}</option>
+                            <option value="{{ $id }}" {{ collect(old('theme_ids'))->contains($id) ? 'selected' : '' }}>{{ $name }}</option>
                         @endforeach
                     </select>
+                    <small class="form-text text-muted">Anda dapat memilih lebih dari satu tema riset</small>
                 </div>
                 
                 <div class="form-group">
@@ -328,9 +340,51 @@
                         placeholder="Masukkan catatan atau keterangan tambahan jika ada"></textarea>
                 </div>
             </div>
-            
-            <!-- Step 3: Nilai-nilai -->
+
+            <!-- Step 3: Anggota Kelompok -->
             <div class="form-section" data-section="3">
+                <h4 class="mb-4">Anggota Kelompok MBKM</h4>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Satu form mewakili satu kelompok. Anda (pengisi form) otomatis menjadi <strong>ketua</strong>.
+                    Tambahkan anggota lain lewat NIM. Semua anggota akan tercatat sampai tahap yang sama hingga sebelum sidang.
+                </div>
+
+                <div class="form-group">
+                    <label>Cari Anggota (NIM)</label>
+                    <div class="input-group">
+                        <input type="text" id="member_nim_search" class="form-control" placeholder="Masukkan NIM anggota">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-primary" id="btnSearchMember">
+                                <i class="fas fa-search"></i> Cari
+                            </button>
+                        </div>
+                    </div>
+                    <small class="form-text text-muted" id="memberSearchHint">Opsional — boleh kosong jika mengerjakan sendiri.</small>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="groupMembersTable">
+                        <thead>
+                            <tr>
+                                <th>NIM</th>
+                                <th>Nama</th>
+                                <th width="140">Peran</th>
+                                <th width="80"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="groupMembersBody">
+                            <tr class="text-muted" id="groupMembersEmpty">
+                                <td colspan="4" class="text-center">Belum ada anggota tambahan</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="groupMembersInputs"></div>
+            </div>
+            
+            <!-- Step 4: Nilai-nilai -->
+            <div class="form-section" data-section="4">
                 <h4 class="mb-4">Data Nilai</h4>
                 
                 <div class="row">
@@ -394,8 +448,8 @@
                 </div>
             </div>
             
-            <!-- Step 4: Upload Dokumen -->
-            <div class="form-section" data-section="4">
+            <!-- Step 5: Upload Dokumen -->
+            <div class="form-section" data-section="5">
                 <h4 class="mb-4">Upload Dokumen Persyaratan</h4>
                 
                 <div class="alert alert-info">
@@ -434,8 +488,8 @@
                 </div>
             </div>
             
-            <!-- Step 5: Konfirmasi -->
-            <div class="form-section" data-section="5">
+            <!-- Step 6: Konfirmasi -->
+            <div class="form-section" data-section="6">
                 <h4 class="mb-4">Konfirmasi Data</h4>
                 
                 <div class="alert alert-warning">
@@ -493,7 +547,7 @@
     window.mbkmFormInitialized = true;
     
     let currentStep = 1;
-    const totalSteps = 5;
+    const totalSteps = 6;
     
     console.log('[MBKM Wizard] Initializing...');
     
@@ -560,6 +614,9 @@
         }
         
         if (field.tagName === 'SELECT') {
+            if (field.multiple) {
+                return field.selectedOptions && field.selectedOptions.length > 0;
+            }
             return field.value !== '' && field.value !== null;
         }
         
@@ -624,17 +681,24 @@
     function updateSummary() {
         const researchGroup = $('#research_group_id option:selected').text() || '-';
         const supervisor = $('#preference_supervision_id option:selected').text() || '-';
-        const theme = $('#theme_id option:selected').text() || '-';
+        const themes = ($('#theme_ids').select2('data') || [])
+            .map(function(item) { return item.text; })
+            .filter(Boolean)
+            .join(', ') || '-';
         const titleMbkm = $('#title_mbkm').val() || '-';
         const title = $('#title').val() || '-';
         const totalSks = $('#total_sks_taken').val() || '-';
+        const groupMemberSummary = (typeof getGroupMemberSummary === 'function')
+            ? getGroupMemberSummary()
+            : 'Hanya ketua (Anda)';
         
         let summary = `
             <div class="row">
                 <div class="col-md-6">
                     <p><strong>Research Group:</strong><br>${researchGroup}</p>
                     <p><strong>Dosen Pembimbing:</strong><br>${supervisor}</p>
-                    <p><strong>Bidang Keilmuan:</strong><br>${theme}</p>
+                    <p><strong>Tema Riset:</strong><br>${themes}</p>
+                    <p><strong>Anggota Kelompok:</strong><br>${groupMemberSummary}</p>
                 </div>
                 <div class="col-md-6">
                     <p><strong>Judul MBKM:</strong><br>${titleMbkm}</p>
@@ -645,6 +709,91 @@
         `;
         
         $('#summary-content').html(summary);
+    }
+
+    const dosensByGroup = @json($dosensByGroup ?? []);
+    const searchMahasiswaUrl = @json(route('frontend.mbkm.search-mahasiswa'));
+    let groupMembers = [];
+
+    function renderGroupMembers() {
+        const $body = $('#groupMembersBody');
+        const $inputs = $('#groupMembersInputs');
+        $body.empty();
+        $inputs.empty();
+
+        if (groupMembers.length === 0) {
+            $body.append('<tr class="text-muted" id="groupMembersEmpty"><td colspan="4" class="text-center">Belum ada anggota tambahan</td></tr>');
+            return;
+        }
+
+        groupMembers.forEach(function(member, index) {
+            $body.append(`
+                <tr data-id="${member.id}">
+                    <td>${member.nim}</td>
+                    <td>${member.nama}</td>
+                    <td><span class="badge badge-secondary">Anggota</span></td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-remove-member" data-index="${index}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+            $inputs.append(`
+                <input type="hidden" name="group_members[${index}][mahasiswa_id]" value="${member.id}">
+                <input type="hidden" name="group_members[${index}][role]" value="anggota">
+            `);
+        });
+    }
+
+    function addGroupMember(mahasiswa) {
+        if (groupMembers.some(function(m) { return String(m.id) === String(mahasiswa.id); })) {
+            alert('Mahasiswa sudah ditambahkan.');
+            return;
+        }
+        groupMembers.push({
+            id: mahasiswa.id,
+            nim: mahasiswa.nim,
+            nama: mahasiswa.nama,
+            role: 'anggota',
+        });
+        renderGroupMembers();
+    }
+
+    function getGroupMemberSummary() {
+        if (groupMembers.length === 0) {
+            return 'Hanya ketua (Anda)';
+        }
+        return groupMembers.map(function(m) {
+            return m.nama + ' (' + m.nim + ') — ' + m.role;
+        }).join('<br>');
+    }
+
+    function refillSupervisors(groupId, selectedId) {
+        const $select = $('#preference_supervision_id');
+        $select.empty();
+
+        if (!groupId) {
+            $select.append('<option value="">-- Pilih Research Group terlebih dahulu --</option>');
+            $select.prop('disabled', true).val('').trigger('change');
+            return;
+        }
+
+        const dosens = dosensByGroup[groupId] || dosensByGroup[String(groupId)] || [];
+        $select.append('<option value="">-- Pilih Dosen Pembimbing --</option>');
+
+        dosens.forEach(function(dosen) {
+            const selected = String(selectedId) === String(dosen.id) ? ' selected' : '';
+            $select.append('<option value="' + dosen.id + '"' + selected + '>' + dosen.nama + '</option>');
+        });
+
+        $select.prop('disabled', false);
+        if (selectedId) {
+            $select.val(String(selectedId));
+        } else {
+            $select.val('');
+        }
+        $select.trigger('change');
     }
     
     // Wait for document ready
@@ -674,19 +823,80 @@
                 dropdownAutoWidth: false
             });
             
-            $('#theme_id').select2({
-                placeholder: '-- Pilih Bidang Keilmuan --',
+            $('#theme_ids').select2({
+                placeholder: '-- Pilih Tema Riset --',
                 allowClear: true,
                 width: '100%',
                 theme: 'bootstrap4',
                 dropdownParent: $('body'),
-                dropdownAutoWidth: false
+                dropdownAutoWidth: false,
+                closeOnSelect: false
             });
+
+            $('#research_group_id').on('change', function() {
+                refillSupervisors($(this).val(), null);
+            });
+
+            @if(old('research_group_id'))
+                refillSupervisors('{{ old('research_group_id') }}', '{{ old('preference_supervision_id') }}');
+            @endif
             
             console.log('[MBKM Wizard] Select2 initialized');
         } else {
             console.warn('[MBKM Wizard] Select2 library not found');
         }
+
+        $('#btnSearchMember').on('click', function() {
+            const nim = ($('#member_nim_search').val() || '').trim();
+            if (!nim) {
+                alert('Masukkan NIM terlebih dahulu.');
+                return;
+            }
+
+            $('#memberSearchHint').text('Mencari...');
+            $.get(searchMahasiswaUrl, { nim: nim })
+                .done(function(res) {
+                    if (!res.found) {
+                        $('#memberSearchHint').text(res.message || 'Tidak ditemukan');
+                        return;
+                    }
+                    addGroupMember(res.mahasiswa);
+                    $('#member_nim_search').val('');
+                    $('#memberSearchHint').text('Anggota ditambahkan.');
+                })
+                .fail(function() {
+                    $('#memberSearchHint').text('Gagal mencari mahasiswa.');
+                });
+        });
+
+        $(document).on('click', '.btn-remove-member', function() {
+            const index = parseInt($(this).data('index'), 10);
+            groupMembers.splice(index, 1);
+            renderGroupMembers();
+        });
+
+        $(document).on('change', '.member-role', function() {
+            const index = parseInt($(this).data('index'), 10);
+            groupMembers[index].role = $(this).val();
+            $('.member-role-input[data-index="' + index + '"]').val($(this).val());
+        });
+
+        @if(old('group_members'))
+            @foreach(old('group_members') as $oldMember)
+                @if(!empty($oldMember['mahasiswa_id']))
+                    @php $m = \App\Models\Mahasiswa::find($oldMember['mahasiswa_id']); @endphp
+                    @if($m)
+                        groupMembers.push({
+                            id: {{ $m->id }},
+                            nim: @json($m->nim),
+                            nama: @json($m->nama),
+                            role: @json($oldMember['role'] ?? 'anggota'),
+                        });
+                    @endif
+                @endif
+            @endforeach
+            renderGroupMembers();
+        @endif
         
         // File input styling and validation
         $('input[type="file"]').on('change', function() {
@@ -776,7 +986,7 @@
             let allMissing = [];
             let firstInvalidStep = null;
             
-            for (let step = 1; step <= 4; step++) {
+            for (let step = 1; step <= 5; step++) {
                 const result = validateStep(step);
                 if (!result.valid) {
                     allMissing = allMissing.concat(result.missing);

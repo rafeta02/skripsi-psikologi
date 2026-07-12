@@ -79,8 +79,8 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="font-weight-bold">Tema Keilmuan:</label>
-                                <p>{{ $mbkmRegistration->theme->name ?? 'N/A' }}</p>
+                                <label class="font-weight-bold">Tema Riset:</label>
+                                <p>{{ $mbkmRegistration->themes_label }}</p>
                             </div>
                         </div>
                     </div>

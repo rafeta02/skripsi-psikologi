@@ -305,6 +305,7 @@ Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['
     // MBKM Routes
     Route::prefix('frontend/mbkm')->group(function () {
         Route::get('/', 'MbkmRegistrationController@index')->name('mbkm.index');
+        Route::get('/search-mahasiswa', 'MbkmRegistrationController@searchMahasiswa')->name('mbkm.search-mahasiswa');
         Route::get('/{application}/create', 'MbkmRegistrationController@create')->name('mbkm.create');
         Route::post('/{application}/store', 'MbkmRegistrationController@store')->name('mbkm.store');
         Route::get('/{application}', 'MbkmRegistrationController@show')->name('mbkm.show');

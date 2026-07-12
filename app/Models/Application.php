@@ -44,9 +44,15 @@ class Application extends Model implements HasMedia
         'submitted_at',
         'notes',
         'transcript_document_number',
+        'is_group_mirror',
+        'parent_application_id',
         'created_at',
         'updated_at',
         'deleted_at',
+    ];
+
+    protected $casts = [
+        'is_group_mirror' => 'boolean',
     ];
 
     public const STATUS_SELECT = [ 
@@ -73,6 +79,16 @@ class Application extends Model implements HasMedia
     public function mahasiswa()
     {
         return $this->belongsTo(Mahasiswa::class, 'mahasiswa_id');
+    }
+
+    public function parentApplication()
+    {
+        return $this->belongsTo(self::class, 'parent_application_id');
+    }
+
+    public function mirrorApplications()
+    {
+        return $this->hasMany(self::class, 'parent_application_id');
     }
 
     public function getSubmittedAtAttribute($value)
@@ -147,6 +163,17 @@ class Application extends Model implements HasMedia
      */
     public function stageDetailUrl(): string
     {
+        // Mirror: arahkan ke Application ketua
+        if ($this->is_group_mirror && $this->parent_application_id) {
+            $parent = $this->relationLoaded('parentApplication')
+                ? $this->parentApplication
+                : self::find($this->parent_application_id);
+
+            if ($parent) {
+                return $parent->stageDetailUrl();
+            }
+        }
+
         if ($this->type === 'skripsi') {
             return match ($this->stage) {
                 'registration' => $this->skripsiRegistration
@@ -164,9 +191,7 @@ class Application extends Model implements HasMedia
 
         if ($this->type === 'mbkm') {
             return match ($this->stage) {
-                'registration' => $this->mbkmRegistration
-                    ? route('frontend.mbkm-registrations.show', $this->mbkmRegistration->id)
-                    : route('frontend.mbkm-registrations.index'),
+                'registration' => route('frontend.mbkm.show', $this->id),
                 'seminar' => $this->mbkmSeminar
                     ? route('frontend.mbkm-seminars.show', $this->mbkmSeminar->id)
                     : route('frontend.mbkm-seminars.index'),

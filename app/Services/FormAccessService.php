@@ -14,21 +14,43 @@ use App\Models\ApplicationSchedule;
 use App\Models\SkripsiDefense;
 use App\Models\ApplicationResultDefense;
 use App\Models\Mahasiswa;
+use App\Services\MbkmGroupProgressService;
 
 class FormAccessService
 {
+    private function groupProgress(): MbkmGroupProgressService
+    {
+        return app(MbkmGroupProgressService::class);
+    }
+
     /**
      * Check if student can access MBKM Registration
      */
     public function canAccessMbkmRegistration($mahasiswaId)
     {
-        // Check if student has any existing applications
+        if ($this->groupProgress()->isFollowerAnggota($mahasiswaId)) {
+            return [
+                'allowed' => false,
+                'message' => 'Anda sudah tergabung sebagai anggota kelompok MBKM. Progres mengikuti form ketua kelompok.',
+            ];
+        }
+
+        // Check if student has any existing applications (exclude pure mirrors for "empty" check)
         $applications = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('is_group_mirror', false)
             ->orderBy('created_at', 'desc')
             ->get();
 
         // New student - can register
         if ($applications->isEmpty()) {
+            // Mirror-only still blocks new registration
+            if (Application::where('mahasiswa_id', $mahasiswaId)->where('is_group_mirror', true)->exists()) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Anda sudah tergabung sebagai anggota kelompok MBKM.',
+                ];
+            }
+
             return [
                 'allowed' => true,
                 'message' => null
@@ -83,12 +105,27 @@ class FormAccessService
      */
     public function canAccessSkripsiRegistration($mahasiswaId)
     {
+        if ($this->groupProgress()->isFollowerAnggota($mahasiswaId)) {
+            return [
+                'allowed' => false,
+                'message' => 'Anda sudah tergabung sebagai anggota kelompok MBKM dan tidak dapat mendaftar jalur Skripsi Reguler.',
+            ];
+        }
+
         $applications = Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('is_group_mirror', false)
             ->orderBy('created_at', 'desc')
             ->get();
 
         // New student - can register
         if ($applications->isEmpty()) {
+            if (Application::where('mahasiswa_id', $mahasiswaId)->where('is_group_mirror', true)->exists()) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Anda sudah tergabung sebagai anggota kelompok MBKM.',
+                ];
+            }
+
             return [
                 'allowed' => true,
                 'message' => null
@@ -130,11 +167,21 @@ class FormAccessService
      */
     public function canAccessMbkmSeminar($mahasiswaId)
     {
+        if ($this->groupProgress()->isFollowerAnggota($mahasiswaId)) {
+            return [
+                'allowed' => false,
+                'message' => 'Seminar MBKM diisi oleh ketua kelompok. Status Anda akan ikut terbarui otomatis.',
+                'application' => $this->groupProgress()->resolveOwnerApplication($mahasiswaId, 'registration'),
+                'group_follower' => true,
+            ];
+        }
+
         // Must have registration accepted by supervisor (dosen)
         $registrationApp = Application::where('mahasiswa_id', $mahasiswaId)
             ->where('type', 'mbkm')
             ->where('stage', 'registration')
             ->where('status', 'approved')
+            ->where('is_group_mirror', false)
             ->whereHas('assignments', function ($query) {
                 $query->where('role', 'supervisor')->where('status', 'accepted');
             })
@@ -152,6 +199,7 @@ class FormAccessService
         $seminarApp = Application::where('mahasiswa_id', $mahasiswaId)
             ->where('type', 'mbkm')
             ->where('stage', 'seminar')
+            ->where('is_group_mirror', false)
             ->whereIn('status', ['submitted', 'approved', 'scheduled'])
             ->first();
 
@@ -292,10 +340,41 @@ class FormAccessService
      */
     private function findMbkmSeminarResultContext(int $mahasiswaId): ?array
     {
+        if ($this->groupProgress()->isFollowerAnggota($mahasiswaId)) {
+            // Anggota tidak mengisi laporan; konteks hanya untuk pesan
+            $ownerSeminar = $this->groupProgress()->resolveOwnerApplication($mahasiswaId, 'seminar');
+            if (!$ownerSeminar) {
+                return null;
+            }
+
+            $mbkmSeminar = MbkmSeminar::where('application_id', $ownerSeminar->id)
+                ->whereNotNull('reviewer_1_id')
+                ->whereNotNull('reviewer_2_id')
+                ->with('application')
+                ->first();
+
+            if (!$mbkmSeminar) {
+                return null;
+            }
+
+            $schedule = ApplicationSchedule::where('application_id', $ownerSeminar->id)
+                ->whereIn('schedule_type', ['mbkm_seminar', 'seminar'])
+                ->orderByDesc('id')
+                ->first();
+
+            return [
+                'seminar' => $mbkmSeminar,
+                'application' => $ownerSeminar,
+                'schedule' => $schedule,
+                'group_follower' => true,
+            ];
+        }
+
         $mbkmSeminar = MbkmSeminar::whereHas('application', function ($query) use ($mahasiswaId) {
             $query->where('mahasiswa_id', $mahasiswaId)
                 ->where('type', 'mbkm')
                 ->where('stage', 'seminar')
+                ->where('is_group_mirror', false)
                 ->whereIn('status', ['approved', 'scheduled']);
         })
             ->whereNotNull('reviewer_1_id')
@@ -328,6 +407,15 @@ class FormAccessService
         $mbkmContext = $this->findMbkmSeminarResultContext($mahasiswaId);
 
         if ($mbkmContext) {
+            if (!empty($mbkmContext['group_follower']) && $forCreate) {
+                return [
+                    'allowed' => false,
+                    'message' => 'Laporan hasil seminar MBKM diisi oleh ketua kelompok.',
+                    'application' => $mbkmContext['application'],
+                    'group_follower' => true,
+                ];
+            }
+
             $mbkmSeminar = $mbkmContext['seminar'];
             $mbkmSchedule = $mbkmContext['schedule'];
 
@@ -444,9 +532,16 @@ class FormAccessService
      */
     private function findSeminarApplicationForDefense(int $mahasiswaId): ?Application
     {
+        // Anggota kelompok: gunakan seminar ketua (bukan mirror)
+        $ownerSeminar = $this->groupProgress()->resolveOwnerApplication($mahasiswaId, 'seminar');
+        if ($ownerSeminar && !$ownerSeminar->is_group_mirror) {
+            return $ownerSeminar;
+        }
+
         return Application::where('mahasiswa_id', $mahasiswaId)
             ->where('stage', 'seminar')
             ->whereIn('type', ['skripsi', 'mbkm'])
+            ->where('is_group_mirror', false)
             ->orderByDesc('created_at')
             ->first();
     }
@@ -701,6 +796,7 @@ class FormAccessService
     {
         return Application::where('mahasiswa_id', $mahasiswaId)
             ->where('stage', $stage)
+            ->where('is_group_mirror', false)
             ->where(function ($query) {
                 $query->whereIn('status', ['approved', 'scheduled'])
                     ->orWhere(function ($rejectedQuery) {
@@ -758,6 +854,16 @@ class FormAccessService
      */
     public function canAccessApplicationSchedule($mahasiswaId): array
     {
+        if ($this->groupProgress()->isFollowerAnggota($mahasiswaId)) {
+            return [
+                'allowed' => false,
+                'message' => 'Pengajuan jadwal seminar MBKM dilakukan oleh ketua kelompok.',
+                'application' => $this->groupProgress()->resolveOwnerApplication($mahasiswaId, 'seminar'),
+                'context' => null,
+                'group_follower' => true,
+            ];
+        }
+
         $defenseAccess = $this->canAccessDefenseSchedule($mahasiswaId);
         if ($defenseAccess['allowed']) {
             return [

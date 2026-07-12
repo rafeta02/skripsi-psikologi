@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Services\DosenPortalService;
 use App\Services\FormAccessService;
 use App\Services\MahasiswaPortalService;
+use App\Models\Application;
+use App\Observers\ApplicationObserver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Application::observe(ApplicationObserver::class);
+
         if (!function_exists('highlight_keywords')) {
             function highlight_keywords(?string $text, string $query): string
             {

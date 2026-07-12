@@ -90,6 +90,22 @@ class MbkmRegistration extends Model implements HasMedia
         return $this->belongsTo(Keilmuan::class, 'theme_id');
     }
 
+    public function themes()
+    {
+        return $this->belongsToMany(Keilmuan::class, 'keilmuan_mbkm_registration', 'mbkm_registration_id', 'keilmuan_id');
+    }
+
+    public function getThemesLabelAttribute(): string
+    {
+        $names = $this->themes->pluck('name')->filter();
+
+        if ($names->isEmpty() && $this->theme) {
+            return $this->theme->name;
+        }
+
+        return $names->implode(', ') ?: '-';
+    }
+
     public function getKhsAllAttribute()
     {
         return $this->getMedia('khs_all');

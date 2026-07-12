@@ -151,16 +151,20 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 
 ## Alur 2 — Skripsi MBKM
 
+> **Kelompok:** Sebelum sidang (`SkripsiDefense`), seluruh tahap MBKM adalah **1 kelompok = 1 form** (diisi ketua). Anggota dicatat di `MbkmGroupMember` dan mendapat Application mirror (`is_group_mirror=true`) agar status/progres mereka ikut ter-check. Mulai pendaftaran sidang, tiap mahasiswa mendaftar **individu**.
+
 1) Pendaftaran MBKM
-- Peran: Mahasiswa
-- Form: `MbkmRegistration` (pilih `Dosen` pembimbing, `Keilmuan`, `ResearchGroup`, unggah KRS/KHS/SPP/proposal MBKM, dst.)
-- Tambahan Anggota Kelompok (jika ada):
-  - Form: `MbkmGroupMember` (role `ketua`/`anggota`)
+- Peran: Mahasiswa (ketua kelompok)
+- Form: `MbkmRegistration` (pilih `Dosen` pembimbing, Tema Riset, `ResearchGroup`, unggah KRS/KHS/SPP/proposal MBKM, dst.)
+- Anggota Kelompok:
+  - Form: `MbkmGroupMember` (role `ketua`/`anggota`) pada wizard pendaftaran
+  - Sistem membuat Application mirror per anggota (stage/status mengikuti ketua)
+  - Anggota tidak membuat path/form sendiri; portal mereka menampilkan progres kelompok
 
 2) Verifikasi Pendaftaran MBKM
 - Peran: Admin
 - Keputusan:
-  - Setujui: otomatis buat `ApplicationAssignment` sesuai pilihan mahasiswa (role=`supervisor`, status=`assigned`)
+  - Setujui: otomatis buat `ApplicationAssignment` sesuai pilihan mahasiswa (role=`supervisor`, status=`assigned`); status mirror anggota ikut tersinkron
   - Tolak (Revisi berkas): mahasiswa memperbaiki pada `MbkmRegistration` yang sama hingga memenuhi syarat
   - Tidak Memenuhi Syarat (ineligible): alur MBKM dihentikan; mahasiswa hanya boleh melanjutkan melalui alur Skripsi Reguler (`Application` + `SkripsiRegistration`)
 
@@ -168,42 +172,42 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 - Peran: Dosen
 - Aksi: setujui/tolak penugasan
   - Tolak: `ApplicationAssignment.status`=`rejected`; mahasiswa revisi `MbkmRegistration` (pilih dosen lain)
-  - Setujui: `ApplicationAssignment.status`=`accepted`; dosen menjadi pembimbing resmi
+  - Setujui: `ApplicationAssignment.status`=`accepted`; dosen menjadi pembimbing resmi; status mirror anggota = `approved`
 
 4) Pendaftaran Seminar MBKM
-- Peran: Mahasiswa
+- Peran: Mahasiswa **ketua** (anggota tidak mengisi)
 - Form: `MbkmSeminar` (proposal/approval/plagiarism)
 - Keputusan: Admin verifikasi
-  - Setujui: lanjut penetapan reviewer
+  - Setujui: lanjut penetapan reviewer; mirror seminar anggota ikut `approved`
   - Tolak: revisi/unggah ulang `MbkmSeminar`
 
 5) Penetapan Reviewer Seminar MBKM
 - Peran: Admin
-- Form: `ApplicationAssignment` (role=`reviewer`, tipikal 2 reviewer)
+- Form: `ApplicationAssignment` (role=`reviewer`, tipikal 2 reviewer) / reviewer pada `MbkmSeminar`
 
 6) Penjadwalan Seminar MBKM
-- Peran: Mahasiswa
+- Peran: Mahasiswa **ketua**
 - Form: `ApplicationSchedule` (schedule_type=`mbkm_seminar`)
 - Keputusan: Admin verifikasi
-  - Setujui: seminar dilaksanakan
+  - Setujui: seminar dilaksanakan; status mirror ikut
   - Tolak: reschedule/unggah ulang `ApplicationSchedule`
 
 7) Pelaporan Hasil Review Proposal
-- Peran: Mahasiswa
+- Peran: Mahasiswa **ketua**
 - Form: `ApplicationResultSeminar` (hasil: `passed`/`revision`/`failed`, dokumen terkait)
 - Catatan: 
   - Jika `revision`: mahasiswa melakukan revisi sesuai masukan reviewer, isi tenggat revisi
   - Jika `failed`: `SkripsiSeminar` dibuka kembali; mahasiswa edit & unggah ulang dokumen; reviewer 1/2 direset; status kembali `submitted` menunggu admin
-  - Jika `passed`: status aplikasi `submitted` menunggu **validasi admin**; setelah admin menyetujui (`result_seminar_approved`), mahasiswa dapat mendaftar sidang (`SkripsiDefense`) dan melanjutkan penelitian
+  - Jika `passed`: status aplikasi `submitted` menunggu **validasi admin**; setelah admin menyetujui (`result_seminar_approved`), **setiap anggota kelompok** dapat mendaftar sidang (`SkripsiDefense`) secara individu
 
 8) Proses Skripsi Lanjutan
 - Peran: Mahasiswa
 - Kegiatan: mengerjakan skripsi sesuai judul/proposal MBKM
 - Kendala (opsional): `ApplicationReport`
 
-9) Pendaftaran Sidang Skripsi (akhir)
-- Peran: Mahasiswa
-- Form: `SkripsiDefense`
+9) Pendaftaran Sidang Skripsi (akhir) — **per individu**
+- Peran: Setiap mahasiswa (ketua & anggota) mendaftar sendiri
+- Form: `SkripsiDefense` (bukan mirror)
 - Keputusan: Admin verifikasi
   - Setujui: penetapan penguji
   - Tolak: revisi/unggah ulang `SkripsiDefense`

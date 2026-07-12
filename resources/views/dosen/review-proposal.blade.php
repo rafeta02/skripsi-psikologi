@@ -115,8 +115,8 @@
                                     <p class="font-weight-semibold mb-0">{{ $registration->research_group->name ?? '-' }}</p>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="text-muted mb-1">Bidang Keilmuan</label>
-                                    <p class="font-weight-semibold mb-0">{{ $registration->theme->name ?? '-' }}</p>
+                                    <label class="text-muted mb-1">Tema Riset</label>
+                                    <p class="font-weight-semibold mb-0">{{ $registration->themes_label }}</p>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="text-muted mb-1">Preferensi Dosen Pembimbing</label>

@@ -56,8 +56,8 @@
                             <td>: {{ $application->mbkmRegistration->research_group->name ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Bidang Keilmuan</strong></td>
-                            <td>: {{ $application->mbkmRegistration->theme->name ?? '-' }}</td>
+                            <td><strong>Tema Riset</strong></td>
+                            <td>: {{ $application->mbkmRegistration->themes_label }}</td>
                         </tr>
                         <tr>
                             <td><strong>Dosen Pembimbing</strong></td>
@@ -68,6 +68,30 @@
                             <td>: {{ $application->mbkmRegistration->total_sks_taken ?? '-' }}</td>
                         </tr>
                     </table>
+
+                    @if($application->mbkmRegistration->groupMembers && $application->mbkmRegistration->groupMembers->count() > 0)
+                        <h6 class="text-primary mt-3 mb-2">Anggota Kelompok</h6>
+                        <ul class="list-group list-group-flush border rounded mb-3">
+                            @foreach($application->mbkmRegistration->groupMembers as $member)
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span>
+                                        <strong>{{ $member->mahasiswa->nama ?? '-' }}</strong>
+                                        <small class="text-muted ml-2">{{ $member->mahasiswa->nim ?? '' }}</small>
+                                    </span>
+                                    <span class="badge badge-{{ $member->role === 'ketua' ? 'success' : 'secondary' }} text-capitalize">
+                                        {{ $member->role ?? 'anggota' }}
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
+                    @if(!empty($isGroupFollower))
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-users mr-1"></i>
+                            Anda adalah anggota kelompok. Form tahap MBKM diisi ketua; status Anda ikut terbarui hingga sebelum sidang.
+                        </div>
+                    @endif
                     @else
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle mr-2"></i>
