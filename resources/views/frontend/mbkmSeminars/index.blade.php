@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">
@@ -10,10 +10,10 @@
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h2 class="mb-1 text-white font-weight-bold">
-                                <i class="fas fa-chalkboard-teacher mr-2"></i> Seminar MBKM
+                                <i class="fas fa-chalkboard-teacher mr-2"></i> Review Kelayakan Proposal
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                                Pendaftaran dan jadwal seminar MBKM formal
+                                Pendaftaran dan jadwal Review Kelayakan Proposal formal
                             </p>
                         </div>
                         <div class="col-md-4 text-right">
@@ -43,7 +43,7 @@
                                             <i class="fas fa-chalkboard-teacher" style="font-size: 20px; color: white;"></i>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h4 class="mb-1 font-weight-bold">Seminar MBKM</h4>
+                                            <h4 class="mb-1 font-weight-bold">Review Kelayakan Proposal</h4>
                                             <p class="mb-2 text-muted">
                                                 <i class="fas fa-book mr-2"></i>{{ $seminar->title ?? 'Judul MBKM' }}
                                             </p>
@@ -141,8 +141,8 @@
                         <div style="width: 100px; height: 100px; background: var(--gray-100); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--spacing-4);">
                             <i class="fas fa-chalkboard-teacher fa-3x text-muted"></i>
                         </div>
-                        <h4 class="text-muted mb-3">Belum Ada Pendaftaran Seminar MBKM</h4>
-                        <p class="text-muted mb-4">Anda belum mendaftar untuk seminar MBKM</p>
+                        <h4 class="text-muted mb-3">Belum Ada Pendaftaran Review Kelayakan Proposal</h4>
+                        <p class="text-muted mb-4">Anda belum mendaftar untuk Review Kelayakan Proposal</p>
                         @can('mbkm_seminar_create')
                             <a href="{{ route('frontend.mbkm-seminars.create') }}" class="btn-modern btn-modern-primary btn-modern-lg">
                                 <i class="fas fa-plus-circle"></i> Daftar Seminar Sekarang

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Admin;
 
@@ -247,7 +247,7 @@ class MbkmSeminarController extends Controller
                     'application_id' => $seminar->application_id,
                     'action_type' => 'seminar_approved',
                     'action_by' => auth()->id(),
-                    'notes' => $request->notes ?? 'Seminar MBKM disetujui',
+                    'notes' => $request->notes ?? 'Review Kelayakan Proposal disetujui',
                     'metadata' => [
                         'reviewer_1_id' => $request->reviewer_1_id,
                         'reviewer_2_id' => $request->reviewer_2_id,
@@ -258,7 +258,7 @@ class MbkmSeminarController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Seminar MBKM berhasil disetujui dan reviewer telah ditugaskan',
+                'message' => 'Review Kelayakan Proposal berhasil disetujui dan reviewer telah ditugaskan',
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -305,7 +305,7 @@ class MbkmSeminarController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Seminar MBKM berhasil ditolak'
+                'message' => 'Review Kelayakan Proposal berhasil ditolak'
             ]);
         } catch (\Exception $e) {
             return response()->json([

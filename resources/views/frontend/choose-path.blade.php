@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('title', 'Pilih Jalur Skripsi')
 
@@ -286,7 +286,7 @@
                         <div class="path-feature-item">
                             <i class="fas fa-presentation path-feature-icon"></i>
                             <div>
-                                <strong>Seminar MBKM</strong>
+                                <strong>Review Kelayakan Proposal</strong>
                                 <p class="mb-0 small text-muted">Pendaftaran dan penjadwalan seminar formal dengan reviewer</p>
                             </div>
                         </div>

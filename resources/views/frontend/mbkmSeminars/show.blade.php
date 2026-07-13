@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">
@@ -10,10 +10,10 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2 class="mb-1 text-white font-weight-bold">
-                                <i class="fas fa-chalkboard-teacher mr-2"></i> Detail Seminar MBKM
+                                <i class="fas fa-chalkboard-teacher mr-2"></i> Detail Review Kelayakan Proposal
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                                Informasi lengkap pendaftaran seminar MBKM
+                                Informasi lengkap pendaftaran Review Kelayakan Proposal
                             </p>
                         </div>
                         <div>
@@ -36,7 +36,7 @@
         <div class="col-lg-8">
             <div class="card-modern mb-4">
                 <div class="card-modern-body">
-                    <h4 class="font-weight-bold mb-3">Informasi Seminar MBKM</h4>
+                    <h4 class="font-weight-bold mb-3">Informasi Review Kelayakan Proposal</h4>
                     
                     <div class="mb-4">
                         <label class="text-muted mb-1">Judul MBKM</label>
@@ -154,7 +154,7 @@
                         @elseif($mbkmSeminar->application->status == 'scheduled')
                             <div class="alert alert-info">
                                 <i class="fas fa-calendar-check"></i> <strong>Terjadwal</strong>
-                                <p class="mb-0 mt-2 small">Seminar MBKM Anda telah dijadwalkan</p>
+                                <p class="mb-0 mt-2 small">Review Kelayakan Proposal Anda telah dijadwalkan</p>
                             </div>
                         @elseif($mbkmSeminar->application->status == 'revision')
                             <div class="alert alert-warning">

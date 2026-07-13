@@ -1,4 +1,4 @@
-## Pedoman Proses Aplikasi Skripsi
+﻿## Pedoman Proses Aplikasi Skripsi
 
 Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah mencantumkan peran, form/tabel yang digunakan, dan keputusan yang mungkin terjadi.
 
@@ -23,7 +23,7 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 - Mahasiswa melaporkan hasil review via `ApplicationResultReview`
 
 ### Skripsi MBKM
-- **ADA seminar MBKM formal**
+- **ADA review kelayakan proposal formal**
 - Mahasiswa mendaftar seminar via `MbkmSeminar`
 - Admin menetapkan reviewer via `ApplicationAssignment`
 - Mahasiswa menjadwalkan seminar via `ApplicationSchedule` (pertemuan bersama reviewer)
@@ -182,18 +182,18 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
   - Tolak: `ApplicationAssignment.status`=`rejected`; mahasiswa revisi `MbkmRegistration` (pilih dosen lain)
   - Setujui: `ApplicationAssignment.status`=`accepted`; dosen menjadi pembimbing resmi; status mirror anggota = `approved`
 
-4) Pendaftaran Seminar MBKM
+4) Pendaftaran Review Kelayakan Proposal
 - Peran: Mahasiswa **ketua** (anggota tidak mengisi)
 - Form: `MbkmSeminar` (proposal/approval/plagiarism)
 - Keputusan: Admin verifikasi
   - Setujui: lanjut penetapan reviewer; mirror seminar anggota ikut `approved`
   - Tolak: revisi/unggah ulang `MbkmSeminar`
 
-5) Penetapan Reviewer Seminar MBKM
+5) Penetapan Reviewer untuk Review Kelayakan Proposal
 - Peran: Admin
 - Form: `ApplicationAssignment` (role=`reviewer`, tipikal 2 reviewer) / reviewer pada `MbkmSeminar`
 
-6) Penjadwalan Seminar MBKM
+6) Penjadwalan Review Kelayakan Proposal
 - Peran: Mahasiswa **ketua**
 - Form: `ApplicationSchedule` (schedule_type=`mbkm_seminar`)
 - Keputusan: Admin verifikasi

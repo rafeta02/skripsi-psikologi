@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">
@@ -13,7 +13,7 @@
                                 <i class="fas fa-calendar-alt mr-2"></i> Jadwal Seminar & Sidang
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                                Kelola jadwal seminar MBKM dan sidang skripsi Anda
+                                Kelola jadwal Review Kelayakan Proposal dan sidang skripsi Anda
                             </p>
                         </div>
                         <div class="col-md-4 text-right">
@@ -49,7 +49,7 @@
                                         <div class="flex-grow-1">
                                             <h4 class="mb-1 font-weight-bold">
                                                 @if($schedule->schedule_type === 'mbkm_seminar')
-                                                    Seminar MBKM
+                                                    Review Kelayakan Proposal
                                                 @elseif($schedule->schedule_type === 'skripsi_defense')
                                                     Sidang Skripsi
                                                 @else

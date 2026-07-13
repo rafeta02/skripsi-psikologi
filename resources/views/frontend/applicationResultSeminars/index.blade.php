@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">
@@ -9,10 +9,10 @@
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h2 class="mb-1 text-white font-weight-bold">
-                                <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Seminar MBKM
+                                <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Review Kelayakan Proposal
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                                Daftar laporan hasil seminar MBKM. Setelah jadwal seminar disetujui admin, kirim laporan setelah seminar dilaksanakan.
+                                Daftar laporan hasil Review Kelayakan Proposal. Setelah jadwal disetujui admin, kirim laporan setelah review dilaksanakan.
                             </p>
                         </div>
                         <div class="col-md-4 text-right">

@@ -1,85 +1,120 @@
-{{-- 
+﻿{{--
     Timeline Component for Thesis Progress
-    
+
     Props:
     - $application: Application model instance
-    - $type: 'skripsi' or 'mbkm'
-    - $compact: boolean (optional, for smaller display)
+    - $type: 'skripsi' or 'mbkm' (optional)
+    - $compact: boolean (optional)
 --}}
 
 @php
     $compact = $compact ?? false;
     $type = $type ?? $application->type ?? 'skripsi';
-    
-    // Define stages for each type
+    if (!in_array($type, ['skripsi', 'mbkm'], true)) {
+        $type = 'skripsi';
+    }
+
+    // Tahap UI diselaraskan dengan stage DB (registration / seminar / defense)
+    // + inferensi status penugasan pembimbing.
     $stages = [
         'skripsi' => [
             ['key' => 'registration', 'label' => 'Pendaftaran', 'icon' => 'file-alt'],
-            ['key' => 'supervisor_assignment', 'label' => 'Penugasan Pembimbing', 'icon' => 'user-tie'],
-            ['key' => 'proposal_development', 'label' => 'Penyusunan Proposal', 'icon' => 'edit'],
-            ['key' => 'reviewer_registration', 'label' => 'Pendaftaran Reviewer', 'icon' => 'users'],
-            ['key' => 'proposal_review', 'label' => 'Review Proposal', 'icon' => 'search'],
-            ['key' => 'research', 'label' => 'Penelitian', 'icon' => 'microscope'],
-            ['key' => 'defense_registration', 'label' => 'Pendaftaran Sidang', 'icon' => 'clipboard-list'],
-            ['key' => 'defense_schedule', 'label' => 'Penjadwalan Sidang', 'icon' => 'calendar-alt'],
+            ['key' => 'supervisor_assignment', 'label' => 'Persetujuan Pembimbing', 'icon' => 'user-tie'],
+            ['key' => 'seminar', 'label' => 'Seminar / Review Proposal', 'icon' => 'chalkboard-teacher'],
             ['key' => 'defense', 'label' => 'Sidang Skripsi', 'icon' => 'graduation-cap'],
             ['key' => 'scoring', 'label' => 'Penilaian Akhir', 'icon' => 'star'],
         ],
         'mbkm' => [
             ['key' => 'registration', 'label' => 'Pendaftaran MBKM', 'icon' => 'file-alt'],
-            ['key' => 'supervisor_assignment', 'label' => 'Penugasan Pembimbing', 'icon' => 'user-tie'],
-            ['key' => 'seminar_registration', 'label' => 'Pendaftaran Seminar', 'icon' => 'presentation'],
-            ['key' => 'reviewer_assignment', 'label' => 'Penetapan Reviewer', 'icon' => 'users'],
-            ['key' => 'seminar_schedule', 'label' => 'Penjadwalan Seminar', 'icon' => 'calendar-check'],
-            ['key' => 'seminar', 'label' => 'Seminar MBKM', 'icon' => 'chalkboard-teacher'],
-            ['key' => 'research', 'label' => 'Penelitian', 'icon' => 'microscope'],
-            ['key' => 'defense_registration', 'label' => 'Pendaftaran Sidang', 'icon' => 'clipboard-list'],
-            ['key' => 'defense_schedule', 'label' => 'Penjadwalan Sidang', 'icon' => 'calendar-alt'],
+            ['key' => 'supervisor_assignment', 'label' => 'Persetujuan Pembimbing', 'icon' => 'user-tie'],
+            ['key' => 'seminar', 'label' => 'Review Kelayakan Proposal', 'icon' => 'chalkboard-teacher'],
             ['key' => 'defense', 'label' => 'Sidang Skripsi', 'icon' => 'graduation-cap'],
             ['key' => 'scoring', 'label' => 'Penilaian Akhir', 'icon' => 'star'],
         ],
     ];
-    
+
     $currentStages = $stages[$type];
-    
-    // Determine current stage and completion status
-    $currentStage = $application->stage ?? 'registration';
+    $dbStage = $application->stage ?? 'registration';
     $currentStatus = $application->status ?? 'submitted';
-    
-    // Map stage to index
-    $stageIndex = collect($currentStages)->search(function($stage) use ($currentStage) {
-        return $stage['key'] === $currentStage;
-    });
-    
-    if ($stageIndex === false) $stageIndex = 0;
+
+    $assignments = $application->relationLoaded('assignments')
+        ? $application->assignments
+        : $application->assignments()->get();
+
+    $hasAcceptedSupervisor = $assignments
+        ->where('role', 'supervisor')
+        ->where('status', 'accepted')
+        ->isNotEmpty();
+
+    $hasAssignedSupervisor = $assignments
+        ->where('role', 'supervisor')
+        ->isNotEmpty();
+
+    // Hitung index progress berdasarkan stage DB + status + penugasan
+    $stageIndex = 0;
+    $displayStatus = $currentStatus;
+
+    if ($dbStage === 'defense') {
+        if (in_array($currentStatus, ['done', 'result'], true)) {
+            $stageIndex = 4; // scoring
+            $displayStatus = $currentStatus === 'done' ? 'done' : 'result';
+        } else {
+            $stageIndex = 3; // defense
+        }
+    } elseif ($dbStage === 'seminar') {
+        $stageIndex = 2;
+    } else {
+        // registration
+        if ($hasAcceptedSupervisor) {
+            $stageIndex = 2;
+            $displayStatus = 'ready_next';
+        } elseif ($hasAssignedSupervisor) {
+            $stageIndex = 1;
+            $displayStatus = $currentStatus === 'rejected' ? 'rejected' : 'waiting_supervisor';
+        } elseif ($currentStatus === 'approved') {
+            $stageIndex = 1;
+            $displayStatus = 'waiting_supervisor';
+        } elseif ($currentStatus === 'rejected') {
+            $stageIndex = 0;
+            $displayStatus = 'rejected';
+        } elseif ($currentStatus === 'revision') {
+            $stageIndex = 0;
+            $displayStatus = 'revision';
+        } else {
+            $stageIndex = 0;
+            $displayStatus = $currentStatus;
+        }
+    }
 @endphp
 
 <div class="thesis-timeline {{ $compact ? 'timeline-compact' : '' }}">
     @if(!$compact)
         <div class="timeline-header mb-4">
             <h5 class="font-weight-bold mb-2">
-                <i class="fas fa-route mr-2"></i> Progress {{ ucfirst($type) }}
+                <i class="fas fa-route mr-2"></i> Progress {{ strtoupper($type) }}
             </h5>
             <div class="d-flex align-items-center">
                 <div class="progress flex-grow-1 mr-3" style="height: 8px;">
-                    <div class="progress-bar bg-gradient" style="width: {{ ($stageIndex + 1) / count($currentStages) * 100 }}%; background: linear-gradient(90deg, var(--primary-500), var(--secondary-500))"></div>
+                    <div class="progress-bar" style="width: {{ max(5, ($stageIndex + 1) / count($currentStages) * 100) }}%; background: linear-gradient(90deg, var(--primary-500, #22004C), var(--secondary-500, #4A0080))"></div>
                 </div>
-                <span class="badge badge-primary">{{ $stageIndex + 1 }}/{{ count($currentStages) }}</span>
+                <span class="badge badge-primary">{{ min($stageIndex + 1, count($currentStages)) }}/{{ count($currentStages) }}</span>
             </div>
+            <p class="small text-muted mb-0 mt-2">
+                Tahap sistem: <strong class="text-capitalize">{{ $dbStage }}</strong>
+                · Status: <strong class="text-capitalize">{{ $currentStatus }}</strong>
+            </p>
         </div>
     @endif
-    
+
     <div class="timeline-steps {{ $compact ? 'timeline-horizontal' : 'timeline-vertical' }}">
         @foreach($currentStages as $index => $stage)
             @php
                 $isCompleted = $index < $stageIndex;
                 $isCurrent = $index === $stageIndex;
-                $isPending = $index > $stageIndex;
-                
                 $statusClass = $isCompleted ? 'completed' : ($isCurrent ? 'current' : 'pending');
                 $iconColor = $isCompleted ? 'success' : ($isCurrent ? 'primary' : 'secondary');
             @endphp
-            
+
             <div class="timeline-step {{ $statusClass }}" data-stage="{{ $stage['key'] }}">
                 <div class="step-marker">
                     <div class="step-icon bg-{{ $iconColor }}">
@@ -93,27 +128,35 @@
                         <div class="step-connector {{ $isCompleted ? 'completed' : '' }}"></div>
                     @endif
                 </div>
-                
+
                 <div class="step-content">
                     <div class="step-title font-weight-semibold {{ $isCurrent ? 'text-primary' : '' }}">
                         {{ $stage['label'] }}
                     </div>
-                    
+
                     @if(!$compact)
                         @if($isCurrent)
                             <div class="step-status mt-1">
-                                @if($currentStatus === 'submitted')
+                                @if($displayStatus === 'submitted')
                                     <span class="badge badge-warning"><i class="fas fa-clock"></i> Menunggu Verifikasi</span>
-                                @elseif($currentStatus === 'approved')
+                                @elseif($displayStatus === 'waiting_supervisor')
+                                    <span class="badge badge-warning"><i class="fas fa-user-clock"></i> Menunggu Respons Dosen</span>
+                                @elseif($displayStatus === 'ready_next')
+                                    <span class="badge badge-info"><i class="fas fa-arrow-right"></i> Siap ke tahap berikutnya</span>
+                                @elseif($displayStatus === 'approved')
                                     <span class="badge badge-success"><i class="fas fa-check"></i> Disetujui</span>
-                                @elseif($currentStatus === 'revision')
+                                @elseif($displayStatus === 'revision')
                                     <span class="badge badge-warning"><i class="fas fa-edit"></i> Revisi Diperlukan</span>
-                                @elseif($currentStatus === 'rejected')
+                                @elseif($displayStatus === 'rejected')
                                     <span class="badge badge-danger"><i class="fas fa-times"></i> Ditolak</span>
-                                @elseif($currentStatus === 'scheduled')
+                                @elseif($displayStatus === 'scheduled')
                                     <span class="badge badge-info"><i class="fas fa-calendar-check"></i> Terjadwal</span>
-                                @elseif($currentStatus === 'done')
+                                @elseif($displayStatus === 'result')
+                                    <span class="badge badge-info"><i class="fas fa-clipboard-check"></i> Hasil keluar</span>
+                                @elseif($displayStatus === 'done')
                                     <span class="badge badge-secondary"><i class="fas fa-flag-checkered"></i> Selesai</span>
+                                @else
+                                    <span class="badge badge-secondary text-capitalize">{{ $displayStatus }}</span>
                                 @endif
                             </div>
                         @elseif($isCompleted)
@@ -132,158 +175,100 @@
     </div>
 </div>
 
-@push('styles')
+@once
 <style>
-    .thesis-timeline {
-        position: relative;
-    }
-    
-    /* Vertical Timeline (default) */
-    .timeline-vertical {
+    .thesis-timeline { position: relative; }
+    .thesis-timeline .timeline-vertical {
         display: flex;
         flex-direction: column;
         gap: 1rem;
     }
-    
-    .timeline-vertical .timeline-step {
+    .thesis-timeline .timeline-vertical .timeline-step {
         display: flex;
         gap: 1rem;
         position: relative;
     }
-    
-    .timeline-vertical .step-marker {
+    .thesis-timeline .timeline-vertical .step-marker {
         display: flex;
         flex-direction: column;
         align-items: center;
         position: relative;
     }
-    
-    .timeline-vertical .step-icon {
+    .thesis-timeline .timeline-vertical .step-icon {
         width: 48px;
         height: 48px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 20px;
+        color: #fff;
+        font-size: 18px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         z-index: 2;
         position: relative;
+        flex-shrink: 0;
     }
-    
-    .timeline-vertical .step-connector {
+    .thesis-timeline .timeline-vertical .step-connector {
         width: 3px;
         flex-grow: 1;
-        background: var(--gray-300);
+        background: #dee2e6;
         margin-top: 8px;
         margin-bottom: 8px;
-        min-height: 30px;
+        min-height: 28px;
     }
-    
-    .timeline-vertical .step-connector.completed {
-        background: var(--success);
-    }
-    
-    .timeline-vertical .step-content {
+    .thesis-timeline .timeline-vertical .step-connector.completed { background: #28a745; }
+    .thesis-timeline .timeline-vertical .step-content {
         flex-grow: 1;
-        padding-top: 12px;
+        padding-top: 10px;
+        text-align: left;
     }
-    
-    .timeline-vertical .step-title {
-        font-size: 16px;
-    }
-    
-    /* Horizontal Timeline (compact) */
-    .timeline-horizontal {
+    .thesis-timeline .timeline-vertical .step-title { font-size: 15px; }
+    .thesis-timeline .timeline-horizontal {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         gap: 0.5rem;
         overflow-x: auto;
-        padding-bottom: 1rem;
+        padding-bottom: 0.5rem;
     }
-    
-    .timeline-horizontal .timeline-step {
+    .thesis-timeline .timeline-horizontal .timeline-step {
         display: flex;
         flex-direction: column;
         align-items: center;
-        min-width: 80px;
+        min-width: 72px;
         text-align: center;
     }
-    
-    .timeline-horizontal .step-marker {
-        position: relative;
-        margin-bottom: 0.5rem;
-    }
-    
-    .timeline-horizontal .step-icon {
-        width: 40px;
-        height: 40px;
+    .thesis-timeline .timeline-horizontal .step-icon {
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        color: #fff;
+        font-size: 14px;
+        margin-bottom: 0.35rem;
     }
-    
-    .timeline-horizontal .step-content {
-        max-width: 80px;
-    }
-    
-    .timeline-horizontal .step-title {
+    .thesis-timeline .timeline-horizontal .step-title {
         font-size: 11px;
         line-height: 1.2;
     }
-    
-    /* Status Colors */
-    .bg-success {
+    .thesis-timeline .step-icon.bg-success {
         background: linear-gradient(135deg, #28a745, #20c997) !important;
     }
-    
-    .bg-primary {
-        background: linear-gradient(135deg, var(--primary-500), var(--secondary-500)) !important;
+    .thesis-timeline .step-icon.bg-primary {
+        background: linear-gradient(135deg, #22004C, #4A0080) !important;
     }
-    
-    .bg-secondary {
-        background: var(--gray-400) !important;
+    .thesis-timeline .step-icon.bg-secondary {
+        background: #adb5bd !important;
     }
-    
-    /* Step States */
-    .timeline-step.completed .step-content {
-        opacity: 0.8;
+    .thesis-timeline .timeline-step.pending .step-content { opacity: 0.65; }
+    .thesis-timeline .timeline-step.current .step-icon {
+        animation: thesis-timeline-pulse 2s infinite;
     }
-    
-    .timeline-step.current .step-icon {
-        animation: pulse 2s infinite;
-    }
-    
-    .timeline-step.pending .step-content {
-        opacity: 0.6;
-    }
-    
-    @keyframes pulse {
-        0%, 100% {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-        50% {
-            box-shadow: 0 2px 16px rgba(var(--primary-500-rgb, 127, 0, 255), 0.4);
-        }
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .timeline-vertical .step-icon {
-            width: 40px;
-            height: 40px;
-            font-size: 16px;
-        }
-        
-        .timeline-vertical .step-title {
-            font-size: 14px;
-        }
+    @keyframes thesis-timeline-pulse {
+        0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        50% { box-shadow: 0 2px 16px rgba(74, 0, 128, 0.45); }
     }
 </style>
-@endpush
+@endonce

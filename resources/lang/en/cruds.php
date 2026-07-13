@@ -608,8 +608,8 @@ return [
         ],
     ],
     'mbkmSeminar' => [
-        'title'          => 'MBKM Seminar',
-        'title_singular' => 'MBKM Seminar',
+        'title'          => 'Review Kelayakan Proposal',
+        'title_singular' => 'Review Kelayakan Proposal',
         'fields'         => [
             'id'                         => 'ID',
             'id_helper'                  => ' ',

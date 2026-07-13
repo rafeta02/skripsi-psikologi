@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -30,7 +30,7 @@ class ApplicationSchedule extends Model implements HasMedia
         'seminar'         => 'Seminar Proposal',
         'defense'         => 'Sidang Skripsi',
         'skripsi_seminar' => 'Seminar Skripsi',
-        'mbkm_seminar'    => 'Seminar MBKM',
+        'mbkm_seminar'    => 'Review Kelayakan Proposal',
         'skripsi_defense' => 'Sidang Skripsi',
     ];
 

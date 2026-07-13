@@ -59,7 +59,6 @@
                                             <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#timelineModal{{ $bimbingan->application->id }}">
                                                 Timeline
                                             </button>
-                                            <a href="{{ route('admin.applications.show', $bimbingan->application->id) }}" class="btn btn-sm btn-link">Detail</a>
                                         </td>
                                     </tr>
                                 @endforeach

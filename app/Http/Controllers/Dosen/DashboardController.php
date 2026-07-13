@@ -154,6 +154,7 @@ class DashboardController extends Controller
                 'application.mahasiswa.prodi',
                 'application.mahasiswa.jenjang',
                 'application.mbkmRegistration.groupMembers.mahasiswa',
+                'application.assignments',
             ])
             ->where('lecturer_id', $dosen->id)
             ->where('role', 'supervisor')

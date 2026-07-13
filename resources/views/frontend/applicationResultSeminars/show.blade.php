@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">
@@ -226,7 +226,7 @@
                     @endif
                     @if($applicationResultSeminar->result === 'failed')
                         <div class="alert alert-danger mb-3">
-                            <i class="fas fa-times-circle"></i> Seminar MBKM tidak lulus. Perbaiki pendaftaran seminar dan unggah ulang dokumen.
+                            <i class="fas fa-times-circle"></i> Review Kelayakan Proposal tidak lulus. Perbaiki pendaftaran seminar dan unggah ulang dokumen.
                         </div>
                         @can('mbkm_seminar_edit')
                             @php
@@ -247,7 +247,7 @@
                             @endphp
                             @if($retryMbkmSeminar)
                                 <a href="{{ route('frontend.mbkm-seminars.edit', $retryMbkmSeminar->id) }}" class="btn btn-danger btn-block">
-                                    <i class="fas fa-edit"></i> Perbaiki Pendaftaran Seminar MBKM
+                                    <i class="fas fa-edit"></i> Perbaiki Pendaftaran Review Kelayakan Proposal
                                 </a>
                             @endif
                         @endcan

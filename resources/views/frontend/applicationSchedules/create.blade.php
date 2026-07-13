@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">
@@ -11,7 +11,7 @@
                         <i class="fas fa-calendar-plus mr-2"></i> Buat Jadwal
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Buat jadwal seminar MBKM atau sidang skripsi
+                        Buat jadwal Review Kelayakan Proposal atau sidang skripsi
                     </p>
                 </div>
             </div>
@@ -56,7 +56,7 @@
                                 <select name="schedule_type" class="form-control-modern @error('schedule_type') is-invalid @enderror" required>
                                     <option value="">-- Pilih Jenis Acara --</option>
                                     @if($activeApplication->type === 'mbkm' && $activeApplication->stage === 'seminar')
-                                        <option value="mbkm_seminar" selected>Seminar MBKM</option>
+                                        <option value="mbkm_seminar" selected>Review Kelayakan Proposal</option>
                                     @endif
                                     @if($activeApplication->type === 'skripsi' && $activeApplication->stage === 'seminar')
                                         <option value="skripsi_seminar" selected>Seminar Proposal Skripsi</option>

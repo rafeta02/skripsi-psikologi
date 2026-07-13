@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Frontend;
 
@@ -91,7 +91,7 @@ class MbkmSeminarController extends Controller
         }
 
         return redirect()->route('frontend.mbkm-seminars.index')
-            ->with('success', 'Pendaftaran seminar MBKM berhasil dikirim!');
+            ->with('success', 'Pendaftaran Review Kelayakan Proposal berhasil dikirim!');
     }
 
     public function edit(MbkmSeminar $mbkmSeminar)
@@ -129,7 +129,7 @@ class MbkmSeminarController extends Controller
         }
 
         return redirect()->route('frontend.mbkm-seminars.index')
-            ->with('success', 'Pendaftaran seminar MBKM berhasil diupdate!');
+            ->with('success', 'Pendaftaran Review Kelayakan Proposal berhasil diupdate!');
     }
 
     public function show(MbkmSeminar $mbkmSeminar)

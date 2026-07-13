@@ -1,4 +1,4 @@
-@extends('layouts.public')
+﻿@extends('layouts.public')
 
 @section('title', 'Selamat Datang')
 
@@ -254,7 +254,7 @@
             <div class="process-item">
                 <span class="process-number">3</span>
                 <div>
-                    <strong>Seminar MBKM</strong>
+                    <strong>Review Kelayakan Proposal</strong>
                     <p class="mb-0 small text-muted">Pendaftaran dan penjadwalan seminar formal</p>
                 </div>
             </div>

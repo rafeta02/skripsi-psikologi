@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Services;
 
@@ -170,7 +170,7 @@ class FormAccessService
         if ($this->groupProgress()->isFollowerAnggota($mahasiswaId)) {
             return [
                 'allowed' => false,
-                'message' => 'Seminar MBKM diisi oleh ketua kelompok. Status Anda akan ikut terbarui otomatis.',
+                'message' => 'Review Kelayakan Proposal diisi oleh ketua kelompok. Status Anda akan ikut terbarui otomatis.',
                 'application' => $this->groupProgress()->resolveOwnerApplication($mahasiswaId, 'registration'),
                 'group_follower' => true,
             ];
@@ -206,7 +206,7 @@ class FormAccessService
         if ($seminarApp) {
             return [
                 'allowed' => false,
-                'message' => 'Anda sudah mendaftar seminar MBKM. Tunggu proses persetujuan.',
+                'message' => 'Anda sudah mendaftar Review Kelayakan Proposal. Tunggu proses persetujuan.',
                 'application' => $registrationApp
             ];
         }
@@ -410,7 +410,7 @@ class FormAccessService
             if (!empty($mbkmContext['group_follower']) && $forCreate) {
                 return [
                     'allowed' => false,
-                    'message' => 'Laporan hasil seminar MBKM diisi oleh ketua kelompok.',
+                    'message' => 'Laporan hasil Review Kelayakan Proposal diisi oleh ketua kelompok.',
                     'application' => $mbkmContext['application'],
                     'group_follower' => true,
                 ];
@@ -422,7 +422,7 @@ class FormAccessService
             if (!$mbkmSchedule) {
                 return [
                     'allowed' => false,
-                    'message' => 'Ajukan jadwal seminar MBKM terlebih dahulu sebelum melaporkan hasil seminar.',
+                    'message' => 'Ajukan jadwal Review Kelayakan Proposal terlebih dahulu sebelum melaporkan hasil seminar.',
                     'application' => $mbkmSeminar->application,
                 ];
             }
@@ -430,7 +430,7 @@ class FormAccessService
             if (!$mbkmSchedule->isReadyForResultReport()) {
                 return [
                     'allowed' => false,
-                    'message' => 'Jadwal seminar MBKM masih menunggu verifikasi admin.',
+                    'message' => 'Jadwal Review Kelayakan Proposal masih menunggu verifikasi admin.',
                     'application' => $mbkmSeminar->application,
                 ];
             }
@@ -438,7 +438,7 @@ class FormAccessService
             if ($forCreate && !$mbkmSchedule->isSeminarHeld()) {
                 return [
                     'allowed' => false,
-                    'message' => 'Pelaporan hasil seminar MBKM tersedia setelah seminar dilaksanakan sesuai jadwal.',
+                    'message' => 'Pelaporan hasil Review Kelayakan Proposal tersedia setelah review dilaksanakan sesuai jadwal.',
                     'application' => $mbkmSeminar->application,
                 ];
             }
@@ -447,7 +447,7 @@ class FormAccessService
             if ($forCreate && $existingMbkm) {
                 return [
                     'allowed' => false,
-                    'message' => 'Laporan hasil seminar MBKM sudah pernah dikirim.',
+                    'message' => 'Laporan hasil Review Kelayakan Proposal sudah pernah dikirim.',
                     'application' => $mbkmSeminar->application,
                 ];
             }
@@ -569,7 +569,7 @@ class FormAccessService
             if (!$seminarResult) {
                 return [
                     'allowed' => false,
-                    'message' => 'Anda harus mengirim laporan hasil seminar MBKM terlebih dahulu.',
+                    'message' => 'Anda harus mengirim laporan hasil Review Kelayakan Proposal terlebih dahulu.',
                     'application' => $seminarApp,
                 ];
             }
@@ -577,7 +577,7 @@ class FormAccessService
             if ($seminarResult->result === 'failed') {
                 return [
                     'allowed' => false,
-                    'message' => 'Seminar MBKM tidak lulus. Selesaikan perbaikan seminar terlebih dahulu.',
+                    'message' => 'Review Kelayakan Proposal tidak lulus. Selesaikan perbaikan seminar terlebih dahulu.',
                     'application' => $seminarApp,
                 ];
             }
@@ -857,7 +857,7 @@ class FormAccessService
         if ($this->groupProgress()->isFollowerAnggota($mahasiswaId)) {
             return [
                 'allowed' => false,
-                'message' => 'Pengajuan jadwal seminar MBKM dilakukan oleh ketua kelompok.',
+                'message' => 'Pengajuan jadwal Review Kelayakan Proposal dilakukan oleh ketua kelompok.',
                 'application' => $this->groupProgress()->resolveOwnerApplication($mahasiswaId, 'seminar'),
                 'context' => null,
                 'group_follower' => true,

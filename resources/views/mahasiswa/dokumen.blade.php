@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">
@@ -102,11 +102,11 @@
                                 </a>
                             @elseif($app->stage == 'seminar')
                                 <a href="{{ route('frontend.mbkm-seminars.index') }}" class="btn btn-outline-primary text-left mb-2">
-                                    <i class="fas fa-file-upload"></i> Upload Dokumen Seminar MBKM
+                                    <i class="fas fa-file-upload"></i> Upload Dokumen Review Kelayakan Proposal
                                 </a>
                                 @if($allowedForms['application_result_seminar']['allowed'] ?? false)
                                 <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn btn-outline-danger text-left mb-2">
-                                    <i class="fas fa-clipboard-check"></i> Laporan Hasil Seminar MBKM
+                                    <i class="fas fa-clipboard-check"></i> Laporan Hasil Review Kelayakan Proposal
                                 </a>
                                 @endif
                                 @if($allowedForms['skripsi_defense']['allowed'] ?? false)

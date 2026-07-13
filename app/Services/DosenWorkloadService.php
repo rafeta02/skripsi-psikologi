@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Services;
 
@@ -203,7 +203,7 @@ class DosenWorkloadService
             ->each(function (MbkmSeminar $seminar) use ($dosenId, $items) {
                 $role = (int) $seminar->reviewer_1_id === $dosenId ? 'Reviewer 1' : 'Reviewer 2';
                 $items->push($this->formatPengujiItem(
-                    'Seminar MBKM',
+                    'Review Kelayakan Proposal',
                     $role,
                     $seminar->application,
                     $seminar->title ?? null

@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">
@@ -8,10 +8,10 @@
             <div class="card-modern" style="background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%); border: none;">
                 <div class="card-modern-body" style="padding: 2rem;">
                     <h2 class="mb-1 text-white font-weight-bold">
-                        <i class="fas fa-edit mr-2"></i> Edit Pendaftaran Seminar MBKM
+                        <i class="fas fa-edit mr-2"></i> Edit Pendaftaran Review Kelayakan Proposal
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Update informasi pendaftaran seminar MBKM
+                        Update informasi pendaftaran Review Kelayakan Proposal
                     </p>
                 </div>
             </div>

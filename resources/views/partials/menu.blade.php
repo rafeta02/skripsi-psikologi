@@ -1,4 +1,4 @@
-<aside class="main-sidebar sidebar-dark-primary elevation-4" style="min-height: 917px;">
+﻿<aside class="main-sidebar sidebar-dark-primary elevation-4" style="min-height: 917px;">
     <!-- Brand Logo -->
     <a href="#" class="brand-link">
         <span class="brand-text font-weight-light">{{ trans('panel.site_title') }}</span>
@@ -324,7 +324,7 @@
                             <li class="nav-item">
                                 <a href="{{ route("admin.mbkm-seminars.index") }}" class="nav-link {{ request()->is("admin/mbkm-seminars") || request()->is("admin/mbkm-seminars/*") ? "active" : "" }}">
                                     <i class="fa-fw nav-icon fas fa-users-class"></i>
-                                    <p>Seminar MBKM</p>
+                                    <p>Review Kelayakan Proposal</p>
                                 </a>
                             </li>
                         @endcan

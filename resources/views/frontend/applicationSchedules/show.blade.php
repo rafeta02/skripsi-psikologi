@@ -1,4 +1,4 @@
-@extends('layouts.mahasiswa')
+﻿@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">
@@ -43,7 +43,7 @@
                             <label class="text-muted mb-1">Jenis Acara</label>
                             <h5 class="font-weight-semibold">
                                 @if($applicationSchedule->schedule_type === 'mbkm_seminar')
-                                    <i class="fas fa-chalkboard-teacher text-primary"></i> Seminar MBKM
+                                    <i class="fas fa-chalkboard-teacher text-primary"></i> Review Kelayakan Proposal
                                 @elseif($applicationSchedule->schedule_type === 'skripsi_defense')
                                     <i class="fas fa-graduation-cap text-success"></i> Sidang Skripsi
                                 @else

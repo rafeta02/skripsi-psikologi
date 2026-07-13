@@ -1,4 +1,4 @@
-@if($items->isEmpty())
+﻿@if($items->isEmpty())
     <p class="text-muted mb-0">Tidak ada data penugasan penguji.</p>
 @else
     <div class="table-responsive">
@@ -22,7 +22,7 @@
                             @php
                                 $jenisBadge = match($item['jenis']) {
                                     'Seminar Reguler' => 'info',
-                                    'Seminar MBKM' => 'primary',
+                                    'Review Kelayakan Proposal' => 'primary',
                                     'Sidang Skripsi' => 'success',
                                     default => 'secondary',
                                 };

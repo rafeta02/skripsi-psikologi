@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Mahasiswa;
 
@@ -161,7 +161,7 @@ class DashboardController extends Controller
                 return [
                     'phase' => 2,
                     'phase_name' => 'Sudah Seminar',
-                    'phase_description' => 'Anda sudah melakukan seminar MBKM',
+                    'phase_description' => 'Anda sudah melakukan Review Kelayakan Proposal',
                     'next_step' => 'Lakukan perbaikan dan daftar sidang',
                     'application' => $activeApplication
                 ];
@@ -201,7 +201,7 @@ class DashboardController extends Controller
                     'phase_name' => 'Sudah Pendaftaran',
                     'phase_description' => 'Anda sudah melakukan pendaftaran MBKM',
                     'next_step' => $supervisorAccepted
-                        ? 'Daftar seminar MBKM'
+                        ? 'Daftar Review Kelayakan Proposal'
                         : 'Tunggu persetujuan dosen pembimbing',
                     'application' => $activeApplication,
                     'supervisor_accepted' => $supervisorAccepted,
