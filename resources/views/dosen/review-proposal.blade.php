@@ -289,10 +289,10 @@
 
                     <div class="form-group">
                         <label class="form-label-modern required">Keputusan</label>
-                        <select name="review_decision" class="form-control-modern @error('review_decision') is-invalid @enderror" required>
+                        <select name="review_decision" class="select2 form-control-modern @error('review_decision') is-invalid @enderror" required>
                             <option value="">-- Pilih Keputusan --</option>
-                            <option value="approved" {{ old('review_decision') == 'approved' ? 'selected' : '' }}>Terima</option>
-                            <option value="rejected" {{ old('review_decision') == 'rejected' ? 'selected' : '' }}>Tolak</option>
+                            <option value="approved" {{ old('review_decision') == 'approved' ? 'selected' : '' }}>✅ Setujui (Approved)</option>
+                            <option value="rejected" {{ old('review_decision') == 'rejected' ? 'selected' : '' }}>❌ Tolak (Rejected)</option>
                         </select>
                         @error('review_decision')
                             <div class="invalid-feedback">{{ $message }}</div>
