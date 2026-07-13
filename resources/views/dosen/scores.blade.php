@@ -7,22 +7,22 @@
 ])
 
 <div class="row">
-    <div class="col-lg-8">
+    <div class="col-12">
         <div class="mhs-card">
             <div class="mhs-card-body p-0">
                 @if($scores->count() > 0)
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0">
+                        <table class="table table-sm table-hover mb-0 text-center">
                             <thead class="thead-light">
                                 <tr>
-                                    <th>#</th>
-                                    <th>Mahasiswa</th>
-                                    <th>Program Studi</th>
-                                    <th>Tahap</th>
-                                    <th>Status</th>
-                                    <th>Nilai</th>
-                                    <th>Tanggal</th>
-                                    <th></th>
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">Mahasiswa</th>
+                                    <th class="text-center">Program Studi</th>
+                                    <th class="text-center">Tahap</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Nilai</th>
+                                    <th class="text-center">Tanggal</th>
+                                    <th class="text-center"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -88,9 +88,15 @@
         </div>
     </div>
 
-    <div class="col-lg-4">
-        @include('partials.dosen.quick-actions')
-        @include('partials.dosen.activity-timeline')
+    <div class="col-12 mt-3">
+        <div class="row">
+            <div class="col-lg-6">
+                @include('partials.dosen.quick-actions')
+            </div>
+            <div class="col-lg-6">
+                @include('partials.dosen.activity-timeline')
+            </div>
+        </div>
     </div>
 </div>
 @endsection

@@ -42,6 +42,23 @@
             --secondary-500: #4A0080;
         }
 
+        /* Full-width tables: center content */
+        .mhs-card .table th,
+        .mhs-card .table td {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+        .mhs-card .table td .dosen-mhs-cell {
+            display: inline-block;
+            text-align: left;
+            max-width: 100%;
+        }
+        .mhs-card .table td ul.list-unstyled {
+            display: inline-block;
+            text-align: left;
+            margin: 0 auto;
+        }
+
         /* Modal fix */
         
         /* Force proper z-index hierarchy */

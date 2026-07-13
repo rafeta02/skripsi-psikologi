@@ -40,13 +40,13 @@
             <div class="mhs-card-body p-0">
                 @if(count($recentAssignments) > 0)
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0">
+                        <table class="table table-sm table-hover mb-0 text-center">
                             <thead class="thead-light">
                                 <tr>
-                                    <th>Mahasiswa</th>
-                                    <th>Peran</th>
-                                    <th>Status</th>
-                                    <th></th>
+                                    <th class="text-center">Mahasiswa</th>
+                                    <th class="text-center">Peran</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center"></th>
                                 </tr>
                             </thead>
                             <tbody>
