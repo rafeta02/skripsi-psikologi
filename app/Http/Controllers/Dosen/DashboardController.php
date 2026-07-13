@@ -217,9 +217,12 @@ class DashboardController extends Controller
             'application.skripsiRegistration.preference_supervision',
             'application.skripsiRegistration.tps_lecturer',
             'application.mbkmRegistration.theme',
+            'application.mbkmRegistration.themes',
             'application.mbkmRegistration.research_group',
             'application.mbkmRegistration.preference_supervision',
             'application.mbkmRegistration.groupMembers.mahasiswa',
+            'application.mbkmRegistration.groupMembers.media',
+            'application.mbkmRegistration.media',
         ])->findOrFail($assignmentId);
 
         $this->authorizeAssignmentOwnership($assignment);
