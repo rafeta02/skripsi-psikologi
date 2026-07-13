@@ -152,24 +152,40 @@ class MbkmRegistrationController extends Controller
     {
         $mbkmRegistration = MbkmRegistration::create($request->all());
 
-        foreach ($request->input('khs_all', []) as $file) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('khs_all');
+        foreach ($request->input('khs_all', []) as $index => $file) {
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'khs_all',
+                $index + 1
+            );
         }
 
         if ($request->input('krs_latest', false)) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('krs_latest'))))->toMediaCollection('krs_latest');
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('krs_latest'))),
+                'krs_latest'
+            );
         }
 
         if ($request->input('spp', false)) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('spp'))))->toMediaCollection('spp');
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('spp'))),
+                'spp'
+            );
         }
 
         if ($request->input('proposal_mbkm', false)) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('proposal_mbkm'))))->toMediaCollection('proposal_mbkm');
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('proposal_mbkm'))),
+                'proposal_mbkm'
+            );
         }
 
         if ($request->input('recognition_form', false)) {
-            $mbkmRegistration->addMedia(storage_path('tmp/uploads/' . basename($request->input('recognition_form'))))->toMediaCollection('recognition_form');
+            $mbkmRegistration->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('recognition_form'))),
+                'recognition_form'
+            );
         }
 
         if ($media = $request->input('ck-media', false)) {

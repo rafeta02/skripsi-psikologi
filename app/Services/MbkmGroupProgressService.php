@@ -109,44 +109,46 @@ class MbkmGroupProgressService
                 if ($registration) {
                     $registration->clearMediaCollection('khs_all');
                 }
+                $index = 1;
                 foreach ($request->file('khs_all') as $file) {
                     if (!$file) {
                         continue;
                     }
-                    $member->addMedia($file)->preservingOriginal()->toMediaCollection('khs_all');
+                    $member->addMediaWithCustomName($file, 'khs_all', $index, true);
                     if ($registration) {
-                        $registration->addMedia($file)->toMediaCollection('khs_all');
+                        $registration->addMediaWithCustomName($file, 'khs_all', $index);
                     }
+                    $index++;
                 }
             }
 
             if ($request->hasFile('krs_latest')) {
                 $file = $request->file('krs_latest');
                 $member->clearMediaCollection('krs_latest');
-                $member->addMedia($file)->preservingOriginal()->toMediaCollection('krs_latest');
+                $member->addMediaWithCustomName($file, 'krs_latest', null, true);
                 if ($registration) {
                     $registration->clearMediaCollection('krs_latest');
-                    $registration->addMedia($file)->toMediaCollection('krs_latest');
+                    $registration->addMediaWithCustomName($file, 'krs_latest');
                 }
             }
 
             if ($request->hasFile('spp')) {
                 $file = $request->file('spp');
                 $member->clearMediaCollection('spp');
-                $member->addMedia($file)->preservingOriginal()->toMediaCollection('spp');
+                $member->addMediaWithCustomName($file, 'spp', null, true);
                 if ($registration) {
                     $registration->clearMediaCollection('spp');
-                    $registration->addMedia($file)->toMediaCollection('spp');
+                    $registration->addMediaWithCustomName($file, 'spp');
                 }
             }
 
             if ($request->hasFile('recognition_form')) {
                 $file = $request->file('recognition_form');
                 $member->clearMediaCollection('recognition_form');
-                $member->addMedia($file)->preservingOriginal()->toMediaCollection('recognition_form');
+                $member->addMediaWithCustomName($file, 'recognition_form', null, true);
                 if ($registration) {
                     $registration->clearMediaCollection('recognition_form');
-                    $registration->addMedia($file)->toMediaCollection('recognition_form');
+                    $registration->addMediaWithCustomName($file, 'recognition_form');
                 }
             }
         }

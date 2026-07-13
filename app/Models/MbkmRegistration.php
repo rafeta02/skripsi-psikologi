@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use App\Traits\FileNamingTrait;
+use App\Traits\MbkmDocumentNamingTrait;
 use App\Traits\MultiTenantModelTrait;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +16,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MbkmRegistration extends Model implements HasMedia
 {
-    use SoftDeletes, MultiTenantModelTrait, InteractsWithMedia, Auditable, HasFactory, FileNamingTrait;
+    use SoftDeletes, MultiTenantModelTrait, InteractsWithMedia, Auditable, HasFactory, FileNamingTrait, MbkmDocumentNamingTrait {
+        MbkmDocumentNamingTrait::generateFileName insteadof FileNamingTrait;
+    }
 
     public $table = 'mbkm_registrations';
 

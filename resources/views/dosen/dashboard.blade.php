@@ -30,7 +30,7 @@
 @endif
 
 <div class="row">
-    <div class="col-lg-7">
+    <div class="col-lg-12">
         @include('partials.dosen.quick-actions')
 
         <div class="mhs-card">
@@ -83,7 +83,7 @@
         </div>
     </div>
 
-    <div class="col-lg-5">
+    <div class="col-lg-12">
         @include('partials.dosen.activity-timeline')
     </div>
 </div>

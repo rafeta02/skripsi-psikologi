@@ -165,7 +165,7 @@ class MbkmRegistrationController extends Controller
             $registration->themes()->sync($themeIds);
 
             if ($request->hasFile('proposal_mbkm')) {
-                $registration->addMedia($request->file('proposal_mbkm'))->toMediaCollection('proposal_mbkm');
+                $registration->addMediaWithCustomName($request->file('proposal_mbkm'), 'proposal_mbkm');
             }
 
             $groupService->syncGroupMembers(
@@ -568,7 +568,7 @@ class MbkmRegistrationController extends Controller
 
             if ($request->hasFile('proposal_mbkm')) {
                 $registration->clearMediaCollection('proposal_mbkm');
-                $registration->addMedia($request->file('proposal_mbkm'))->toMediaCollection('proposal_mbkm');
+                $registration->addMediaWithCustomName($request->file('proposal_mbkm'), 'proposal_mbkm');
             }
 
             $groupService->syncGroupMembers(

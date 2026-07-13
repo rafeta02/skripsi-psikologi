@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use App\Traits\FileNamingTrait;
+use App\Traits\MbkmDocumentNamingTrait;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class MbkmGroupMember extends Model implements HasMedia
 {
-    use SoftDeletes, Auditable, HasFactory, InteractsWithMedia, FileNamingTrait;
+    use SoftDeletes, Auditable, HasFactory, InteractsWithMedia, FileNamingTrait, MbkmDocumentNamingTrait {
+        MbkmDocumentNamingTrait::generateFileName insteadof FileNamingTrait;
+    }
 
     public $table = 'mbkm_group_members';
 

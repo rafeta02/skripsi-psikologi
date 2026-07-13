@@ -148,7 +148,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <h6 class="text-muted">Judul Skripsi (Individu)</h6>
-                                <p>{{ ($myMember->title ?? null) ?: ($application->mbkmRegistration->title ?? '-') }}</p>
+                                <p>{{ $myMember->title ?? '-' }}</p>
                             </div>
                         </div>
                     </div>
@@ -156,13 +156,19 @@
             </div>
 
             @php
-                $nilaiSource = $myMember ?? $application->mbkmRegistration;
+                // Dokumen/nilai individu HANYA dari MbkmGroupMember milik user yang login.
+                // Jangan fallback ke MbkmRegistration (berisi dokumen ketua) untuk anggota.
+                $nilaiSource = $myMember;
                 $docIndividu = $myMember;
+                $legacyKetuaDocs = !empty($isKetua) && $myMember && !$myMember->hasCompleteDocuments();
             @endphp
 
             <!-- Grades -->
             <div class="mb-4">
                 <h5 class="text-primary mb-3">Data Nilai (Individu)</h5>
+                @if(!$nilaiSource)
+                    <p class="text-muted">Belum ada data nilai individu Anda.</p>
+                @else
                 <div class="row">
                     <div class="col-md-4">
                         <table class="table table-sm">
@@ -201,6 +207,7 @@
                         </table>
                     </div>
                 </div>
+                @endif
             </div>
 
             <!-- Documents -->
@@ -217,7 +224,7 @@
                                         <i class="fas fa-download"></i> Download
                                     </a>
                                     @endforeach
-                                @elseif($application->mbkmRegistration->khs_all && count($application->mbkmRegistration->khs_all) > 0)
+                                @elseif($legacyKetuaDocs && $application->mbkmRegistration->khs_all && count($application->mbkmRegistration->khs_all) > 0)
                                     @foreach($application->mbkmRegistration->khs_all as $file)
                                     <a href="{{ $file->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block mb-1">
                                         <i class="fas fa-download"></i> Download
@@ -237,7 +244,7 @@
                                     <a href="{{ $docIndividu->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
                                     </a>
-                                @elseif($application->mbkmRegistration->krs_latest)
+                                @elseif($legacyKetuaDocs && $application->mbkmRegistration->krs_latest)
                                     <a href="{{ $application->mbkmRegistration->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
                                     </a>
@@ -255,7 +262,7 @@
                                     <a href="{{ $docIndividu->spp->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
                                     </a>
-                                @elseif($application->mbkmRegistration->spp)
+                                @elseif($legacyKetuaDocs && $application->mbkmRegistration->spp)
                                     <a href="{{ $application->mbkmRegistration->spp->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
                                     </a>
@@ -287,12 +294,12 @@
                                     <a href="{{ $docIndividu->recognition_form->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
                                     </a>
-                                @elseif($application->mbkmRegistration->recognition_form)
+                                @elseif($legacyKetuaDocs && $application->mbkmRegistration->recognition_form)
                                     <a href="{{ $application->mbkmRegistration->recognition_form->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block">
                                         <i class="fas fa-download"></i> Download
                                     </a>
                                 @else
-                                    <p class="text-muted small">Opsional</p>
+                                    <p class="text-muted small">Opsional / belum ada</p>
                                 @endif
                             </div>
                         </div>
