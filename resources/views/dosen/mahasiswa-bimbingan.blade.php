@@ -30,8 +30,9 @@
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td>
-                                            <strong>{{ $bimbingan->application->mahasiswa->nama }}</strong>
-                                            <br><small class="text-muted">{{ $bimbingan->application->mahasiswa->nim }}</small>
+                                            @include('partials.dosen.mbkm-assignment-mahasiswa', [
+                                                'application' => $bimbingan->application,
+                                            ])
                                         </td>
                                         <td>
                                             {{ $bimbingan->application->mahasiswa->prodi->name ?? 'N/A' }}

@@ -48,6 +48,18 @@ class ApplicationAssignment extends Model
         'deleted_at',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (self $assignment) {
+            $application = Application::find($assignment->application_id);
+            if ($application && $application->is_group_mirror) {
+                throw new \RuntimeException(
+                    'Tidak dapat membuat penugasan pada Application mirror MBKM. Gunakan aplikasi ketua kelompok.'
+                );
+            }
+        });
+    }
+
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
@@ -56,6 +68,20 @@ class ApplicationAssignment extends Model
     public function application()
     {
         return $this->belongsTo(Application::class, 'application_id');
+    }
+
+    /**
+     * Sembunyikan penugasan pada Application mirror MBKM (progres anggota).
+     * Dosen hanya melihat 1 penugasan per kelompok (aplikasi ketua).
+     */
+    public function scopeWithoutGroupMirrors($query)
+    {
+        return $query->whereHas('application', function ($q) {
+            $q->where(function ($inner) {
+                $inner->where('is_group_mirror', false)
+                    ->orWhereNull('is_group_mirror');
+            });
+        });
     }
 
     public function lecturer()

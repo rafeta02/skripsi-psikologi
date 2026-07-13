@@ -28,8 +28,15 @@ class MbkmRegistrationController extends Controller
         abort_if(Gate::denies('mbkm_registration_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = MbkmRegistration::with(['application.mahasiswa', 'research_group', 'preference_supervision', 'theme', 'themes', 'created_by', 'groupMembers'])
-                ->select(sprintf('%s.*', (new MbkmRegistration)->table));
+            $query = MbkmRegistration::with([
+                'application.mahasiswa',
+                'research_group',
+                'preference_supervision',
+                'theme',
+                'themes',
+                'created_by',
+                'groupMembers.mahasiswa',
+            ])->select(sprintf('%s.*', (new MbkmRegistration)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -48,10 +55,6 @@ class MbkmRegistrationController extends Controller
                     'crudRoutePart',
                     'row'
                 ));
-            });
-
-            $table->addColumn('application_status', function ($row) {
-                return $row->application ? $row->application->status : '';
             });
 
             $table->addColumn('research_group_name', function ($row) {
@@ -85,16 +88,44 @@ class MbkmRegistrationController extends Controller
 
                 return $total > 0 ? "{$complete}/{$total}" : '-';
             });
-            $table->addColumn('ketua_nama', function ($row) {
-                return $row->application && $row->application->mahasiswa
-                    ? $row->application->mahasiswa->nama
-                    : '';
-            });
-            $table->editColumn('note', function ($row) {
-                return $row->note ? $row->note : '';
+            $table->addColumn('kelompok_anggota', function ($row) {
+                $members = $row->groupMembers;
+                if (!$members || $members->isEmpty()) {
+                    $ketua = $row->application->mahasiswa ?? null;
+                    if (!$ketua) {
+                        return '<span class="text-muted">-</span>';
+                    }
+
+                    return '<div><span class="badge badge-success mr-1">Ketua</span>'
+                        . e($ketua->nama)
+                        . ' <small class="text-muted">(' . e($ketua->nim ?? '-') . ')</small></div>';
+                }
+
+                $sorted = $members->sortBy(fn ($m) => $m->role === 'ketua' ? 0 : 1);
+                $html = '<ul class="list-unstyled mb-0 small">';
+                foreach ($sorted as $member) {
+                    $roleBadge = $member->role === 'ketua'
+                        ? '<span class="badge badge-success mr-1">Ketua</span>'
+                        : '<span class="badge badge-secondary mr-1">Anggota</span>';
+                    $nama = e($member->mahasiswa->nama ?? '-');
+                    $nim = e($member->mahasiswa->nim ?? '-');
+                    $html .= '<li class="mb-1">' . $roleBadge . $nama
+                        . ' <small class="text-muted">(' . $nim . ')</small></li>';
+                }
+                $html .= '</ul>';
+
+                return $html;
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'research_group', 'preference_supervision', 'theme', 'group_status_label']);
+            $table->rawColumns([
+                'actions',
+                'placeholder',
+                'research_group',
+                'preference_supervision',
+                'theme',
+                'group_status_label',
+                'kelompok_anggota',
+            ]);
 
             return $table->make(true);
         }
@@ -263,8 +294,10 @@ class MbkmRegistrationController extends Controller
                     $registration->application->update(['status' => 'submitted']);
                 }
 
-                // Create ApplicationAssignment for the preferred supervisor
+                // Create ApplicationAssignment for the preferred supervisor (owner/ketua only)
                 if ($registration->preference_supervision_id) {
+                    app(\App\Services\MbkmGroupProgressService::class)->purgeMirrorAssignments();
+
                     ApplicationAssignment::create([
                         'application_id' => $registration->application_id,
                         'lecturer_id' => $registration->preference_supervision_id,

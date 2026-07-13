@@ -22,10 +22,7 @@
 
                     </th>
                     <th>
-                        {{ trans('cruds.mbkmRegistration.fields.application') }}
-                    </th>
-                    <th>
-                        Ketua
+                        Ketua & Anggota Kelompok
                     </th>
                     <th>
                         {{ trans('cruds.mbkmRegistration.fields.research_group') }}
@@ -44,9 +41,6 @@
                     </th>
                     <th>
                         Syarat Anggota
-                    </th>
-                    <th>
-                        {{ trans('cruds.mbkmRegistration.fields.note') }}
                     </th>
                     <th>
                         &nbsp;
@@ -104,15 +98,13 @@
     ajax: "{{ route('admin.mbkm-registrations.index') }}",
     columns: [
       { data: 'placeholder', name: 'placeholder' },
-{ data: 'application_status', name: 'application.status' },
-{ data: 'ketua_nama', name: 'application.mahasiswa.nama' },
+{ data: 'kelompok_anggota', name: 'kelompok_anggota', searchable: false, orderable: false },
 { data: 'research_group_name', name: 'research_group.name' },
 { data: 'preference_supervision_nip', name: 'preference_supervision.nama' },
 { data: 'theme_name', name: 'theme.name' },
 { data: 'title_mbkm', name: 'title_mbkm' },
 { data: 'group_status_label', name: 'group_status' },
 { data: 'members_count', name: 'members_count', searchable: false, orderable: false },
-{ data: 'note', name: 'note' },
 { data: 'actions', name: '{{ trans('global.actions') }}' }
     ],
     orderCellsTop: true,

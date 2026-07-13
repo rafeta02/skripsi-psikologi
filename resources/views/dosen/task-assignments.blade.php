@@ -39,8 +39,9 @@
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
                                             <td>
-                                                <strong>{{ $assignment->application->mahasiswa->nama ?? 'N/A' }}</strong>
-                                                <br><small class="text-muted">{{ $assignment->application->mahasiswa->nim ?? 'N/A' }}</small>
+                                                @include('partials.dosen.mbkm-assignment-mahasiswa', [
+                                                    'application' => $assignment->application,
+                                                ])
                                             </td>
                                             <td>{{ $assignment->application->mahasiswa->prodi->name ?? 'N/A' }}</td>
                                             <td><span class="badge badge-primary">{{ strtoupper($assignment->application->type ?? 'N/A') }}</span></td>

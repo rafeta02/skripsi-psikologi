@@ -53,8 +53,9 @@
                                 @foreach($recentAssignments as $assignment)
                                 <tr>
                                     <td>
-                                        <strong>{{ $assignment->application->mahasiswa->nama ?? '-' }}</strong>
-                                        <br><small class="text-muted">{{ $assignment->application->mahasiswa->nim ?? '' }}</small>
+                                        @include('partials.dosen.mbkm-assignment-mahasiswa', [
+                                            'application' => $assignment->application,
+                                        ])
                                     </td>
                                     <td class="text-capitalize">{{ $assignment->role }}</td>
                                     <td>

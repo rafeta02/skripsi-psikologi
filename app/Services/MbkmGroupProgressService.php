@@ -510,4 +510,19 @@ class MbkmGroupProgressService
             ->whereIn('parent_application_id', $ownerIds)
             ->delete();
     }
+
+    /**
+     * Soft-delete penugasan yang terlanjur dibuat pada Application mirror MBKM.
+     * Dosen hanya boleh punya 1 penugasan per kelompok (aplikasi ketua).
+     */
+    public function purgeMirrorAssignments(): int
+    {
+        $mirrorAppIds = Application::where('is_group_mirror', true)->pluck('id');
+
+        if ($mirrorAppIds->isEmpty()) {
+            return 0;
+        }
+
+        return \App\Models\ApplicationAssignment::whereIn('application_id', $mirrorAppIds)->delete();
+    }
 }

@@ -65,7 +65,8 @@ class DosenPortalService
     {
         $actions = [];
 
-        $pendingAssignments = ApplicationAssignment::where('lecturer_id', $dosenId)
+        $pendingAssignments = ApplicationAssignment::withoutGroupMirrors()
+            ->where('lecturer_id', $dosenId)
             ->where('status', 'assigned')
             ->count();
 
@@ -107,11 +108,12 @@ class DosenPortalService
 
     public function getActivityTimeline(int $dosenId, int $limit = 12): array
     {
-        $assignments = ApplicationAssignment::with([
-            'application.mahasiswa',
-            'application.skripsiRegistration',
-            'application.mbkmRegistration',
-        ])
+        $assignments = ApplicationAssignment::withoutGroupMirrors()
+            ->with([
+                'application.mahasiswa',
+                'application.skripsiRegistration',
+                'application.mbkmRegistration.groupMembers.mahasiswa',
+            ])
             ->where('lecturer_id', $dosenId)
             ->orderByDesc('assigned_at')
             ->orderByDesc('created_at')
@@ -138,12 +140,17 @@ class DosenPortalService
                 ?? $assignment->application?->mbkmRegistration?->title
                 ?? '-';
 
+            $members = $assignment->application?->mbkmRegistration?->groupMembers;
+            $groupLabel = ($assignment->application?->type === 'mbkm' && $members && $members->count() > 1)
+                ? 'Kelompok MBKM (' . $members->count() . ') — '
+                : '';
+
             $url = $assignment->status === 'assigned'
                 ? route('dosen.review-proposal', $assignment->id)
                 : route('dosen.task-assignments');
 
             return [
-                'label' => ($assignment->application?->mahasiswa?->nama ?? 'Mahasiswa') . ' — ' . $roleLabel,
+                'label' => $groupLabel . ($assignment->application?->mahasiswa?->nama ?? 'Mahasiswa') . ' — ' . $roleLabel,
                 'sublabel' => $status[2],
                 'detail' => \Illuminate\Support\Str::limit($title, 60),
                 'status' => $status[0],
@@ -160,12 +167,15 @@ class DosenPortalService
     public function getSummaryStats(int $dosenId): array
     {
         return [
-            'mahasiswa_bimbingan' => ApplicationAssignment::where('lecturer_id', $dosenId)
+            'mahasiswa_bimbingan' => ApplicationAssignment::withoutGroupMirrors()
+                ->where('lecturer_id', $dosenId)
                 ->where('role', 'supervisor')
                 ->where('status', 'accepted')
                 ->distinct('application_id')
                 ->count('application_id'),
-            'total_penugasan' => ApplicationAssignment::where('lecturer_id', $dosenId)->count(),
+            'total_penugasan' => ApplicationAssignment::withoutGroupMirrors()
+                ->where('lecturer_id', $dosenId)
+                ->count(),
             'menunggu_respons' => $this->countPendingAssignments($dosenId),
             'penilaian_pending' => $this->countPendingDefenseScores($dosenId),
         ];
@@ -173,7 +183,8 @@ class DosenPortalService
 
     private function countPendingAssignments(int $dosenId): int
     {
-        return ApplicationAssignment::where('lecturer_id', $dosenId)
+        return ApplicationAssignment::withoutGroupMirrors()
+            ->where('lecturer_id', $dosenId)
             ->where('status', 'assigned')
             ->count();
     }

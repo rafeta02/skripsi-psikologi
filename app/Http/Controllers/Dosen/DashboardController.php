@@ -67,30 +67,38 @@ class DashboardController extends Controller
             abort(404, 'Data dosen tidak ditemukan. Silakan hubungi administrator untuk mengatur profil dosen Anda.');
         }
 
-        // Statistics
-        $totalMahasiswaBimbingan = ApplicationAssignment::where('lecturer_id', $dosen->id)
+        app(\App\Services\MbkmGroupProgressService::class)->purgeMirrorAssignments();
+
+        // Statistics — exclude MBKM mirror applications (1 kelompok = 1 penugasan)
+        $totalMahasiswaBimbingan = ApplicationAssignment::withoutGroupMirrors()
+            ->where('lecturer_id', $dosen->id)
             ->where('role', 'supervisor')
             ->where('status', 'accepted')
             ->distinct('application_id')
+            ->count('application_id');
+
+        $totalTaskAssignments = ApplicationAssignment::withoutGroupMirrors()
+            ->where('lecturer_id', $dosen->id)
             ->count();
 
-        $totalTaskAssignments = ApplicationAssignment::where('lecturer_id', $dosen->id)
-            ->count();
-
-        $completedGuidance = ApplicationAssignment::where('lecturer_id', $dosen->id)
+        $completedGuidance = ApplicationAssignment::withoutGroupMirrors()
+            ->where('lecturer_id', $dosen->id)
             ->where('role', 'supervisor')
             ->whereIn('status', ['accepted'])
             ->count();
 
-        $pendingReviews = ApplicationAssignment::where('lecturer_id', $dosen->id)
+        $pendingReviews = ApplicationAssignment::withoutGroupMirrors()
+            ->where('lecturer_id', $dosen->id)
             ->where('status', 'assigned')
             ->count();
 
-        $totalTasksPending = ApplicationAssignment::where('lecturer_id', $dosen->id)
+        $totalTasksPending = ApplicationAssignment::withoutGroupMirrors()
+            ->where('lecturer_id', $dosen->id)
             ->where('status', 'assigned')
             ->count();
 
-        $totalTasksCompleted = ApplicationAssignment::where('lecturer_id', $dosen->id)
+        $totalTasksCompleted = ApplicationAssignment::withoutGroupMirrors()
+            ->where('lecturer_id', $dosen->id)
             ->whereIn('status', ['accepted', 'rejected'])
             ->count();
 
@@ -111,11 +119,12 @@ class DashboardController extends Controller
             ->count();
 
         // Recent assignments
-        $recentAssignments = ApplicationAssignment::with([
-            'application.mahasiswa', 
-            'application.skripsiRegistration',
-            'application.mbkmRegistration'
-        ])
+        $recentAssignments = ApplicationAssignment::withoutGroupMirrors()
+            ->with([
+                'application.mahasiswa',
+                'application.skripsiRegistration',
+                'application.mbkmRegistration.groupMembers.mahasiswa',
+            ])
             ->where('lecturer_id', $dosen->id)
             ->orderBy('assigned_at', 'desc')
             ->limit(5)
@@ -137,30 +146,15 @@ class DashboardController extends Controller
 
     public function mahasiswaBimbingan()
     {
-        $user = Auth::user();
-        
-        $dosen = null;
-        
-        if ($user->dosen_id) {
-            $dosen = Dosen::find($user->dosen_id);
-        }
-        
-        if (!$dosen) {
-            $dosen = Dosen::where('nip', $user->email)
-                ->orWhere('nidn', $user->email)
-                ->first();
-        }
+        $dosen = $this->resolveDosen();
 
-        if (!$dosen) {
-            abort(404, 'Data dosen tidak ditemukan. Silakan hubungi administrator.');
-        }
-
-        // Get all students under supervision
-        $mahasiswaBimbingan = ApplicationAssignment::with([
-            'application.mahasiswa.prodi',
-            'application.mahasiswa.jenjang',
-            'application'
-        ])
+        // Get all students under supervision (exclude MBKM mirrors)
+        $mahasiswaBimbingan = ApplicationAssignment::withoutGroupMirrors()
+            ->with([
+                'application.mahasiswa.prodi',
+                'application.mahasiswa.jenjang',
+                'application.mbkmRegistration.groupMembers.mahasiswa',
+            ])
             ->where('lecturer_id', $dosen->id)
             ->where('role', 'supervisor')
             ->where('status', 'accepted')
@@ -172,29 +166,15 @@ class DashboardController extends Controller
 
     public function taskAssignments()
     {
-        $user = Auth::user();
-        
-        $dosen = null;
-        
-        if ($user->dosen_id) {
-            $dosen = Dosen::find($user->dosen_id);
-        }
-        
-        if (!$dosen) {
-            $dosen = Dosen::where('nip', $user->email)
-                ->orWhere('nidn', $user->email)
-                ->first();
-        }
+        $dosen = $this->resolveDosen();
 
-        if (!$dosen) {
-            abort(404, 'Data dosen tidak ditemukan. Silakan hubungi administrator.');
-        }
+        app(\App\Services\MbkmGroupProgressService::class)->purgeMirrorAssignments();
 
-        // Get all task assignments
-        $assignments = ApplicationAssignment::with([
-            'application.mahasiswa.prodi',
-            'application'
-        ])
+        $assignments = ApplicationAssignment::withoutGroupMirrors()
+            ->with([
+                'application.mahasiswa.prodi',
+                'application.mbkmRegistration.groupMembers.mahasiswa',
+            ])
             ->where('lecturer_id', $dosen->id)
             ->orderBy('assigned_at', 'desc')
             ->get();
@@ -244,12 +224,33 @@ class DashboardController extends Controller
 
         $this->authorizeAssignmentOwnership($assignment);
 
+        // Mirror assignment should not be reviewed — redirect to owner assignment if any
+        if ($assignment->application && $assignment->application->is_group_mirror) {
+            $ownerId = $assignment->application->parent_application_id;
+            $ownerAssignment = ApplicationAssignment::withoutGroupMirrors()
+                ->where('application_id', $ownerId)
+                ->where('lecturer_id', $assignment->lecturer_id)
+                ->where('role', $assignment->role)
+                ->orderByDesc('id')
+                ->first();
+
+            if ($ownerAssignment) {
+                return redirect()->route('dosen.review-proposal', $ownerAssignment->id);
+            }
+
+            abort(404, 'Penugasan mirror tidak valid. Gunakan penugasan kelompok (ketua).');
+        }
+
         return view('dosen.review-proposal', compact('assignment'));
     }
 
     public function respondToAssignment(Request $request, ApplicationAssignment $assignment)
     {
         $this->authorizeAssignmentOwnership($assignment);
+
+        if ($assignment->application && $assignment->application->is_group_mirror) {
+            abort(403, 'Penugasan mirror tidak dapat ditanggapi. Gunakan penugasan kelompok (ketua).');
+        }
 
         // If it's a simple accept/reject (old flow)
         if ($request->has('status')) {
