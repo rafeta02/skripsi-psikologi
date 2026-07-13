@@ -1,4 +1,4 @@
-﻿@if($items->isEmpty())
+@if($items->isEmpty())
     <p class="text-muted mb-0">Tidak ada data penugasan penguji.</p>
 @else
     <div class="table-responsive">

@@ -1,4 +1,4 @@
-﻿{{--
+{{--
     Timeline Component for Thesis Progress
 
     Props:

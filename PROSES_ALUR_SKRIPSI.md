@@ -1,4 +1,4 @@
-﻿## Pedoman Proses Aplikasi Skripsi
+## Pedoman Proses Aplikasi Skripsi
 
 Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah mencantumkan peran, form/tabel yang digunakan, dan keputusan yang mungkin terjadi.
 

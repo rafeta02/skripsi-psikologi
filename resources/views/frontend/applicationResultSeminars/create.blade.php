@@ -1,4 +1,4 @@
-﻿@extends('layouts.mahasiswa')
+@extends('layouts.mahasiswa')
 
 @section('content')
 <div class="container py-4">

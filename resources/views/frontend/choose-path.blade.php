@@ -1,4 +1,4 @@
-﻿@extends('layouts.mahasiswa')
+@extends('layouts.mahasiswa')
 
 @section('title', 'Pilih Jalur Skripsi')
 
