@@ -291,8 +291,9 @@
                         <label class="form-label-modern required">Keputusan</label>
                         <select name="review_decision" class="form-control-modern @error('review_decision') is-invalid @enderror" required>
                             <option value="">-- Pilih Keputusan --</option>
-                            <option value="approved" {{ old('review_decision') == 'approved' ? 'selected' : '' }}>✅ Setujui (Approved)</option>
-                            <option value="rejected" {{ old('review_decision') == 'rejected' ? 'selected' : '' }}>❌ Tolak (Rejected)</option>
+                            <option value="approved" {{ old('review_decision') == 'approved' ? 'selected' : '' }}>Terima</option>
+                            <option value="rejected" {{ old('review_decision') == 'rejected' ? 'selected' : '' }}>Tolak</option>
+                        </select>
                         @error('review_decision')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -300,7 +301,7 @@
 
                     <div class="form-group">
                         <label class="form-label-modern required">Feedback & Komentar</label>
-                        <textarea name="feedback" class="form-control-modern @error('feedback') is-invalid @enderror" rows="6" required>{{ old('feedback') }}</textarea>
+                        <textarea name="feedback" class="form-control-modern @error('feedback') is-invalid @enderror" rows="6" required placeholder="Tulis feedback untuk mahasiswa...">{{ old('feedback') }}</textarea>
                         <small class="form-text text-muted">Berikan feedback konstruktif untuk mahasiswa</small>
                         @error('feedback')
                             <div class="invalid-feedback">{{ $message }}</div>
