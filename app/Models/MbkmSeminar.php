@@ -88,4 +88,14 @@ class MbkmSeminar extends Model implements HasMedia
     {
         return $this->belongsTo(Dosen::class, 'reviewer_2_id');
     }
+
+    /**
+     * Izinkan anggota kelompok melihat form ketua (bypass multi-tenant created_by scope).
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return static::withoutGlobalScopes()
+            ->where($field ?? $this->getRouteKeyName(), $value)
+            ->firstOrFail();
+    }
 }

@@ -11,7 +11,7 @@
                         <i class="fas fa-chalkboard-teacher mr-2"></i> Pendaftaran Review Kelayakan Proposal
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Lengkapi form berikut untuk mendaftar Review Kelayakan Proposal formal
+                        Form kelompok (ketua) — lanjutan dari MbkmRegistration. Anggota tidak perlu mengisi form ini.
                     </p>
                 </div>
             </div>
@@ -28,10 +28,24 @@
                         
                         <input type="hidden" name="application_id" value="{{ $activeApplication->id ?? '' }}">
 
+                        @if(!empty($registration))
+                            <div class="alert alert-info mb-4">
+                                <strong><i class="fas fa-users mr-1"></i> Form kelompok</strong>
+                                — 1 pengajuan untuk seluruh anggota.
+                                <ul class="mb-0 mt-2 small">
+                                    <li>Judul kegiatan MBKM: <strong>{{ $registration->title_mbkm ?? '-' }}</strong></li>
+                                    <li>Anggota:
+                                        {{ $registration->groupMembers->map(fn ($m) => ($m->mahasiswa->nama ?? '-') . ' (' . ($m->role ?? 'anggota') . ')')->implode(', ') }}
+                                    </li>
+                                </ul>
+                            </div>
+                        @endif
+
                         <!-- Title -->
                         <div class="form-group">
-                            <label class="form-label-modern required">Judul MBKM</label>
-                            <input type="text" name="title" class="form-control-modern @error('title') is-invalid @enderror" value="{{ old('title') }}" required>
+                            <label class="form-label-modern required">Judul MBKM / Proposal</label>
+                            <input type="text" name="title" class="form-control-modern @error('title') is-invalid @enderror"
+                                   value="{{ old('title', $registration->title_mbkm ?? '') }}" required>
                             @error('title')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

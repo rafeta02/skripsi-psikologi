@@ -17,19 +17,41 @@
                             </p>
                         </div>
                         <div>
-                            @can('mbkm_seminar_edit')
-                                @if($mbkmSeminar->application && in_array($mbkmSeminar->application->status, ['revision', 'submitted']))
-                                    <a href="{{ route('frontend.mbkm-seminars.edit', $mbkmSeminar->id) }}" class="btn btn-light">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                @endif
-                            @endcan
+                            @if(!empty($isKetua) && $mbkmSeminar->application && in_array($mbkmSeminar->application->status, ['revision', 'submitted'], true))
+                                <a href="{{ route('frontend.mbkm-seminars.edit', $mbkmSeminar->id) }}" class="btn btn-light">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    @if(!empty($isGroupFollower))
+        <div class="alert alert-info">
+            <i class="fas fa-users mr-1"></i>
+            Ini pengajuan <strong>ketua kelompok</strong>. Anda anggota — status progress mengikuti form ini (lanjutan MbkmRegistration).
+        </div>
+    @endif
+
+    @if(!empty($registration) && $registration->groupMembers->count() > 0)
+        <div class="card-modern mb-4">
+            <div class="card-modern-body py-3">
+                <h6 class="font-weight-bold mb-2">Anggota Kelompok</h6>
+                <ul class="list-unstyled mb-0 small">
+                    @foreach($registration->groupMembers->sortByDesc(fn ($m) => $m->role === 'ketua') as $member)
+                        <li class="mb-1">
+                            <span class="badge badge-{{ $member->role === 'ketua' ? 'success' : 'secondary' }} mr-1">{{ $member->role }}</span>
+                            {{ $member->mahasiswa->nama ?? '-' }}
+                            <span class="text-muted">({{ $member->mahasiswa->nim ?? '-' }})</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
 
     <!-- Detail Content -->
     <div class="row">

@@ -8,10 +8,13 @@ use App\Http\Requests\MassDestroyMbkmSeminarRequest;
 use App\Http\Requests\StoreMbkmSeminarRequest;
 use App\Http\Requests\UpdateMbkmSeminarRequest;
 use App\Models\Application;
+use App\Models\MbkmRegistration;
 use App\Models\MbkmSeminar;
 use App\Services\FormAccessService;
+use App\Services\MbkmGroupProgressService;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,17 +26,53 @@ class MbkmSeminarController extends Controller
     {
         abort_if(Gate::denies('mbkm_seminar_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $mbkmSeminars = MbkmSeminar::with(['application', 'created_by', 'media'])->get();
+        $mahasiswaId = (int) auth()->user()->mahasiswa_id;
+        $groupService = app(MbkmGroupProgressService::class);
+        $formAccess = app(FormAccessService::class);
 
-        return view('frontend.mbkmSeminars.index', compact('mbkmSeminars'));
+        $isGroupFollower = $groupService->isFollowerAnggota($mahasiswaId);
+        $access = $formAccess->canAccessMbkmSeminar($mahasiswaId);
+
+        $ownerMahasiswaId = $groupService->getOwnerMahasiswaId($mahasiswaId) ?? $mahasiswaId;
+
+        // 1 kelompok = 1 form (milik ketua). Anggota melihat form ketua via withoutGlobalScopes.
+        $ownerSeminarApps = Application::where('mahasiswa_id', $ownerMahasiswaId)
+            ->where('type', 'mbkm')
+            ->where('stage', 'seminar')
+            ->where('is_group_mirror', false)
+            ->pluck('id');
+
+        $mbkmSeminars = MbkmSeminar::withoutGlobalScopes()
+            ->with(['application.mahasiswa', 'created_by', 'media'])
+            ->whereIn('application_id', $ownerSeminarApps)
+            ->orderByDesc('id')
+            ->get();
+
+        $registrationApp = $groupService->resolveOwnerApplication($mahasiswaId, 'registration');
+        $registration = $registrationApp
+            ? MbkmRegistration::withoutGlobalScopes()
+                ->with(['groupMembers.mahasiswa', 'research_group', 'themes'])
+                ->where('application_id', $registrationApp->id)
+                ->first()
+            : null;
+
+        $canCreate = !$isGroupFollower && !empty($access['allowed']);
+
+        return view('frontend.mbkmSeminars.index', compact(
+            'mbkmSeminars',
+            'isGroupFollower',
+            'canCreate',
+            'access',
+            'registration',
+            'registrationApp'
+        ));
     }
 
     public function create()
     {
         abort_if(Gate::denies('mbkm_seminar_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // Check if student can access this form
-        $formAccessService = new FormAccessService();
+        $formAccessService = app(FormAccessService::class);
         $access = $formAccessService->canAccessMbkmSeminar(auth()->user()->mahasiswa_id);
 
         if (!$access['allowed']) {
@@ -43,13 +82,17 @@ class MbkmSeminarController extends Controller
 
         $activeApplication = $access['application'];
 
-        return view('frontend.mbkmSeminars.create', compact('activeApplication'));
+        $registration = MbkmRegistration::withoutGlobalScopes()
+            ->with(['groupMembers.mahasiswa', 'research_group', 'themes', 'preference_supervision'])
+            ->where('application_id', $activeApplication->id)
+            ->first();
+
+        return view('frontend.mbkmSeminars.create', compact('activeApplication', 'registration'));
     }
 
     public function store(StoreMbkmSeminarRequest $request)
     {
-        // Check if student can access this form
-        $formAccessService = new FormAccessService();
+        $formAccessService = app(FormAccessService::class);
         $access = $formAccessService->canAccessMbkmSeminar(auth()->user()->mahasiswa_id);
 
         if (!$access['allowed']) {
@@ -58,77 +101,85 @@ class MbkmSeminarController extends Controller
         }
 
         $activeApplication = $access['application'];
+        $mahasiswaId = (int) auth()->user()->mahasiswa_id;
 
-        // Create new Application for seminar stage
-        $seminarApplication = Application::create([
-            'mahasiswa_id' => auth()->user()->mahasiswa_id,
-            'type' => 'mbkm',
-            'stage' => 'seminar',
-            'status' => 'submitted',
-            'submitted_at' => now()->format('d-m-Y H:i:s'),
-        ]);
+        try {
+            $mbkmSeminar = DB::transaction(function () use ($request, $activeApplication, $mahasiswaId) {
+                // Application stage seminar milik ketua; mirror anggota dibuat oleh ApplicationObserver
+                $seminarApplication = Application::create([
+                    'mahasiswa_id' => $mahasiswaId,
+                    'type' => 'mbkm',
+                    'stage' => 'seminar',
+                    'status' => 'submitted',
+                    'submitted_at' => now(),
+                ]);
 
-        // Create MBKM Seminar with seminar application
-        $data = $request->all();
-        $data['application_id'] = $seminarApplication->id;
-        
-        $mbkmSeminar = MbkmSeminar::create($data);
+                $registration = MbkmRegistration::withoutGlobalScopes()
+                    ->where('application_id', $activeApplication->id)
+                    ->first();
 
-        // Handle file uploads - Direct upload (not via Dropzone temp)
-        if ($request->hasFile('proposal_document')) {
-            $mbkmSeminar->addMedia($request->file('proposal_document'))
-                ->toMediaCollection('proposal_document');
+                $title = $request->input('title')
+                    ?: ($registration->title_mbkm ?? $registration->title ?? 'Review Kelayakan Proposal');
+
+                $mbkmSeminar = MbkmSeminar::create([
+                    'application_id' => $seminarApplication->id,
+                    'title' => $title,
+                    'title_en' => $request->input('title_en'),
+                    'created_by_id' => auth()->id(),
+                ]);
+
+                foreach (['proposal_document', 'approval_document', 'plagiarism_document'] as $collection) {
+                    if ($request->hasFile($collection)) {
+                        $mbkmSeminar->addMediaWithCustomName($request->file($collection), $collection);
+                    }
+                }
+
+                return $mbkmSeminar;
+            });
+
+            return redirect()->route('frontend.mbkm-seminars.show', $mbkmSeminar->id)
+                ->with('success', 'Pendaftaran Review Kelayakan Proposal kelompok berhasil dikirim. Status anggota ikut terbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        if ($request->hasFile('approval_document')) {
-            $mbkmSeminar->addMedia($request->file('approval_document'))
-                ->toMediaCollection('approval_document');
-        }
-
-        if ($request->hasFile('plagiarism_document')) {
-            $mbkmSeminar->addMedia($request->file('plagiarism_document'))
-                ->toMediaCollection('plagiarism_document');
-        }
-
-        return redirect()->route('frontend.mbkm-seminars.index')
-            ->with('success', 'Pendaftaran Review Kelayakan Proposal berhasil dikirim!');
     }
 
     public function edit(MbkmSeminar $mbkmSeminar)
     {
         abort_if(Gate::denies('mbkm_seminar_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $mbkmSeminar->load('application', 'created_by');
+        $mbkmSeminar = MbkmSeminar::withoutGlobalScopes()->with(['application', 'created_by', 'media'])->findOrFail($mbkmSeminar->id);
+        $this->authorizeKetuaSeminar($mbkmSeminar);
+
+        if ($mbkmSeminar->application && !in_array($mbkmSeminar->application->status, ['submitted', 'revision'], true)) {
+            return redirect()->route('frontend.mbkm-seminars.show', $mbkmSeminar->id)
+                ->with('error', 'Pendaftaran tidak dapat diedit pada status ini.');
+        }
 
         return view('frontend.mbkmSeminars.edit', compact('mbkmSeminar'));
     }
 
     public function update(UpdateMbkmSeminarRequest $request, MbkmSeminar $mbkmSeminar)
     {
-        $mbkmSeminar->update($request->all());
+        $mbkmSeminar = MbkmSeminar::withoutGlobalScopes()->with('application')->findOrFail($mbkmSeminar->id);
+        $this->authorizeKetuaSeminar($mbkmSeminar);
 
-        // Handle proposal document
-        if ($request->hasFile('proposal_document')) {
-            $mbkmSeminar->clearMediaCollection('proposal_document');
-            $mbkmSeminar->addMedia($request->file('proposal_document'))
-                ->toMediaCollection('proposal_document');
+        $mbkmSeminar->update($request->only(['title', 'title_en']));
+
+        foreach (['proposal_document', 'approval_document', 'plagiarism_document'] as $collection) {
+            if ($request->hasFile($collection)) {
+                $mbkmSeminar->clearMediaCollection($collection);
+                $mbkmSeminar->addMediaWithCustomName($request->file($collection), $collection);
+            }
         }
 
-        // Handle approval document
-        if ($request->hasFile('approval_document')) {
-            $mbkmSeminar->clearMediaCollection('approval_document');
-            $mbkmSeminar->addMedia($request->file('approval_document'))
-                ->toMediaCollection('approval_document');
+        if ($mbkmSeminar->application && $mbkmSeminar->application->status === 'revision') {
+            $mbkmSeminar->application->update(['status' => 'submitted']);
         }
 
-        // Handle plagiarism document
-        if ($request->hasFile('plagiarism_document')) {
-            $mbkmSeminar->clearMediaCollection('plagiarism_document');
-            $mbkmSeminar->addMedia($request->file('plagiarism_document'))
-                ->toMediaCollection('plagiarism_document');
-        }
-
-        return redirect()->route('frontend.mbkm-seminars.index')
+        return redirect()->route('frontend.mbkm-seminars.show', $mbkmSeminar->id)
             ->with('success', 'Pendaftaran Review Kelayakan Proposal berhasil diupdate!');
     }
 
@@ -136,15 +187,40 @@ class MbkmSeminarController extends Controller
     {
         abort_if(Gate::denies('mbkm_seminar_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $mbkmSeminar->load('application', 'created_by');
+        $mbkmSeminar = MbkmSeminar::withoutGlobalScopes()
+            ->with(['application.mahasiswa', 'created_by', 'media'])
+            ->findOrFail($mbkmSeminar->id);
 
-        return view('frontend.mbkmSeminars.show', compact('mbkmSeminar'));
+        $this->authorizeGroupSeminarView($mbkmSeminar);
+
+        $mahasiswaId = (int) auth()->user()->mahasiswa_id;
+        $groupService = app(MbkmGroupProgressService::class);
+        $isGroupFollower = $groupService->isFollowerAnggota($mahasiswaId);
+        $isKetua = !$isGroupFollower
+            && (int) ($mbkmSeminar->application->mahasiswa_id ?? 0) === $mahasiswaId;
+
+        $registrationApp = $groupService->resolveOwnerApplication($mahasiswaId, 'registration');
+        $registration = $registrationApp
+            ? MbkmRegistration::withoutGlobalScopes()
+                ->with(['groupMembers.mahasiswa'])
+                ->where('application_id', $registrationApp->id)
+                ->first()
+            : null;
+
+        return view('frontend.mbkmSeminars.show', compact(
+            'mbkmSeminar',
+            'isGroupFollower',
+            'isKetua',
+            'registration'
+        ));
     }
 
     public function destroy(MbkmSeminar $mbkmSeminar)
     {
         abort_if(Gate::denies('mbkm_seminar_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $mbkmSeminar = MbkmSeminar::withoutGlobalScopes()->findOrFail($mbkmSeminar->id);
+        $this->authorizeKetuaSeminar($mbkmSeminar);
         $mbkmSeminar->delete();
 
         return back();
@@ -152,9 +228,10 @@ class MbkmSeminarController extends Controller
 
     public function massDestroy(MassDestroyMbkmSeminarRequest $request)
     {
-        $mbkmSeminars = MbkmSeminar::find(request('ids'));
+        $mbkmSeminars = MbkmSeminar::withoutGlobalScopes()->find(request('ids'));
 
         foreach ($mbkmSeminars as $mbkmSeminar) {
+            $this->authorizeKetuaSeminar($mbkmSeminar);
             $mbkmSeminar->delete();
         }
 
@@ -171,5 +248,35 @@ class MbkmSeminarController extends Controller
         $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
+    }
+
+    private function authorizeKetuaSeminar(MbkmSeminar $mbkmSeminar): void
+    {
+        $mahasiswaId = (int) auth()->user()->mahasiswa_id;
+        $groupService = app(MbkmGroupProgressService::class);
+
+        if ($groupService->isFollowerAnggota($mahasiswaId)) {
+            abort(403, 'Hanya ketua kelompok yang dapat mengubah form Review Kelayakan Proposal.');
+        }
+
+        $app = $mbkmSeminar->application;
+        if (!$app || (int) $app->mahasiswa_id !== $mahasiswaId || $app->is_group_mirror) {
+            abort(403, 'Unauthorized access');
+        }
+    }
+
+    private function authorizeGroupSeminarView(MbkmSeminar $mbkmSeminar): void
+    {
+        $mahasiswaId = (int) auth()->user()->mahasiswa_id;
+        $app = $mbkmSeminar->application;
+
+        if (!$app) {
+            abort(404);
+        }
+
+        $groupService = app(MbkmGroupProgressService::class);
+        if (!$groupService->canViewOwnerApplication($mahasiswaId, $app)) {
+            abort(403, 'Unauthorized access');
+        }
     }
 }

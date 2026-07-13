@@ -170,7 +170,7 @@ class FormAccessService
         if ($this->groupProgress()->isFollowerAnggota($mahasiswaId)) {
             return [
                 'allowed' => false,
-                'message' => 'Review Kelayakan Proposal diisi oleh ketua kelompok. Status Anda akan ikut terbarui otomatis.',
+                'message' => 'Review Kelayakan Proposal diisi oleh ketua kelompok (1 form per kelompok). Status Anda mengikuti pengajuan ketua sebagai lanjutan MbkmRegistration.',
                 'application' => $this->groupProgress()->resolveOwnerApplication($mahasiswaId, 'registration'),
                 'group_follower' => true,
             ];
