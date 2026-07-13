@@ -279,42 +279,27 @@ class DashboardController extends Controller
 
         // If it's a review with decision (new flow)
         $validated = $request->validate([
-            'review_decision' => 'required|in:approved,revision,rejected',
+            'review_decision' => 'required|in:approved,rejected',
             'feedback' => 'required|string',
-            'revision_notes' => 'nullable|string',
         ]);
 
         $assignmentStatus = $validated['review_decision'] === 'rejected' ? 'rejected' : 'accepted';
 
-        $note = $validated['feedback'];
-        if ($validated['review_decision'] === 'revision' && !empty($validated['revision_notes'])) {
-            $note .= "\n\nCatatan revisi:\n" . $validated['revision_notes'];
-        }
-
         $assignment->update([
             'status' => $assignmentStatus,
-            'note' => $note,
+            'note' => $validated['feedback'],
             'responded_at' => now(),
         ]);
 
-        // Update application status based on review decision
         if ($assignment->application) {
-            $newStatus = match($validated['review_decision']) {
-                'approved' => 'approved',
-                'revision' => 'revision',
-                'rejected' => 'rejected',
-                default => 'submitted',
-            };
-
-            $assignment->application->update(['status' => $newStatus]);
+            $assignment->application->update([
+                'status' => $validated['review_decision'] === 'approved' ? 'approved' : 'rejected',
+            ]);
         }
 
-        $message = match($validated['review_decision']) {
-            'approved' => 'Penugasan diterima dan proposal disetujui.',
-            'revision' => 'Penugasan diterima. Mahasiswa diminta melakukan revisi.',
-            'rejected' => 'Penugasan ditolak.',
-            default => 'Review berhasil dikirim.',
-        };
+        $message = $validated['review_decision'] === 'approved'
+            ? 'Penugasan diterima.'
+            : 'Penugasan ditolak.';
 
         return redirect()->route('dosen.task-assignments')
             ->with('success', $message);

@@ -288,12 +288,11 @@
                     @csrf
 
                     <div class="form-group">
-                        <label class="form-label-modern required">Keputusan Review</label>
+                        <label class="form-label-modern required">Keputusan</label>
                         <select name="review_decision" class="form-control-modern @error('review_decision') is-invalid @enderror" required>
                             <option value="">-- Pilih Keputusan --</option>
-                            <option value="approved" {{ old('review_decision') == 'approved' ? 'selected' : '' }}>✅ Setuju (Approved)</option>
-                            <option value="revision" {{ old('review_decision') == 'revision' ? 'selected' : '' }}>📝 Perlu Revisi</option>
-                            <option value="rejected" {{ old('review_decision') == 'rejected' ? 'selected' : '' }}>❌ Ditolak (Rejected)</option>
+                            <option value="approved" {{ old('review_decision') == 'approved' ? 'selected' : '' }}>Terima</option>
+                            <option value="rejected" {{ old('review_decision') == 'rejected' ? 'selected' : '' }}>Tolak</option>
                         </select>
                         @error('review_decision')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -309,21 +308,12 @@
                         @enderror
                     </div>
 
-                    <div class="form-group" id="revisionNotesField" style="display: none;">
-                        <label class="form-label-modern">Catatan Revisi</label>
-                        <textarea name="revision_notes" class="form-control-modern @error('revision_notes') is-invalid @enderror" rows="4">{{ old('revision_notes') }}</textarea>
-                        <small class="form-text text-muted">Jelaskan secara spesifik apa yang perlu direvisi</small>
-                        @error('revision_notes')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
                     <div class="d-flex justify-content-between mt-4">
                         <a href="{{ route('dosen.task-assignments') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-paper-plane"></i> Kirim Review
+                            <i class="fas fa-paper-plane"></i> Kirim Keputusan
                         </button>
                     </div>
                 </form>
@@ -352,16 +342,6 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    $('select[name="review_decision"]').on('change', function() {
-        if ($(this).val() === 'revision') {
-            $('#revisionNotesField').slideDown();
-            $('#revisionNotesField textarea').prop('required', true);
-        } else {
-            $('#revisionNotesField').slideUp();
-            $('#revisionNotesField textarea').prop('required', false);
-        }
-    }).trigger('change');
-
     $(document).on('click', '.preview-doc', function() {
         var url = $(this).data('url');
         $('#docPreviewFrame').attr('src', url);
