@@ -219,9 +219,20 @@ class MahasiswaPortalService
 
         $appIds = Application::where('mahasiswa_id', $mahasiswaId)->pluck('id');
 
+        if ($key === 'application_result_seminar') {
+            if (ApplicationResultSeminar::whereIn('application_id', $appIds)->exists()) {
+                return true;
+            }
+
+            $ownerSeminar = app(MbkmGroupProgressService::class)
+                ->resolveOwnerApplication((int) $mahasiswaId, 'seminar');
+
+            return $ownerSeminar
+                && ApplicationResultSeminar::where('application_id', $ownerSeminar->id)->exists();
+        }
+
         return match ($key) {
             'application_result_review' => ApplicationResultReview::whereIn('application_id', $appIds)->exists(),
-            'application_result_seminar' => ApplicationResultSeminar::whereIn('application_id', $appIds)->exists(),
             'skripsi_defense' => SkripsiDefense::whereIn('application_id', $appIds)->exists(),
             'defense_result' => ApplicationResultDefense::whereIn('application_id', $appIds)->exists(),
             default => false,

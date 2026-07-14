@@ -107,27 +107,42 @@ class ApplicationResultSeminarController extends Controller
             'revision_deadline',
         ]));
 
-        foreach ($request->input('form_document', []) as $file) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('form_document');
+        $applicationResultSeminar->load('application.mahasiswa');
+
+        foreach ($request->input('form_document', []) as $index => $file) {
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'form_document',
+                $index + 1
+            );
         }
 
         if ($request->input('attendance_document', false)) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('attendance_document'))))->toMediaCollection('attendance_document');
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('attendance_document'))),
+                'attendance_document'
+            );
         }
 
         if ($request->input('latest_script', false)) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('latest_script'))))->toMediaCollection('latest_script');
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
+                'latest_script'
+            );
         }
 
-        foreach ($request->input('documentation', []) as $file) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('documentation');
+        foreach ($request->input('documentation', []) as $index => $file) {
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($file)),
+                'documentation',
+                $index + 1
+            );
         }
 
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $applicationResultSeminar->id]);
         }
 
-        $applicationResultSeminar->load('application');
         $applicationResultSeminar->syncApplicationStatus();
 
         return redirect()->route('admin.application-result-seminars.index');
@@ -154,6 +169,8 @@ class ApplicationResultSeminarController extends Controller
             'revision_deadline',
         ]));
 
+        $applicationResultSeminar->load('application.mahasiswa');
+
         if (count($applicationResultSeminar->form_document) > 0) {
             foreach ($applicationResultSeminar->form_document as $media) {
                 if (! in_array($media->file_name, $request->input('form_document', []))) {
@@ -162,9 +179,13 @@ class ApplicationResultSeminarController extends Controller
             }
         }
         $media = $applicationResultSeminar->form_document->pluck('file_name')->toArray();
-        foreach ($request->input('form_document', []) as $file) {
+        foreach ($request->input('form_document', []) as $index => $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('form_document');
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'form_document',
+                    $index + 1
+                );
             }
         }
 
@@ -173,7 +194,10 @@ class ApplicationResultSeminarController extends Controller
                 if ($applicationResultSeminar->attendance_document) {
                     $applicationResultSeminar->attendance_document->delete();
                 }
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('attendance_document'))))->toMediaCollection('attendance_document');
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('attendance_document'))),
+                    'attendance_document'
+                );
             }
         } elseif ($applicationResultSeminar->attendance_document) {
             $applicationResultSeminar->attendance_document->delete();
@@ -184,7 +208,10 @@ class ApplicationResultSeminarController extends Controller
                 if ($applicationResultSeminar->latest_script) {
                     $applicationResultSeminar->latest_script->delete();
                 }
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('latest_script'))))->toMediaCollection('latest_script');
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
+                    'latest_script'
+                );
             }
         } elseif ($applicationResultSeminar->latest_script) {
             $applicationResultSeminar->latest_script->delete();
@@ -198,13 +225,16 @@ class ApplicationResultSeminarController extends Controller
             }
         }
         $media = $applicationResultSeminar->documentation->pluck('file_name')->toArray();
-        foreach ($request->input('documentation', []) as $file) {
+        foreach ($request->input('documentation', []) as $index => $file) {
             if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('documentation');
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($file)),
+                    'documentation',
+                    $index + 1
+                );
             }
         }
 
-        $applicationResultSeminar->load('application');
         $applicationResultSeminar->syncApplicationStatus();
 
         return redirect()->route('admin.application-result-seminars.index');

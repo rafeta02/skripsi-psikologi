@@ -721,10 +721,15 @@ class FormAccessService
             ];
         }
 
-        $result = ApplicationResultSeminar::where('application_id', $seminarApp->id)->first();
+        // Mirror anggota: laporan ada di application ketua
+        $resultAppId = (!empty($seminarApp->is_group_mirror) && $seminarApp->parent_application_id)
+            ? (int) $seminarApp->parent_application_id
+            : (int) $seminarApp->id;
+
+        $result = ApplicationResultSeminar::where('application_id', $resultAppId)->first();
 
         if ($result) {
-            if ($result->isEligibleOutcome() && $this->isSeminarResultValidatedByAdmin($seminarApp->id)) {
+            if ($result->isEligibleOutcome() && $this->isSeminarResultValidatedByAdmin($resultAppId)) {
                 return [
                     'allowed' => false,
                     'message' => 'Laporan hasil seminar sudah divalidasi admin.',

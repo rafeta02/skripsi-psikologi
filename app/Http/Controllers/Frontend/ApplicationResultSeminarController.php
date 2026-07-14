@@ -8,6 +8,7 @@ use App\Models\Application;
 use App\Models\ApplicationResultSeminar;
 use App\Models\ApplicationSchedule;
 use App\Services\FormAccessService;
+use App\Services\MbkmGroupProgressService;
 use Carbon\Carbon;
 use Gate;
 use Illuminate\Http\Request;
@@ -27,6 +28,13 @@ class ApplicationResultSeminarController extends Controller
         }
 
         $applicationIds = Application::where('mahasiswa_id', $mahasiswaId)->pluck('id');
+
+        // Anggota kelompok: laporan tersimpan di application ketua
+        $ownerSeminar = app(MbkmGroupProgressService::class)
+            ->resolveOwnerApplication((int) $mahasiswaId, 'seminar');
+        if ($ownerSeminar) {
+            $applicationIds = $applicationIds->push($ownerSeminar->id)->unique()->values();
+        }
 
         $applicationResultSeminars = ApplicationResultSeminar::with(['application'])
             ->whereIn('application_id', $applicationIds)
@@ -114,19 +122,27 @@ class ApplicationResultSeminarController extends Controller
             'meeting_recording_link' => $validated['meeting_recording_link'] ?? null,
         ]);
 
-        foreach ($request->file('form_document') as $file) {
-            $applicationResultSeminar->addMedia($file)->toMediaCollection('form_document');
-        }
+        $applicationResultSeminar->load('application.mahasiswa');
 
-        $applicationResultSeminar->addMedia($request->file('attendance_document'))
-            ->toMediaCollection('attendance_document');
+        $applicationResultSeminar->addMultipleMediaWithCustomName(
+            $request->file('form_document'),
+            'form_document'
+        );
 
-        foreach ($request->file('documentation') as $file) {
-            $applicationResultSeminar->addMedia($file)->toMediaCollection('documentation');
-        }
+        $applicationResultSeminar->addMediaWithCustomName(
+            $request->file('attendance_document'),
+            'attendance_document'
+        );
 
-        $applicationResultSeminar->addMedia($request->file('latest_script'))
-            ->toMediaCollection('latest_script');
+        $applicationResultSeminar->addMultipleMediaWithCustomName(
+            $request->file('documentation'),
+            'documentation'
+        );
+
+        $applicationResultSeminar->addMediaWithCustomName(
+            $request->file('latest_script'),
+            'latest_script'
+        );
 
         $applicationResultSeminar->syncApplicationStatus();
 
@@ -171,12 +187,16 @@ class ApplicationResultSeminarController extends Controller
 
     protected function authorizeOwnership(ApplicationResultSeminar $applicationResultSeminar): void
     {
-        $mahasiswaId = auth()->user()->mahasiswa_id;
-        $owns = Application::where('id', $applicationResultSeminar->application_id)
-            ->where('mahasiswa_id', $mahasiswaId)
-            ->exists();
+        $mahasiswaId = (int) auth()->user()->mahasiswa_id;
+        $applicationResultSeminar->loadMissing('application');
+        $application = $applicationResultSeminar->application;
 
-        if (!$owns) {
+        if (!$application) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Ketua (pemilik) atau anggota kelompok boleh melihat laporan ketua
+        if (! app(MbkmGroupProgressService::class)->canViewOwnerApplication($mahasiswaId, $application)) {
             abort(403, 'Unauthorized');
         }
     }

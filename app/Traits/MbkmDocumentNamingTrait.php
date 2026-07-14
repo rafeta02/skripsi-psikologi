@@ -24,6 +24,10 @@ trait MbkmDocumentNamingTrait
             return sprintf('MBKM_%s_%s_%s_SEMESTER-%d_%s', $code, $nim, $name, $semester, $timestamp);
         }
 
+        if ($index !== null) {
+            return sprintf('MBKM_%s_%s_%s_%d_%s', $code, $nim, $name, $index, $timestamp);
+        }
+
         return sprintf('MBKM_%s_%s_%s_%s', $code, $nim, $name, $timestamp);
     }
 
@@ -35,6 +39,11 @@ trait MbkmDocumentNamingTrait
             'spp' => 'SPP',
             'proposal_mbkm' => 'PROPOSAL',
             'recognition_form' => 'RECOGNITION',
+            'form_document' => 'FORM_REVIEW',
+            'attendance_document' => 'PRESENSI',
+            'documentation' => 'DOKUMENTASI',
+            'latest_script' => 'NASKAH_REVISI',
+            'report_document' => 'BERITA_ACARA',
             default => strtoupper(Str::slug($collectionName, '_')),
         };
     }

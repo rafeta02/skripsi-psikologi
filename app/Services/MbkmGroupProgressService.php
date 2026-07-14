@@ -487,7 +487,7 @@ class MbkmGroupProgressService
             return false;
         }
 
-        return MbkmGroupMember::where('mahasiswa_id', $mahasiswaId)
+        $isMember = MbkmGroupMember::where('mahasiswa_id', $mahasiswaId)
             ->whereHas('mbkm_registration', function ($q) use ($application) {
                 $q->where('application_id', $application->id)
                     ->orWhereHas('application', function ($aq) use ($application) {
@@ -496,6 +496,26 @@ class MbkmGroupProgressService
                             ->where('type', 'mbkm')
                             ->where('is_group_mirror', false);
                     });
+            })
+            ->exists();
+
+        if ($isMember) {
+            return true;
+        }
+
+        // Fallback: mirror seminar/registration masih mengarah ke application ketua
+        return Application::where('mahasiswa_id', $mahasiswaId)
+            ->where('type', 'mbkm')
+            ->where('is_group_mirror', true)
+            ->where(function ($q) use ($application) {
+                $q->where('parent_application_id', $application->id)
+                    ->orWhereIn(
+                        'parent_application_id',
+                        Application::where('mahasiswa_id', $application->mahasiswa_id)
+                            ->where('type', 'mbkm')
+                            ->where('is_group_mirror', false)
+                            ->pluck('id')
+                    );
             })
             ->exists();
     }
