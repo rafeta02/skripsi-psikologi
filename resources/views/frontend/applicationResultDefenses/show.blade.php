@@ -51,7 +51,7 @@
                             <h6 class="font-weight-bold mb-2"><i class="fas fa-info-circle"></i> Revisi Diperlukan</h6>
                             <p class="mb-0">
                                 <strong>Batas waktu revisi:</strong>
-                                {{ \Carbon\Carbon::parse($applicationResultDefense->revision_deadline)->translatedFormat('l, d F Y') }}
+                                {{ $applicationResultDefense->revision_deadline }}
                             </p>
                         </div>
                     @endif

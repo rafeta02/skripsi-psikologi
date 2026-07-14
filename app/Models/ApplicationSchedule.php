@@ -65,7 +65,19 @@ class ApplicationSchedule extends Model implements HasMedia
 
     public function getWaktuAttribute($value)
     {
-        return $value ? Carbon::createFromFormat('Y-m-d H:i:s', $value)->format(config('panel.date_format') . ' ' . config('panel.time_format')) : null;
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            $date = $value instanceof \DateTimeInterface
+                ? Carbon::instance($value)
+                : Carbon::createFromFormat('Y-m-d H:i:s', $value);
+        } catch (\Throwable $e) {
+            $date = Carbon::parse($value);
+        }
+
+        return $date->format(config('panel.date_format') . ' ' . config('panel.time_format'));
     }
 
     public function setWaktuAttribute($value)

@@ -60,7 +60,7 @@ class StoreApplicationResultDefenseRequest extends FormRequest
             'final_title_en' => ['nullable', 'string', 'max:500'],
             'result' => ['required', 'in:' . implode(',', array_keys(ApplicationResultDefense::RESULT_SELECT))],
             'note' => ['nullable', 'string', 'max:5000'],
-            'revision_deadline' => ['nullable', 'date_format:' . config('panel.date_format')],
+            'revision_deadline' => ['nullable', 'date'],
             'title_change_form' => ['nullable', 'string'],
             'minutes_document' => ['required', 'string'],
             'latest_script' => ['required', 'string'],
@@ -72,7 +72,7 @@ class StoreApplicationResultDefenseRequest extends FormRequest
         ];
 
         if ($this->input('result') === 'revision') {
-            $rules['revision_deadline'] = ['required', 'date_format:' . config('panel.date_format')];
+            $rules['revision_deadline'] = ['required', 'date'];
             $rules['revision_approval_sheet'] = ['required', 'string'];
         }
 

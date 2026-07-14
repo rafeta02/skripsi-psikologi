@@ -102,12 +102,42 @@ class ApplicationResultReview extends Model implements HasMedia
 
     public function getRevisionDeadlineAttribute($value)
     {
-        return $value ? Carbon::parse($value)->format(config('panel.date_format')) : null;
+        if (!$value) {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return Carbon::instance($value)->format(config('panel.date_format'));
+        }
+
+        try {
+            return Carbon::createFromFormat('Y-m-d', substr((string) $value, 0, 10))
+                ->format(config('panel.date_format'));
+        } catch (\Throwable $e) {
+            return Carbon::parse($value)->format(config('panel.date_format'));
+        }
     }
 
     public function setRevisionDeadlineAttribute($value)
     {
-        $this->attributes['revision_deadline'] = $value ? Carbon::createFromFormat(config('panel.date_format'), $value)->format('Y-m-d') : null;
+        if (!$value) {
+            $this->attributes['revision_deadline'] = null;
+            return;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            $this->attributes['revision_deadline'] = Carbon::instance($value)->format('Y-m-d');
+            return;
+        }
+
+        try {
+            $this->attributes['revision_deadline'] = Carbon::createFromFormat(
+                config('panel.date_format'),
+                $value
+            )->format('Y-m-d');
+        } catch (\Throwable $e) {
+            $this->attributes['revision_deadline'] = Carbon::parse($value)->format('Y-m-d');
+        }
     }
 
     public function getFormDocumentAttribute()

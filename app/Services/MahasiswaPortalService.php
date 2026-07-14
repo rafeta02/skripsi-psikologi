@@ -124,16 +124,17 @@ class MahasiswaPortalService
                 ? $app->parentApplication
                 : $app;
 
-            foreach ($scheduleSource->schedules->sortByDesc('waktu') as $schedule) {
+            foreach ($scheduleSource->schedules->sortByDesc(fn ($schedule) => $schedule->getRawOriginal('waktu')) as $schedule) {
                 $scheduleLabel = ApplicationSchedule::SCHEDULE_TYPE_SELECT[$schedule->schedule_type] ?? $schedule->schedule_type;
                 $validation = $schedule->adminValidationStatus();
+                $rawWaktu = $schedule->getRawOriginal('waktu');
 
                 $steps[] = [
                     'label' => "Jadwal: {$scheduleLabel}",
                     'sublabel' => $validation['label'],
                     'status' => $validation['badge'] === 'success' ? 'done' : ($validation['badge'] === 'danger' ? 'failed' : 'active'),
                     'badge' => $validation['badge'],
-                    'date' => $schedule->waktu,
+                    'date' => $rawWaktu ? \Carbon\Carbon::parse($rawWaktu)->format('d M Y H:i') : ($schedule->waktu ?? '-'),
                     'url' => Route::has('frontend.application-schedules.show')
                         ? route('frontend.application-schedules.show', $schedule->id)
                         : route('mahasiswa.jadwal'),
