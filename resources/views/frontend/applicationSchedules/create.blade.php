@@ -110,7 +110,7 @@
                             <!-- Room (for offline) -->
                             <div class="form-group" id="roomField">
                                 <label class="form-label-modern required">Ruangan</label>
-                                <select name="ruang_id" class="form-control-modern @error('ruang_id') is-invalid @enderror">
+                                <select name="ruang_id" class="select2 form-control-modern @error('ruang_id') is-invalid @enderror">
                                     <option value="">-- Pilih Ruangan --</option>
                                     @foreach($ruangs as $id => $name)
                                         @if($id)
