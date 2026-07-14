@@ -22,19 +22,34 @@ class MbkmRegistrationController extends Controller
     {
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        
+
         if (!$mahasiswa) {
             return redirect()->back()->with('error', 'Data mahasiswa tidak ditemukan.');
         }
-        
+
+        $groupService = app(MbkmGroupProgressService::class);
+        $isGroupFollower = $groupService->isFollowerAnggota($mahasiswa->id);
+
         // Get all MBKM applications for this mahasiswa
         $applications = Application::where('mahasiswa_id', $mahasiswa->id)
             ->where('type', 'mbkm')
-            ->with('mbkmRegistration')
+            ->with(['mbkmRegistration.research_group', 'mbkmRegistration.preference_supervision', 'parentApplication.mbkmRegistration.research_group', 'parentApplication.mbkmRegistration.preference_supervision'])
             ->orderBy('created_at', 'desc')
             ->get();
-        
-        return view('frontend.mbkm.index', compact('applications', 'mahasiswa'));
+
+        // Anggota: pastikan application ketua (registration) ikut tampil jika hanya mirror yang ada
+        if ($isGroupFollower) {
+            $ownerRegistration = $groupService->resolveOwnerApplication($mahasiswa->id, 'registration');
+            if ($ownerRegistration && !$applications->contains('id', $ownerRegistration->id)) {
+                $ownerRegistration->load([
+                    'mbkmRegistration.research_group',
+                    'mbkmRegistration.preference_supervision',
+                ]);
+                $applications = $applications->prepend($ownerRegistration)->values();
+            }
+        }
+
+        return view('frontend.mbkm.index', compact('applications', 'mahasiswa', 'isGroupFollower'));
     }
     
     public function create($applicationId)
