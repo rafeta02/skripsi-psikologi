@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\MediaUploadingTrait;
 use App\Models\Application;
 use App\Models\ApplicationResultSeminar;
+use App\Models\ApplicationSchedule;
 use App\Services\FormAccessService;
+use Carbon\Carbon;
 use Gate;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -76,7 +78,6 @@ class ApplicationResultSeminarController extends Controller
             'application_id' => 'required|exists:applications,id',
             'result' => 'required|in:' . implode(',', array_keys(ApplicationResultSeminar::RESULT_SELECT)),
             'note' => 'nullable|string',
-            'revision_deadline' => 'nullable|date',
             'meeting_recording_link' => 'nullable|url|max:500',
             'form_document' => 'required|array|min:1',
             'form_document.*' => 'file|mimes:pdf|max:10240',
@@ -109,7 +110,7 @@ class ApplicationResultSeminarController extends Controller
             'application_id' => $validated['application_id'],
             'result' => $validated['result'],
             'note' => $validated['note'] ?? null,
-            'revision_deadline' => $validated['revision_deadline'] ?? null,
+            'revision_deadline' => $this->resolveRevisionDeadline((int) $validated['application_id']),
             'meeting_recording_link' => $validated['meeting_recording_link'] ?? null,
         ]);
 
@@ -131,6 +132,23 @@ class ApplicationResultSeminarController extends Controller
 
         return redirect()->route('frontend.application-result-seminars.index')
             ->with('success', 'Laporan hasil review berhasil dikirim. Menunggu validasi admin sebelum Anda dapat mendaftar sidang skripsi.');
+    }
+
+    /**
+     * Tenggat revisi = 2 minggu sejak jadwal Review Kelayakan Proposal.
+     */
+    protected function resolveRevisionDeadline(int $applicationId): string
+    {
+        $schedule = ApplicationSchedule::where('application_id', $applicationId)
+            ->whereIn('schedule_type', ['mbkm_seminar', 'seminar'])
+            ->orderByDesc('id')
+            ->first();
+
+        $baseDate = $schedule?->getRawOriginal('waktu')
+            ? Carbon::parse($schedule->getRawOriginal('waktu'))
+            : now();
+
+        return $baseDate->copy()->addWeeks(2)->format(config('panel.date_format'));
     }
 
     public function show(ApplicationResultSeminar $applicationResultSeminar)

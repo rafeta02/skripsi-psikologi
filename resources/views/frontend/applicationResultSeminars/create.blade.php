@@ -54,15 +54,6 @@
                                 @enderror
                             </div>
 
-                            <div class="form-group" id="revisionDeadlineField">
-                                <label class="form-label-modern">Tenggat Waktu Revisi</label>
-                                <input type="date" name="revision_deadline" class="form-control-modern @error('revision_deadline') is-invalid @enderror" value="{{ old('revision_deadline') }}" min="{{ date('Y-m-d') }}">
-                                <small class="form-text text-muted">Batas waktu menyelesaikan perbaikan minor/mayor</small>
-                                @error('revision_deadline')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
                             <div class="form-group">
                                 <label class="form-label-modern">Catatan dari Reviewer</label>
                                 <textarea name="note" class="form-control-modern @error('note') is-invalid @enderror" rows="4" placeholder="Masukan, saran, atau komentar dari reviewer">{{ old('note') }}</textarea>
@@ -75,7 +66,7 @@
                             <h5 class="font-weight-bold mb-3">Dokumen</h5>
 
                             <div class="form-group">
-                                <label class="form-label-modern required">1. Form Review Kelayakan Proposal MBKM Riset (PDF)</label>
+                                <label class="form-label-modern required">Form Review Kelayakan Proposal MBKM Riset (PDF)</label>
                                 <div class="custom-file">
                                     <input type="file" name="form_document[]" class="custom-file-input @error('form_document') is-invalid @enderror @error('form_document.*') is-invalid @enderror" id="formDocument" accept=".pdf,application/pdf" multiple required>
                                     <label class="custom-file-label" for="formDocument">Pilih file...</label>
@@ -90,7 +81,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label-modern required">2. Presensi Peserta (PDF)</label>
+                                <label class="form-label-modern required">Presensi Peserta (PDF)</label>
                                 <div class="custom-file">
                                     <input type="file" name="attendance_document" class="custom-file-input @error('attendance_document') is-invalid @enderror" id="attendanceDocument" accept=".pdf,application/pdf" required>
                                     <label class="custom-file-label" for="attendanceDocument">Pilih file...</label>
@@ -102,7 +93,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label-modern required">3. Dokumentasi Seminar (Screenshot atau Foto)</label>
+                                <label class="form-label-modern required">Dokumentasi Seminar (Screenshot atau Foto)</label>
                                 <div class="custom-file">
                                     <input type="file" name="documentation[]" class="custom-file-input @error('documentation') is-invalid @enderror @error('documentation.*') is-invalid @enderror" id="documentation" accept="image/*,.jpg,.jpeg,.png,.webp" multiple required>
                                     <label class="custom-file-label" for="documentation">Pilih file...</label>
@@ -117,7 +108,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label-modern">4. Tautan Record Meeting <span class="text-muted">(opsional jika online)</span></label>
+                                <label class="form-label-modern">Tautan Record Meeting <span class="text-muted">(opsional jika online)</span></label>
                                 <input type="url" name="meeting_recording_link" class="form-control-modern @error('meeting_recording_link') is-invalid @enderror" value="{{ old('meeting_recording_link') }}" placeholder="https://drive.google.com/... atau link Zoom/Meet recording">
                                 <small class="form-text text-muted">Wajib diisi jika pelaksanaan dilakukan secara online</small>
                                 @error('meeting_recording_link')
@@ -126,7 +117,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label-modern required">5. Naskah Proposal MBKM (KKN dan Skripsi Hasil Revisi) (PDF)</label>
+                                <label class="form-label-modern required">Naskah Proposal MBKM (KKN dan Skripsi Hasil Revisi) (PDF)</label>
                                 <div class="custom-file">
                                     <input type="file" name="latest_script" class="custom-file-input @error('latest_script') is-invalid @enderror" id="latestScript" accept=".pdf,application/pdf" required>
                                     <label class="custom-file-label" for="latestScript">Pilih file...</label>
