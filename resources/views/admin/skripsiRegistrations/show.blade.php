@@ -412,7 +412,7 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="supervisor_id">Pilih Dosen Pembimbing <span class="text-danger">*</span></label>
-                        <select class="form-control" id="supervisor_id" name="supervisor_id" required>
+                        <select class="form-control select2" id="supervisor_id" name="supervisor_id" required>
                             <option value="">-- Pilih Dosen --</option>
                             @foreach(\App\Models\Dosen::orderBy('nama')->get() as $dosen)
                                 <option value="{{ $dosen->id }}" {{ $skripsiRegistration->preference_supervision_id == $dosen->id ? 'selected' : '' }}>

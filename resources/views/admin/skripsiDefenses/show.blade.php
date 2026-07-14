@@ -161,7 +161,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="examiner_1_id">Pilih Penguji 1 <span class="text-danger">*</span></label>
-                                        <select class="form-control {{ $errors->has('examiner_1_id') ? 'is-invalid' : '' }}" name="examiner_1_id" id="examiner_1_id" required>
+                                        <select class="form-control select2 {{ $errors->has('examiner_1_id') ? 'is-invalid' : '' }}" name="examiner_1_id" id="examiner_1_id" required>
                                             <option value="">-- Pilih Dosen --</option>
                                             @foreach($dosens as $dosen)
                                                 <option value="{{ $dosen->id }}"
@@ -178,7 +178,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="examiner_2_id">Pilih Penguji 2 <span class="text-danger">*</span></label>
-                                        <select class="form-control {{ $errors->has('examiner_2_id') ? 'is-invalid' : '' }}" name="examiner_2_id" id="examiner_2_id" required>
+                                        <select class="form-control select2 {{ $errors->has('examiner_2_id') ? 'is-invalid' : '' }}" name="examiner_2_id" id="examiner_2_id" required>
                                             <option value="">-- Pilih Dosen --</option>
                                             @foreach($dosens as $dosen)
                                                 <option value="{{ $dosen->id }}"
@@ -704,7 +704,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="accept_examiner_1_id">Penguji 1 <span class="text-danger">*</span></label>
-                                <select class="form-control {{ $errors->has('examiner_1_id') ? 'is-invalid' : '' }}" name="examiner_1_id" id="accept_examiner_1_id" required>
+                                <select class="form-control select2 {{ $errors->has('examiner_1_id') ? 'is-invalid' : '' }}" name="examiner_1_id" id="accept_examiner_1_id" required>
                                     <option value="">-- Pilih Dosen --</option>
                                     @foreach($dosens as $dosen)
                                         <option value="{{ $dosen->id }}"
@@ -721,7 +721,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="accept_examiner_2_id">Penguji 2 <span class="text-danger">*</span></label>
-                                <select class="form-control {{ $errors->has('examiner_2_id') ? 'is-invalid' : '' }}" name="examiner_2_id" id="accept_examiner_2_id" required>
+                                <select class="form-control select2 {{ $errors->has('examiner_2_id') ? 'is-invalid' : '' }}" name="examiner_2_id" id="accept_examiner_2_id" required>
                                     <option value="">-- Pilih Dosen --</option>
                                     @foreach($dosens as $dosen)
                                         <option value="{{ $dosen->id }}"

@@ -706,7 +706,7 @@
 
                     <div class="form-group">
                         <label for="reviewer_1_id">Reviewer 1 <span class="text-danger">*</span></label>
-                        <select class="form-control" id="reviewer_1_id" name="reviewer_1_id" required>
+                        <select class="form-control select2" id="reviewer_1_id" name="reviewer_1_id" required>
                             <option value="">-- Pilih Reviewer 1 --</option>
                             @foreach(\App\Models\Dosen::orderBy('nama')->get() as $dosen)
                                 <option value="{{ $dosen->id }}">{{ $dosen->nama }}</option>
@@ -717,7 +717,7 @@
 
                     <div class="form-group">
                         <label for="reviewer_2_id">Reviewer 2 <span class="text-danger">*</span></label>
-                        <select class="form-control" id="reviewer_2_id" name="reviewer_2_id" required>
+                        <select class="form-control select2" id="reviewer_2_id" name="reviewer_2_id" required>
                             <option value="">-- Pilih Reviewer 2 --</option>
                             @foreach(\App\Models\Dosen::orderBy('nama')->get() as $dosen)
                                 <option value="{{ $dosen->id }}">{{ $dosen->nama }}</option>

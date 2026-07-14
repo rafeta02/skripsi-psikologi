@@ -49,7 +49,18 @@ $(document).ready(function () {
     $select2.trigger('change')
   })
 
-  $('.select2').select2()
+  $('.select2').each(function () {
+    var $el = $(this)
+    if ($el.hasClass('select2-hidden-accessible')) {
+      return
+    }
+
+    var $modal = $el.closest('.modal')
+    $el.select2({
+      width: '100%',
+      dropdownParent: $modal.length ? $modal : $(document.body)
+    })
+  })
 
   $('.treeview').each(function () {
     var shouldExpand = false
