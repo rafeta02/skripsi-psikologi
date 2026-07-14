@@ -45,17 +45,17 @@
                     <i class="fas fa-info-circle mr-2"></i>
                     Daftar jadwal yang menunggu persetujuan Anda. Klik tombol aksi untuk menyetujui atau menolak.
                 </div>
-                <table class="table table-bordered table-striped table-hover datatable datatable-pending">
+                <table class="table table-bordered table-striped table-hover datatable datatable-pending text-center">
                     <thead>
                         <tr>
-                            <th width="10"></th>
-                            <th>Mahasiswa</th>
-                            <th>NIM</th>
-                            <th>Tipe Jadwal</th>
-                            <th>Waktu</th>
-                            <th>Tempat/Ruangan</th>
-                            <th>Diajukan</th>
-                            <th width="200">Actions</th>
+                            <th width="10" class="text-center"></th>
+                            <th class="text-center">Mahasiswa</th>
+                            <th class="text-center">NIM</th>
+                            <th class="text-center">Tipe Jadwal</th>
+                            <th class="text-center">Waktu</th>
+                            <th class="text-center">Tempat/Ruangan</th>
+                            <th class="text-center">Diajukan</th>
+                            <th width="200" class="text-center">Actions</th>
                         </tr>
                     </thead>
                 </table>
@@ -63,17 +63,17 @@
 
             <!-- Approved Tab -->
             <div class="tab-pane fade" id="approved" role="tabpanel">
-                <table class="table table-bordered table-striped table-hover datatable datatable-approved">
+                <table class="table table-bordered table-striped table-hover datatable datatable-approved text-center">
                     <thead>
                         <tr>
-                            <th width="10"></th>
-                            <th>Mahasiswa</th>
-                            <th>NIM</th>
-                            <th>Tipe Jadwal</th>
-                            <th>Waktu</th>
-                            <th>Tempat/Ruangan</th>
-                            <th>Disetujui</th>
-                            <th>Actions</th>
+                            <th width="10" class="text-center"></th>
+                            <th class="text-center">Mahasiswa</th>
+                            <th class="text-center">NIM</th>
+                            <th class="text-center">Tipe Jadwal</th>
+                            <th class="text-center">Waktu</th>
+                            <th class="text-center">Tempat/Ruangan</th>
+                            <th class="text-center">Disetujui</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                 </table>
@@ -81,17 +81,17 @@
 
             <!-- Rejected Tab -->
             <div class="tab-pane fade" id="rejected" role="tabpanel">
-                <table class="table table-bordered table-striped table-hover datatable datatable-rejected">
+                <table class="table table-bordered table-striped table-hover datatable datatable-rejected text-center">
                     <thead>
                         <tr>
-                            <th width="10"></th>
-                            <th>Mahasiswa</th>
-                            <th>NIM</th>
-                            <th>Tipe Jadwal</th>
-                            <th>Waktu</th>
-                            <th>Tempat/Ruangan</th>
-                            <th>Alasan Penolakan</th>
-                            <th>Actions</th>
+                            <th width="10" class="text-center"></th>
+                            <th class="text-center">Mahasiswa</th>
+                            <th class="text-center">NIM</th>
+                            <th class="text-center">Tipe Jadwal</th>
+                            <th class="text-center">Waktu</th>
+                            <th class="text-center">Tempat/Ruangan</th>
+                            <th class="text-center">Alasan Penolakan</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                 </table>
@@ -99,17 +99,17 @@
 
             <!-- All Tab -->
             <div class="tab-pane fade" id="all" role="tabpanel">
-                <table class="table table-bordered table-striped table-hover datatable datatable-all">
+                <table class="table table-bordered table-striped table-hover datatable datatable-all text-center">
                     <thead>
                         <tr>
-                            <th width="10"></th>
-                            <th>Mahasiswa</th>
-                            <th>NIM</th>
-                            <th>Tipe Jadwal</th>
-                            <th>Waktu</th>
-                            <th>Tempat/Ruangan</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th width="10" class="text-center"></th>
+                            <th class="text-center">Mahasiswa</th>
+                            <th class="text-center">NIM</th>
+                            <th class="text-center">Tipe Jadwal</th>
+                            <th class="text-center">Waktu</th>
+                            <th class="text-center">Tempat/Ruangan</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                 </table>
@@ -117,6 +117,20 @@
         </div>
     </div>
 </div>
+
+<style>
+    .datatable-pending th,
+    .datatable-pending td,
+    .datatable-approved th,
+    .datatable-approved td,
+    .datatable-rejected th,
+    .datatable-rejected td,
+    .datatable-all th,
+    .datatable-all td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+</style>
 
 <!-- Quick Approve Modal -->
 <div class="modal fade" id="quickApproveModal" tabindex="-1">
@@ -252,18 +266,19 @@ $(function () {
       }
     },
     columns: [
-      { data: 'placeholder', name: 'placeholder', orderable: false, searchable: false },
-      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama' },
-      { data: 'mahasiswa_nim', name: 'application.mahasiswa.nim' },
-      { data: 'schedule_type', name: 'schedule_type' },
-      { data: 'waktu', name: 'waktu' },
-      { data: 'ruang_name', name: 'ruang.name', orderable: false },
-      { data: 'created_at', name: 'created_at' },
+      { data: 'placeholder', name: 'placeholder', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama', className: 'text-center' },
+      { data: 'mahasiswa_nim', name: 'application.mahasiswa.nim', className: 'text-center' },
+      { data: 'schedule_type', name: 'schedule_type', className: 'text-center' },
+      { data: 'waktu', name: 'waktu', className: 'text-center' },
+      { data: 'ruang_name', name: 'ruang.name', orderable: false, className: 'text-center' },
+      { data: 'created_at', name: 'created_at', className: 'text-center' },
       { 
         data: null, 
         name: 'actions',
         orderable: false, 
         searchable: false,
+        className: 'text-center',
         render: function(data, type, row) {
           return createActionButtons(row, 'pending');
         }
@@ -286,18 +301,19 @@ $(function () {
       }
     },
     columns: [
-      { data: 'placeholder', name: 'placeholder', orderable: false, searchable: false },
-      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama' },
-      { data: 'mahasiswa_nim', name: 'application.mahasiswa.nim' },
-      { data: 'schedule_type', name: 'schedule_type' },
-      { data: 'waktu', name: 'waktu' },
-      { data: 'ruang_name', name: 'ruang.name', orderable: false },
-      { data: 'updated_at', name: 'updated_at' },
+      { data: 'placeholder', name: 'placeholder', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama', className: 'text-center' },
+      { data: 'mahasiswa_nim', name: 'application.mahasiswa.nim', className: 'text-center' },
+      { data: 'schedule_type', name: 'schedule_type', className: 'text-center' },
+      { data: 'waktu', name: 'waktu', className: 'text-center' },
+      { data: 'ruang_name', name: 'ruang.name', orderable: false, className: 'text-center' },
+      { data: 'updated_at', name: 'updated_at', className: 'text-center' },
       { 
         data: null, 
         name: 'actions',
         orderable: false, 
         searchable: false,
+        className: 'text-center',
         render: function(data, type, row) {
           return createActionButtons(row, 'approved');
         }
@@ -320,18 +336,19 @@ $(function () {
       }
     },
     columns: [
-      { data: 'placeholder', name: 'placeholder', orderable: false, searchable: false },
-      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama' },
-      { data: 'mahasiswa_nim', name: 'application.mahasiswa.nim' },
-      { data: 'schedule_type', name: 'schedule_type' },
-      { data: 'waktu', name: 'waktu' },
-      { data: 'ruang_name', name: 'ruang.name', orderable: false },
-      { data: 'rejection_reason', name: 'application.notes', orderable: false },
+      { data: 'placeholder', name: 'placeholder', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama', className: 'text-center' },
+      { data: 'mahasiswa_nim', name: 'application.mahasiswa.nim', className: 'text-center' },
+      { data: 'schedule_type', name: 'schedule_type', className: 'text-center' },
+      { data: 'waktu', name: 'waktu', className: 'text-center' },
+      { data: 'ruang_name', name: 'ruang.name', orderable: false, className: 'text-center' },
+      { data: 'rejection_reason', name: 'application.notes', orderable: false, className: 'text-center' },
       { 
         data: null, 
         name: 'actions',
         orderable: false, 
         searchable: false,
+        className: 'text-center',
         render: function(data, type, row) {
           return createActionButtons(row, 'rejected');
         }
@@ -349,18 +366,19 @@ $(function () {
     aaSorting: [],
     ajax: "{{ route('admin.application-schedules.index') }}",
     columns: [
-      { data: 'placeholder', name: 'placeholder', orderable: false, searchable: false },
-      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama' },
-      { data: 'mahasiswa_nim', name: 'application.mahasiswa.nim' },
-      { data: 'schedule_type', name: 'schedule_type' },
-      { data: 'waktu', name: 'waktu' },
-      { data: 'ruang_name', name: 'ruang.name', orderable: false },
-      { data: 'status_badge', name: 'application.status', orderable: false, searchable: false },
+      { data: 'placeholder', name: 'placeholder', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama', className: 'text-center' },
+      { data: 'mahasiswa_nim', name: 'application.mahasiswa.nim', className: 'text-center' },
+      { data: 'schedule_type', name: 'schedule_type', className: 'text-center' },
+      { data: 'waktu', name: 'waktu', className: 'text-center' },
+      { data: 'ruang_name', name: 'ruang.name', orderable: false, className: 'text-center' },
+      { data: 'status_badge', name: 'application.status', orderable: false, searchable: false, className: 'text-center' },
       { 
         data: null, 
         name: 'actions',
         orderable: false, 
         searchable: false,
+        className: 'text-center',
         render: function(data, type, row) {
           return createActionButtons(row, row.status);
         }
