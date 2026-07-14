@@ -9,6 +9,7 @@
                     <th>NIM</th>
                     <th>Prodi</th>
                     <th>Jalur</th>
+                    <th>Peran</th>
                     <th>Tahap</th>
                     <th>Status Penugasan</th>
                     <th>Status Aplikasi</th>
@@ -23,6 +24,13 @@
                         <td>{{ $item['nim'] }}</td>
                         <td>{{ $item['prodi'] }}</td>
                         <td><span class="badge badge-primary">{{ $item['type'] }}</span></td>
+                        <td>
+                            @if(!empty($item['peran_kelompok']))
+                                <span class="badge badge-{{ $item['peran_kelompok'] === 'Ketua' ? 'info' : 'secondary' }}">{{ $item['peran_kelompok'] }}</span>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
                         <td>{{ $item['stage'] }}</td>
                         <td>
                             @php

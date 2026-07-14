@@ -71,7 +71,8 @@
                 <div class="alert alert-info mb-3">
                     <i class="fas fa-info-circle"></i>
                     Beban penguji dihitung dari penugasan <strong>reviewer seminar</strong> (reguler & MBKM) dan <strong>penguji sidang</strong>.
-                    Klik <strong>Detail</strong> untuk melihat daftar lengkap per mahasiswa.
+                    Untuk <strong>MBKM kelompok</strong> (review kelayakan proposal), beban dihitung per mahasiswa, bukan per kelompok.
+                    Sidang tetap dihitung per individu. Klik <strong>Detail</strong> untuk daftar lengkap.
                 </div>
 
                 @if($recap->isEmpty())

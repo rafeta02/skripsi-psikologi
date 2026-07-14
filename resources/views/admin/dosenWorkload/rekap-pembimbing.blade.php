@@ -71,6 +71,7 @@
                 <div class="alert alert-info mb-3">
                     <i class="fas fa-info-circle"></i>
                     <strong>Bimbingan aktif</strong> = penugasan diterima dan mahasiswa belum selesai/rejected.
+                    Untuk <strong>MBKM kelompok</strong>, beban dihitung per mahasiswa (ketua + anggota), bukan per kelompok.
                     Klik <strong>Detail</strong> untuk melihat daftar mahasiswa bimbingan.
                 </div>
 
