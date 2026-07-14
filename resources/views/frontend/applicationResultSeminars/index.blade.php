@@ -63,16 +63,18 @@
                                     </p>
                                     @php
                                         $resultBadge = match($result->result) {
+                                            'minor' => ['success', 'Layak Dilaksanakan (minor)'],
+                                            'mayor' => ['info', 'Layak Dilaksanakan (mayor)'],
                                             'passed' => ['success', 'Lulus'],
                                             'revision' => ['warning', 'Revisi'],
                                             'failed' => ['danger', 'Tidak Lulus'],
-                                            default => ['secondary', ucfirst($result->result ?? '-')],
+                                            default => ['secondary', $result->resultLabel()],
                                         };
                                     @endphp
                                     <span class="badge badge-{{ $resultBadge[0] }} badge-lg px-3 py-2">
                                         {{ $resultBadge[1] }}
                                     </span>
-                                    @if($result->result === 'passed')
+                                    @if($result->isEligibleOutcome())
                                         @if($result->isValidatedByAdmin())
                                             <span class="badge badge-success ml-1">Divalidasi Admin</span>
                                         @else

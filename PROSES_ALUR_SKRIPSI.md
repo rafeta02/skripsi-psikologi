@@ -202,11 +202,13 @@ Panduan resmi dua alur proses: Skripsi Reguler dan Skripsi MBKM. Setiap langkah 
 
 7) Pelaporan Hasil Review Proposal
 - Peran: Mahasiswa **ketua**
-- Form: `ApplicationResultSeminar` (hasil: `passed`/`revision`/`failed`, dokumen terkait)
-- Catatan: 
-  - Jika `revision`: mahasiswa melakukan revisi sesuai masukan reviewer, isi tenggat revisi
-  - Jika `failed`: `SkripsiSeminar` dibuka kembali; mahasiswa edit & unggah ulang dokumen; reviewer 1/2 direset; status kembali `submitted` menunggu admin
-  - Jika `passed`: status aplikasi `submitted` menunggu **validasi admin**; setelah admin menyetujui (`result_seminar_approved`), **setiap anggota kelompok** dapat mendaftar sidang (`SkripsiDefense`) secara individu
+- Form: `ApplicationResultSeminar`
+- Hasil:
+  - `minor`: Layak Dilaksanakan dengan perbaikan minor
+  - `mayor`: Layak Dilaksanakan dengan perbaikan mayor
+- Dokumen wajib: Form Review Kelayakan Proposal MBKM Riset, Presensi Peserta, Dokumentasi Seminar, Naskah Proposal MBKM hasil revisi
+- Dokumen opsional: Tautan Record Meeting (jika online)
+- Setelah dikirim: status menunggu **validasi admin**; setelah admin menyetujui (`result_seminar_approved`), **setiap anggota kelompok** dapat mendaftar sidang (`SkripsiDefense`) secara individu
 
 8) Proses Skripsi Lanjutan
 - Peran: Mahasiswa

@@ -27,9 +27,15 @@ class ApplicationResultSeminar extends Model implements HasMedia
     ];
 
     public const RESULT_SELECT = [
-        'passed'   => 'Passed',
-        'revision' => 'Revision',
-        'failed'   => 'Failed',
+        'minor' => 'Layak Dilaksanakan dengan perbaikan minor',
+        'mayor' => 'Layak Dilaksanakan dengan perbaikan mayor',
+    ];
+
+    /** Legacy values kept for data lama / tampilan historis */
+    public const RESULT_SELECT_LEGACY = [
+        'passed'   => 'Lulus',
+        'revision' => 'Revisi',
+        'failed'   => 'Tidak Lulus',
     ];
 
     protected $appends = [
@@ -43,6 +49,7 @@ class ApplicationResultSeminar extends Model implements HasMedia
     protected $fillable = [
         'application_id',
         'result',
+        'note',
         'meeting_recording_link',
         'revision_deadline',
         'created_at',
@@ -53,6 +60,24 @@ class ApplicationResultSeminar extends Model implements HasMedia
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
+    }
+
+    public static function allResultLabels(): array
+    {
+        return self::RESULT_SELECT + self::RESULT_SELECT_LEGACY;
+    }
+
+    public function resultLabel(): string
+    {
+        return self::allResultLabels()[$this->result] ?? ($this->result ?? '-');
+    }
+
+    /**
+     * Hasil yang layak dilanjutkan ke validasi admin / sidang.
+     */
+    public function isEligibleOutcome(): bool
+    {
+        return in_array($this->result, ['passed', 'minor', 'mayor'], true);
     }
 
     public function registerMediaConversions(Media $media = null): void
@@ -93,7 +118,7 @@ class ApplicationResultSeminar extends Model implements HasMedia
             $status = 'rejected';
         } else {
             $status = match ($this->result) {
-                'passed' => $this->isValidatedByAdmin() ? 'approved' : 'submitted',
+                'passed', 'minor', 'mayor' => $this->isValidatedByAdmin() ? 'approved' : 'submitted',
                 'revision' => 'revision',
                 'failed' => 'rejected',
                 default => $this->application->status,
@@ -112,11 +137,11 @@ class ApplicationResultSeminar extends Model implements HasMedia
             return '<span class="badge badge-danger badge-lg">Ditolak Admin</span>';
         }
 
-        if ($this->result !== 'passed') {
+        if (!$this->isEligibleOutcome()) {
             return match ($this->result) {
                 'revision' => '<span class="badge badge-warning badge-lg">Revisi</span>',
                 'failed' => '<span class="badge badge-danger badge-lg">Tidak Lulus</span>',
-                default => '<span class="badge badge-secondary badge-lg">-</span>',
+                default => '<span class="badge badge-secondary badge-lg">' . e($this->resultLabel()) . '</span>',
             };
         }
 
@@ -134,7 +159,16 @@ class ApplicationResultSeminar extends Model implements HasMedia
 
     public function setRevisionDeadlineAttribute($value)
     {
-        $this->attributes['revision_deadline'] = $value ? Carbon::createFromFormat(config('panel.date_format'), $value)->format('Y-m-d') : null;
+        if (!$value) {
+            $this->attributes['revision_deadline'] = null;
+            return;
+        }
+
+        try {
+            $this->attributes['revision_deadline'] = Carbon::createFromFormat(config('panel.date_format'), $value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            $this->attributes['revision_deadline'] = Carbon::parse($value)->format('Y-m-d');
+        }
     }
 
     public function getReportDocumentAttribute()

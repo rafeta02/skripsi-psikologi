@@ -74,14 +74,23 @@ class ApplicationResultSeminarController extends Controller
 
         $validated = $request->validate([
             'application_id' => 'required|exists:applications,id',
-            'result' => 'required|in:passed,revision,failed',
+            'result' => 'required|in:' . implode(',', array_keys(ApplicationResultSeminar::RESULT_SELECT)),
             'note' => 'nullable|string',
             'revision_deadline' => 'nullable|date',
-            'report_document' => 'nullable|array',
-            'report_document.*' => 'file|mimes:pdf|max:10240',
-            'attendance_document' => 'nullable|file|mimes:pdf|max:10240',
-            'form_document' => 'nullable|array',
+            'meeting_recording_link' => 'nullable|url|max:500',
+            'form_document' => 'required|array|min:1',
             'form_document.*' => 'file|mimes:pdf|max:10240',
+            'attendance_document' => 'required|file|mimes:pdf|max:10240',
+            'documentation' => 'required|array|min:1',
+            'documentation.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',
+            'latest_script' => 'required|file|mimes:pdf|max:10240',
+        ], [
+            'result.required' => 'Hasil review wajib dipilih',
+            'form_document.required' => 'Form Review Kelayakan Proposal MBKM Riset wajib diunggah',
+            'attendance_document.required' => 'Presensi Peserta wajib diunggah',
+            'documentation.required' => 'Dokumentasi Seminar wajib diunggah',
+            'latest_script.required' => 'Naskah Proposal MBKM hasil revisi wajib diunggah',
+            'meeting_recording_link.url' => 'Tautan record meeting harus berupa URL yang valid',
         ]);
 
         if ((int) $validated['application_id'] !== (int) $access['application']->id) {
@@ -101,33 +110,27 @@ class ApplicationResultSeminarController extends Controller
             'result' => $validated['result'],
             'note' => $validated['note'] ?? null,
             'revision_deadline' => $validated['revision_deadline'] ?? null,
+            'meeting_recording_link' => $validated['meeting_recording_link'] ?? null,
         ]);
 
-        if ($request->hasFile('report_document')) {
-            foreach ($request->file('report_document') as $file) {
-                $applicationResultSeminar->addMedia($file)->toMediaCollection('report_document');
-            }
+        foreach ($request->file('form_document') as $file) {
+            $applicationResultSeminar->addMedia($file)->toMediaCollection('form_document');
         }
 
-        if ($request->hasFile('attendance_document')) {
-            $applicationResultSeminar->addMedia($request->file('attendance_document'))
-                ->toMediaCollection('attendance_document');
+        $applicationResultSeminar->addMedia($request->file('attendance_document'))
+            ->toMediaCollection('attendance_document');
+
+        foreach ($request->file('documentation') as $file) {
+            $applicationResultSeminar->addMedia($file)->toMediaCollection('documentation');
         }
 
-        if ($request->hasFile('form_document')) {
-            foreach ($request->file('form_document') as $file) {
-                $applicationResultSeminar->addMedia($file)->toMediaCollection('form_document');
-            }
-        }
+        $applicationResultSeminar->addMedia($request->file('latest_script'))
+            ->toMediaCollection('latest_script');
 
         $applicationResultSeminar->syncApplicationStatus();
 
-        $message = $validated['result'] === 'passed'
-            ? 'Laporan hasil lulus berhasil dikirim. Menunggu validasi admin sebelum Anda dapat mendaftar sidang skripsi.'
-            : 'Laporan hasil review proposal berhasil dikirim!';
-
         return redirect()->route('frontend.application-result-seminars.index')
-            ->with('success', $message);
+            ->with('success', 'Laporan hasil review berhasil dikirim. Menunggu validasi admin sebelum Anda dapat mendaftar sidang skripsi.');
     }
 
     public function show(ApplicationResultSeminar $applicationResultSeminar)

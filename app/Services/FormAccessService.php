@@ -590,10 +590,10 @@ class FormAccessService
                 ];
             }
 
-            if ($seminarResult->result === 'passed' && !$this->isSeminarResultValidatedByAdmin($seminarApp->id)) {
+            if ($seminarResult->isEligibleOutcome() && !$this->isSeminarResultValidatedByAdmin($seminarApp->id)) {
                 return [
                     'allowed' => false,
-                    'message' => 'Laporan hasil lulus menunggu validasi admin. Anda belum dapat mendaftar sidang skripsi.',
+                    'message' => 'Laporan hasil menunggu validasi admin. Anda belum dapat mendaftar sidang skripsi.',
                     'application' => $seminarApp,
                     'pending_admin_validation' => true,
                 ];
@@ -724,7 +724,7 @@ class FormAccessService
         $result = ApplicationResultSeminar::where('application_id', $seminarApp->id)->first();
 
         if ($result) {
-            if ($result->result === 'passed' && $this->isSeminarResultValidatedByAdmin($seminarApp->id)) {
+            if ($result->isEligibleOutcome() && $this->isSeminarResultValidatedByAdmin($seminarApp->id)) {
                 return [
                     'allowed' => false,
                     'message' => 'Laporan hasil seminar sudah divalidasi admin.',

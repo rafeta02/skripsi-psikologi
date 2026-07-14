@@ -378,7 +378,7 @@
                             <li class="nav-item">
                                 <a href="{{ route("admin.application-result-seminars.index") }}" class="nav-link {{ request()->is("admin/application-result-seminars") || request()->is("admin/application-result-seminars/*") ? "active" : "" }}">
                                     <i class="fa-fw nav-icon fas fa-clipboard-check"></i>
-                                    <p>Hasil Seminar</p>
+                                    <p>Hasil Review Kelayakan</p>
                                 </a>
                             </li>
                         @endcan

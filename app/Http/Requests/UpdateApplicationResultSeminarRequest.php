@@ -5,7 +5,6 @@ namespace App\Http\Requests;
 use App\Models\ApplicationResultSeminar;
 use Gate;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Response;
 
 class UpdateApplicationResultSeminarRequest extends FormRequest
 {
@@ -16,6 +15,8 @@ class UpdateApplicationResultSeminarRequest extends FormRequest
 
     public function rules()
     {
+        $allowedResults = array_keys(ApplicationResultSeminar::allResultLabels());
+
         return [
             'application_id' => [
                 'required',
@@ -23,6 +24,10 @@ class UpdateApplicationResultSeminarRequest extends FormRequest
             ],
             'result' => [
                 'required',
+                'in:' . implode(',', $allowedResults),
+            ],
+            'note' => [
+                'nullable',
                 'string',
             ],
             'meeting_recording_link' => [
@@ -34,12 +39,12 @@ class UpdateApplicationResultSeminarRequest extends FormRequest
                 'date_format:' . config('panel.date_format'),
                 'nullable',
             ],
-            'report_document' => [
+            'form_document' => [
                 'required',
                 'array',
                 'min:1',
             ],
-            'report_document.*' => [
+            'form_document.*' => [
                 'required',
                 'string',
             ],
@@ -47,22 +52,17 @@ class UpdateApplicationResultSeminarRequest extends FormRequest
                 'required',
                 'string',
             ],
-            'form_document' => [
-                'array',
-                'nullable',
-            ],
-            'form_document.*' => [
-                'string',
-            ],
             'latest_script' => [
-                'nullable',
+                'required',
                 'string',
             ],
             'documentation' => [
+                'required',
                 'array',
-                'nullable',
+                'min:1',
             ],
             'documentation.*' => [
+                'required',
                 'string',
             ],
         ];
@@ -74,9 +74,12 @@ class UpdateApplicationResultSeminarRequest extends FormRequest
             'application_id.required' => 'Aplikasi skripsi wajib diisi',
             'application_id.exists' => 'Aplikasi skripsi tidak valid',
             'result.required' => 'Hasil seminar wajib diisi',
-            'report_document.required' => 'Berita acara seminar wajib diupload',
-            'report_document.min' => 'Berita acara seminar minimal 1 file',
-            'attendance_document.required' => 'Daftar hadir wajib diupload',
+            'form_document.required' => 'Form Review Kelayakan Proposal MBKM Riset wajib diupload',
+            'form_document.min' => 'Form Review Kelayakan Proposal MBKM Riset minimal 1 file',
+            'attendance_document.required' => 'Presensi Peserta wajib diupload',
+            'documentation.required' => 'Dokumentasi Seminar wajib diupload',
+            'documentation.min' => 'Dokumentasi Seminar minimal 1 file',
+            'latest_script.required' => 'Naskah Proposal MBKM hasil revisi wajib diupload',
         ];
     }
 }

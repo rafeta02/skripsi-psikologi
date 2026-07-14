@@ -56,7 +56,20 @@ class ApplicationResultSeminarController extends Controller
             });
 
             $table->editColumn('result', function ($row) {
-                return $row->result ? ApplicationResultSeminar::RESULT_SELECT[$row->result] : '';
+                $label = $row->result ? (ApplicationResultSeminar::allResultLabels()[$row->result] ?? $row->result) : '';
+                if (!$label) {
+                    return '';
+                }
+
+                $badge = match ($row->result) {
+                    'minor', 'passed' => 'success',
+                    'mayor' => 'info',
+                    'revision' => 'warning',
+                    'failed' => 'danger',
+                    default => 'secondary',
+                };
+
+                return '<span class="badge badge-' . $badge . '">' . e($label) . '</span>';
             });
 
             $table->addColumn('application_status', function ($row) {
@@ -67,19 +80,7 @@ class ApplicationResultSeminarController extends Controller
                 return $row->adminValidationStatusHtml();
             });
 
-            $table->editColumn('report_document', function ($row) {
-                if (! $row->report_document) {
-                    return '';
-                }
-                $links = [];
-                foreach ($row->report_document as $media) {
-                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>';
-                }
-
-                return implode(', ', $links);
-            });
-
-            $table->rawColumns(['actions', 'placeholder', 'application', 'report_document', 'application_status']);
+            $table->rawColumns(['actions', 'placeholder', 'result', 'application_status']);
 
             return $table->make(true);
         }
@@ -98,18 +99,20 @@ class ApplicationResultSeminarController extends Controller
 
     public function store(StoreApplicationResultSeminarRequest $request)
     {
-        $applicationResultSeminar = ApplicationResultSeminar::create($request->all());
+        $applicationResultSeminar = ApplicationResultSeminar::create($request->only([
+            'application_id',
+            'result',
+            'note',
+            'meeting_recording_link',
+            'revision_deadline',
+        ]));
 
-        foreach ($request->input('report_document', []) as $file) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
+        foreach ($request->input('form_document', []) as $file) {
+            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('form_document');
         }
 
         if ($request->input('attendance_document', false)) {
             $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('attendance_document'))))->toMediaCollection('attendance_document');
-        }
-
-        foreach ($request->input('form_document', []) as $file) {
-            $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('form_document');
         }
 
         if ($request->input('latest_script', false)) {
@@ -123,6 +126,9 @@ class ApplicationResultSeminarController extends Controller
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $applicationResultSeminar->id]);
         }
+
+        $applicationResultSeminar->load('application');
+        $applicationResultSeminar->syncApplicationStatus();
 
         return redirect()->route('admin.application-result-seminars.index');
     }
@@ -140,32 +146,13 @@ class ApplicationResultSeminarController extends Controller
 
     public function update(UpdateApplicationResultSeminarRequest $request, ApplicationResultSeminar $applicationResultSeminar)
     {
-        $applicationResultSeminar->update($request->all());
-
-        if (count($applicationResultSeminar->report_document) > 0) {
-            foreach ($applicationResultSeminar->report_document as $media) {
-                if (! in_array($media->file_name, $request->input('report_document', []))) {
-                    $media->delete();
-                }
-            }
-        }
-        $media = $applicationResultSeminar->report_document->pluck('file_name')->toArray();
-        foreach ($request->input('report_document', []) as $file) {
-            if (count($media) === 0 || ! in_array($file, $media)) {
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('report_document');
-            }
-        }
-
-        if ($request->input('attendance_document', false)) {
-            if (! $applicationResultSeminar->attendance_document || $request->input('attendance_document') !== $applicationResultSeminar->attendance_document->file_name) {
-                if ($applicationResultSeminar->attendance_document) {
-                    $applicationResultSeminar->attendance_document->delete();
-                }
-                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('attendance_document'))))->toMediaCollection('attendance_document');
-            }
-        } elseif ($applicationResultSeminar->attendance_document) {
-            $applicationResultSeminar->attendance_document->delete();
-        }
+        $applicationResultSeminar->update($request->only([
+            'application_id',
+            'result',
+            'note',
+            'meeting_recording_link',
+            'revision_deadline',
+        ]));
 
         if (count($applicationResultSeminar->form_document) > 0) {
             foreach ($applicationResultSeminar->form_document as $media) {
@@ -179,6 +166,17 @@ class ApplicationResultSeminarController extends Controller
             if (count($media) === 0 || ! in_array($file, $media)) {
                 $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('form_document');
             }
+        }
+
+        if ($request->input('attendance_document', false)) {
+            if (! $applicationResultSeminar->attendance_document || $request->input('attendance_document') !== $applicationResultSeminar->attendance_document->file_name) {
+                if ($applicationResultSeminar->attendance_document) {
+                    $applicationResultSeminar->attendance_document->delete();
+                }
+                $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($request->input('attendance_document'))))->toMediaCollection('attendance_document');
+            }
+        } elseif ($applicationResultSeminar->attendance_document) {
+            $applicationResultSeminar->attendance_document->delete();
         }
 
         if ($request->input('latest_script', false)) {
@@ -205,6 +203,9 @@ class ApplicationResultSeminarController extends Controller
                 $applicationResultSeminar->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('documentation');
             }
         }
+
+        $applicationResultSeminar->load('application');
+        $applicationResultSeminar->syncApplicationStatus();
 
         return redirect()->route('admin.application-result-seminars.index');
     }
@@ -238,10 +239,10 @@ class ApplicationResultSeminarController extends Controller
     {
         $resultSeminar = ApplicationResultSeminar::with('application')->findOrFail($id);
 
-        if ($resultSeminar->result !== 'passed') {
+        if (!$resultSeminar->isEligibleOutcome()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi admin hanya untuk laporan dengan hasil lulus (passed).',
+                'message' => 'Validasi admin hanya untuk laporan dengan hasil Layak Dilaksanakan.',
             ], 422);
         }
 

@@ -2,7 +2,6 @@
 
 @section('content')
 <div class="container py-4">
-    <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-lg-12">
             <div class="card-modern" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: none;">
@@ -18,7 +17,6 @@
         </div>
     </div>
 
-    <!-- Form -->
     <div class="row">
         <div class="col-lg-12">
             @if(!$activeApplication)
@@ -32,92 +30,113 @@
             @else
                 <div class="card-modern">
                     <div class="card-modern-body">
-                        <form action="{{ route('frontend.application-result-seminars.store') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('frontend.application-result-seminars.store') }}" method="POST" enctype="multipart/form-data" id="resultSeminarForm">
                             @csrf
-                            
+
                             <input type="hidden" name="application_id" value="{{ $activeApplication->id }}">
 
-                            <!-- Application Info -->
                             <div class="alert alert-info mb-4">
                                 <h6 class="font-weight-bold mb-2">Informasi Aplikasi:</h6>
                                 <p class="mb-1"><strong>Tipe:</strong> {{ strtoupper($activeApplication->type) }}</p>
                                 <p class="mb-0"><strong>Tahap:</strong> {{ ucfirst($activeApplication->stage) }}</p>
                             </div>
 
-                            <!-- Result Status -->
                             <div class="form-group">
                                 <label class="form-label-modern required">Hasil Review</label>
                                 <select name="result" class="form-control-modern @error('result') is-invalid @enderror" required>
                                     <option value="">-- Pilih Hasil Review --</option>
-                                    <option value="passed" {{ old('result') == 'passed' ? 'selected' : '' }}>✅ Lulus (Passed)</option>
-                                    <option value="revision" {{ old('result') == 'revision' ? 'selected' : '' }}>📝 Revisi (Revision)</option>
-                                    <option value="failed" {{ old('result') == 'failed' ? 'selected' : '' }}>❌ Tidak Lulus (Failed)</option>
+                                    @foreach(\App\Models\ApplicationResultSeminar::RESULT_SELECT as $value => $label)
+                                        <option value="{{ $value }}" {{ old('result') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
                                 </select>
                                 @error('result')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <!-- Revision Deadline (conditional) -->
-                            <div class="form-group" id="revisionDeadlineField" style="display: none;">
+                            <div class="form-group" id="revisionDeadlineField">
                                 <label class="form-label-modern">Tenggat Waktu Revisi</label>
                                 <input type="date" name="revision_deadline" class="form-control-modern @error('revision_deadline') is-invalid @enderror" value="{{ old('revision_deadline') }}" min="{{ date('Y-m-d') }}">
-                                <small class="form-text text-muted">Batas waktu untuk menyelesaikan revisi</small>
+                                <small class="form-text text-muted">Batas waktu menyelesaikan perbaikan minor/mayor</small>
                                 @error('revision_deadline')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <!-- Notes from Reviewer -->
                             <div class="form-group">
                                 <label class="form-label-modern">Catatan dari Reviewer</label>
-                                <textarea name="note" class="form-control-modern @error('note') is-invalid @enderror" rows="4">{{ old('note') }}</textarea>
-                                <small class="form-text text-muted">Masukan, saran, atau komentar dari reviewer</small>
+                                <textarea name="note" class="form-control-modern @error('note') is-invalid @enderror" rows="4" placeholder="Masukan, saran, atau komentar dari reviewer">{{ old('note') }}</textarea>
                                 @error('note')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <!-- Report Documents -->
-                            <div class="form-group">
-                                <label class="form-label-modern">Berita Acara / Laporan (PDF)</label>
-                                <div class="custom-file">
-                                    <input type="file" name="report_document[]" class="custom-file-input @error('report_document') is-invalid @enderror" id="reportDocument" accept=".pdf" multiple>
-                                    <label class="custom-file-label" for="reportDocument">Pilih file...</label>
-                                </div>
-                                <small class="form-text text-muted">Upload berita acara atau laporan hasil review (Max: 10MB per file, multiple files allowed)</small>
-                                @error('report_document')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <hr class="my-4">
+                            <h5 class="font-weight-bold mb-3">Dokumen</h5>
 
-                            <!-- Attendance Document -->
                             <div class="form-group">
-                                <label class="form-label-modern">Daftar Hadir (PDF)</label>
+                                <label class="form-label-modern required">1. Form Review Kelayakan Proposal MBKM Riset (PDF)</label>
                                 <div class="custom-file">
-                                    <input type="file" name="attendance_document" class="custom-file-input @error('attendance_document') is-invalid @enderror" id="attendanceDocument" accept=".pdf">
-                                    <label class="custom-file-label" for="attendanceDocument">Pilih file...</label>
-                                </div>
-                                <small class="form-text text-muted">Upload daftar hadir (opsional, Max: 10MB)</small>
-                                @error('attendance_document')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Form Documents -->
-                            <div class="form-group">
-                                <label class="form-label-modern">Form Penilaian Reviewer (PDF)</label>
-                                <div class="custom-file">
-                                    <input type="file" name="form_document[]" class="custom-file-input @error('form_document') is-invalid @enderror" id="formDocument" accept=".pdf" multiple>
+                                    <input type="file" name="form_document[]" class="custom-file-input @error('form_document') is-invalid @enderror @error('form_document.*') is-invalid @enderror" id="formDocument" accept=".pdf,application/pdf" multiple required>
                                     <label class="custom-file-label" for="formDocument">Pilih file...</label>
                                 </div>
-                                <small class="form-text text-muted">Upload form penilaian dari reviewer (Max: 10MB per file, multiple files allowed)</small>
+                                <small class="form-text text-muted">Form penilaian reviewer (Max: 10MB per file, boleh lebih dari 1 file)</small>
                                 @error('form_document')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                @error('form_document.*')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">2. Presensi Peserta (PDF)</label>
+                                <div class="custom-file">
+                                    <input type="file" name="attendance_document" class="custom-file-input @error('attendance_document') is-invalid @enderror" id="attendanceDocument" accept=".pdf,application/pdf" required>
+                                    <label class="custom-file-label" for="attendanceDocument">Pilih file...</label>
+                                </div>
+                                <small class="form-text text-muted">Upload presensi peserta (Max: 10MB)</small>
+                                @error('attendance_document')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">3. Dokumentasi Seminar (Screenshot atau Foto)</label>
+                                <div class="custom-file">
+                                    <input type="file" name="documentation[]" class="custom-file-input @error('documentation') is-invalid @enderror @error('documentation.*') is-invalid @enderror" id="documentation" accept="image/*,.jpg,.jpeg,.png,.webp" multiple required>
+                                    <label class="custom-file-label" for="documentation">Pilih file...</label>
+                                </div>
+                                <small class="form-text text-muted">Screenshot atau foto kegiatan (Max: 5MB per file, boleh lebih dari 1 file)</small>
+                                @error('documentation')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                @error('documentation.*')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern">4. Tautan Record Meeting <span class="text-muted">(opsional jika online)</span></label>
+                                <input type="url" name="meeting_recording_link" class="form-control-modern @error('meeting_recording_link') is-invalid @enderror" value="{{ old('meeting_recording_link') }}" placeholder="https://drive.google.com/... atau link Zoom/Meet recording">
+                                <small class="form-text text-muted">Wajib diisi jika pelaksanaan dilakukan secara online</small>
+                                @error('meeting_recording_link')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <!-- Action Buttons -->
+                            <div class="form-group">
+                                <label class="form-label-modern required">5. Naskah Proposal MBKM (KKN dan Skripsi Hasil Revisi) (PDF)</label>
+                                <div class="custom-file">
+                                    <input type="file" name="latest_script" class="custom-file-input @error('latest_script') is-invalid @enderror" id="latestScript" accept=".pdf,application/pdf" required>
+                                    <label class="custom-file-label" for="latestScript">Pilih file...</label>
+                                </div>
+                                <small class="form-text text-muted">Naskah proposal hasil revisi (Max: 10MB)</small>
+                                @error('latest_script')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
                             <div class="d-flex justify-content-between mt-4">
                                 <a href="{{ route('frontend.application-result-seminars.index') }}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Kembali
@@ -137,29 +156,16 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Update file input labels
     $('.custom-file-input').on('change', function() {
         let fileName = $(this).val().split('\\').pop();
         let fileCount = $(this)[0].files.length;
-        
+
         if (fileCount > 1) {
             fileName = fileCount + ' files selected';
         }
-        
+
         $(this).next('.custom-file-label').html(fileName || 'Pilih file...');
     });
-    
-    // Show/hide revision deadline based on result
-    $('select[name="result"]').on('change', function() {
-        if ($(this).val() === 'revision') {
-            $('#revisionDeadlineField').show().find('input').prop('required', true);
-        } else {
-            $('#revisionDeadlineField').hide().find('input').prop('required', false);
-        }
-    });
-    
-    // Trigger on page load
-    $('select[name="result"]').trigger('change');
 });
 </script>
 @endpush

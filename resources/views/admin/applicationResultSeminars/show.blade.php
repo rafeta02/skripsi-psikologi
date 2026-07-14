@@ -78,12 +78,14 @@
                                     @if($applicationResultSeminar->result)
                                         @php
                                             $resultLabels = [
+                                                'minor' => '<span class="badge badge-success badge-lg">Layak Dilaksanakan dengan perbaikan minor</span>',
+                                                'mayor' => '<span class="badge badge-info badge-lg">Layak Dilaksanakan dengan perbaikan mayor</span>',
                                                 'passed' => '<span class="badge badge-success badge-lg">Lulus</span>',
                                                 'revision' => '<span class="badge badge-warning badge-lg">Revisi</span>',
                                                 'failed' => '<span class="badge badge-danger badge-lg">Tidak Lulus</span>',
                                             ];
                                         @endphp
-                                        {!! $resultLabels[$applicationResultSeminar->result] ?? $applicationResultSeminar->result !!}
+                                        {!! $resultLabels[$applicationResultSeminar->result] ?? e($applicationResultSeminar->resultLabel()) !!}
                                     @else
                                         -
                                     @endif
@@ -104,10 +106,10 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label class="font-weight-bold">Rekaman Meeting:</label>
+                                    <label class="font-weight-bold">Tautan Record Meeting:</label>
                                     <p class="form-control-plaintext">
                                         <a href="{{ $applicationResultSeminar->meeting_recording_link }}" target="_blank" class="btn btn-sm btn-info">
-                                            <i class="fas fa-video mr-1"></i> Lihat Rekaman
+                                            <i class="fas fa-video mr-1"></i> Buka Rekaman
                                         </a>
                                     </p>
                                 </div>
@@ -123,15 +125,15 @@
                     <h5 class="mb-0"><i class="fas fa-file-pdf mr-2"></i>Dokumen</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Report Documents -->
+                    <!-- Form Documents -->
                     <div class="form-group">
-                        <label class="font-weight-bold">Berita Acara Seminar:</label>
+                        <label class="font-weight-bold">Form Review Kelayakan Proposal MBKM Riset:</label>
                         <div class="mt-2">
-                            @if($applicationResultSeminar->report_document && count($applicationResultSeminar->report_document) > 0)
-                                @foreach($applicationResultSeminar->report_document as $index => $media)
+                            @if($applicationResultSeminar->form_document && count($applicationResultSeminar->form_document) > 0)
+                                @foreach($applicationResultSeminar->form_document as $index => $media)
                                     <div class="mb-2">
                                         <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-file-pdf mr-1"></i> Berita Acara {{ $index + 1 }}
+                                            <i class="fas fa-file-pdf mr-1"></i> Form Review {{ $index + 1 }}
                                         </a>
                                     </div>
                             @endforeach
@@ -143,43 +145,11 @@
 
                     <!-- Attendance Document -->
                     <div class="form-group">
-                        <label class="font-weight-bold">Daftar Hadir:</label>
+                        <label class="font-weight-bold">Presensi Peserta:</label>
                         <div class="mt-2">
                             @if($applicationResultSeminar->attendance_document)
                                 <a href="{{ $applicationResultSeminar->attendance_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-file-pdf mr-1"></i> Lihat Daftar Hadir
-                                </a>
-                            @else
-                                <p class="text-muted">Tidak ada dokumen</p>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Form Documents -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">Form Penilaian:</label>
-                        <div class="mt-2">
-                            @if($applicationResultSeminar->form_document && count($applicationResultSeminar->form_document) > 0)
-                                @foreach($applicationResultSeminar->form_document as $index => $media)
-                                    <div class="mb-2">
-                                        <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-file-pdf mr-1"></i> Form Penilaian {{ $index + 1 }}
-                                        </a>
-                                    </div>
-                            @endforeach
-                            @else
-                                <p class="text-muted">Tidak ada dokumen</p>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Latest Script -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">Naskah Proposal Terbaru:</label>
-                        <div class="mt-2">
-                            @if($applicationResultSeminar->latest_script)
-                                <a href="{{ $applicationResultSeminar->latest_script->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-file-pdf mr-1"></i> Lihat Naskah
+                                    <i class="fas fa-file-pdf mr-1"></i> Lihat Presensi Peserta
                                 </a>
                             @else
                                 <p class="text-muted">Tidak ada dokumen</p>
@@ -189,7 +159,7 @@
 
                     <!-- Documentation -->
                     <div class="form-group">
-                        <label class="font-weight-bold">Dokumentasi Seminar:</label>
+                        <label class="font-weight-bold">Dokumentasi Seminar (Screenshot atau Foto):</label>
                         <div class="mt-2">
                             @if($applicationResultSeminar->documentation && count($applicationResultSeminar->documentation) > 0)
                                 <div class="row">
@@ -206,6 +176,35 @@
                             @endif
                         </div>
                     </div>
+
+                    <!-- Latest Script -->
+                    <div class="form-group">
+                        <label class="font-weight-bold">Naskah Proposal MBKM (KKN dan Skripsi Hasil Revisi):</label>
+                        <div class="mt-2">
+                            @if($applicationResultSeminar->latest_script)
+                                <a href="{{ $applicationResultSeminar->latest_script->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-file-pdf mr-1"></i> Lihat Naskah
+                                </a>
+                            @else
+                                <p class="text-muted">Tidak ada dokumen</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if($applicationResultSeminar->report_document && count($applicationResultSeminar->report_document) > 0)
+                        <div class="form-group">
+                            <label class="font-weight-bold text-muted">Berita Acara Seminar (data lama):</label>
+                            <div class="mt-2">
+                                @foreach($applicationResultSeminar->report_document as $index => $media)
+                                    <div class="mb-2">
+                                        <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-file-pdf mr-1"></i> Berita Acara {{ $index + 1 }}
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -272,7 +271,7 @@
                 $adminValidated = $applicationResultSeminar->isValidatedByAdmin();
             @endphp
 
-            @if($applicationResultSeminar->result === 'passed' && $adminValidated)
+            @if($applicationResultSeminar->isEligibleOutcome() && $adminValidated)
                 <div class="card shadow-sm mb-4 border-success">
                     <div class="card-body text-center">
                         <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
@@ -288,12 +287,12 @@
                         <h5 class="mb-0"><i class="fas fa-tasks mr-2"></i>Aksi</h5>
                     </div>
                     <div class="card-body">
-                        @if($applicationResultSeminar->result === 'passed')
+                        @if($applicationResultSeminar->isEligibleOutcome())
                             <button type="button" class="btn btn-success btn-block mb-2" data-toggle="modal" data-target="#approveModal">
-                                <i class="fas fa-check mr-1"></i> Validasi Hasil Lulus
+                                <i class="fas fa-check mr-1"></i> Validasi Hasil Layak Dilaksanakan
                             </button>
                         @endif
-                        @if($applicationResultSeminar->result !== 'passed' || !$adminValidated)
+                        @if(!$applicationResultSeminar->isEligibleOutcome() || !$adminValidated)
                             <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#rejectModal">
                                 <i class="fas fa-times mr-1"></i> Tolak Laporan
                             </button>
@@ -322,7 +321,7 @@
                 <div class="modal-body">
                     <div class="alert alert-success">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Validasi laporan hasil <strong>lulus</strong>. Setelah disetujui, mahasiswa dapat mendaftar sidang skripsi (<code>SkripsiDefense</code>).
+                        Validasi laporan hasil <strong>Layak Dilaksanakan</strong>. Setelah disetujui, mahasiswa dapat mendaftar sidang skripsi.
                     </div>
                     <div class="form-group">
                         <label for="approve_notes">Catatan (Opsional)</label>
