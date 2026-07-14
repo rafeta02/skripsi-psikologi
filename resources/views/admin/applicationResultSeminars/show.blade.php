@@ -105,9 +105,9 @@
                     @if($applicationResultSeminar->meeting_recording_link)
                         <div class="row">
                             <div class="col-12">
-                                <div class="form-group">
+                                <div class="form-group mb-0">
                                     <label class="font-weight-bold">Tautan Record Meeting:</label>
-                                    <p class="form-control-plaintext">
+                                    <p class="form-control-plaintext mb-0">
                                         <a href="{{ $applicationResultSeminar->meeting_recording_link }}" target="_blank" class="btn btn-sm btn-info">
                                             <i class="fas fa-video mr-1"></i> Buka Rekaman
                                         </a>
@@ -125,86 +125,82 @@
                     <h5 class="mb-0"><i class="fas fa-file-pdf mr-2"></i>Dokumen</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Form Documents -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">Form Review Kelayakan Proposal MBKM Riset:</label>
-                        <div class="mt-2">
-                            @if($applicationResultSeminar->form_document && count($applicationResultSeminar->form_document) > 0)
-                                @foreach($applicationResultSeminar->form_document as $index => $media)
-                                    <div class="mb-2">
-                                        <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-file-pdf mr-1"></i> Form Review {{ $index + 1 }}
-                                        </a>
-                                    </div>
-                            @endforeach
-                            @else
-                                <p class="text-muted">Tidak ada dokumen</p>
-                            @endif
-                        </div>
-                    </div>
+                    @php
+                        $documentSections = [
+                            [
+                                'label' => 'Form Review Kelayakan Proposal MBKM Riset',
+                                'items' => collect($applicationResultSeminar->form_document ?? []),
+                                'type' => 'pdf',
+                                'icon' => 'fa-file-pdf text-danger',
+                            ],
+                            [
+                                'label' => 'Presensi Peserta',
+                                'items' => $applicationResultSeminar->attendance_document
+                                    ? collect([$applicationResultSeminar->attendance_document])
+                                    : collect(),
+                                'type' => 'pdf',
+                                'icon' => 'fa-file-pdf text-danger',
+                            ],
+                            [
+                                'label' => 'Dokumentasi Seminar (Screenshot atau Foto)',
+                                'items' => collect($applicationResultSeminar->documentation ?? []),
+                                'type' => 'image',
+                                'icon' => 'fa-image text-info',
+                            ],
+                            [
+                                'label' => 'Naskah Proposal MBKM (KKN dan Skripsi Hasil Revisi)',
+                                'items' => $applicationResultSeminar->latest_script
+                                    ? collect([$applicationResultSeminar->latest_script])
+                                    : collect(),
+                                'type' => 'pdf',
+                                'icon' => 'fa-file-pdf text-danger',
+                            ],
+                        ];
 
-                    <!-- Attendance Document -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">Presensi Peserta:</label>
-                        <div class="mt-2">
-                            @if($applicationResultSeminar->attendance_document)
-                                <a href="{{ $applicationResultSeminar->attendance_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-file-pdf mr-1"></i> Lihat Presensi Peserta
-                                </a>
-                            @else
-                                <p class="text-muted">Tidak ada dokumen</p>
-                            @endif
-                        </div>
-                    </div>
+                        if ($applicationResultSeminar->report_document && count($applicationResultSeminar->report_document) > 0) {
+                            $documentSections[] = [
+                                'label' => 'Berita Acara Seminar (data lama)',
+                                'items' => collect($applicationResultSeminar->report_document),
+                                'type' => 'pdf',
+                                'icon' => 'fa-file-pdf text-muted',
+                            ];
+                        }
+                    @endphp
 
-                    <!-- Documentation -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">Dokumentasi Seminar (Screenshot atau Foto):</label>
-                        <div class="mt-2">
-                            @if($applicationResultSeminar->documentation && count($applicationResultSeminar->documentation) > 0)
-                                <div class="row">
-                                    @foreach($applicationResultSeminar->documentation as $media)
-                                        <div class="col-md-4 mb-3">
-                                <a href="{{ $media->getUrl() }}" target="_blank">
-                                                <img src="{{ $media->getUrl() }}" class="img-fluid img-thumbnail" alt="Dokumentasi" style="max-height: 150px; object-fit: cover;">
-                                            </a>
+                    @foreach($documentSections as $section)
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold">{{ $section['label'] }}:</label>
+                            @if($section['items']->count() > 0)
+                                <div class="list-group">
+                                    @foreach($section['items'] as $media)
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div class="mr-3">
+                                                <i class="fas {{ $section['icon'] }} mr-2"></i>
+                                                <small class="text-muted">{{ $media->file_name }}</small>
+                                            </div>
+                                            <div class="btn-group flex-shrink-0">
+                                                <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-primary" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-info preview-doc"
+                                                        data-url="{{ $media->getUrl() }}"
+                                                        data-type="{{ $section['type'] }}"
+                                                        data-name="{{ $media->file_name }}"
+                                                        title="Preview">
+                                                    <i class="fas fa-expand"></i>
+                                                </button>
+                                                <a href="{{ $media->getUrl() }}" download class="btn btn-sm btn-success" title="Download">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
                             @else
-                                <p class="text-muted">Tidak ada dokumentasi</p>
+                                <p class="text-muted mb-0">Tidak ada dokumen</p>
                             @endif
                         </div>
-                    </div>
-
-                    <!-- Latest Script -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">Naskah Proposal MBKM (KKN dan Skripsi Hasil Revisi):</label>
-                        <div class="mt-2">
-                            @if($applicationResultSeminar->latest_script)
-                                <a href="{{ $applicationResultSeminar->latest_script->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-file-pdf mr-1"></i> Lihat Naskah
-                                </a>
-                            @else
-                                <p class="text-muted">Tidak ada dokumen</p>
-                            @endif
-                        </div>
-                    </div>
-
-                    @if($applicationResultSeminar->report_document && count($applicationResultSeminar->report_document) > 0)
-                        <div class="form-group">
-                            <label class="font-weight-bold text-muted">Berita Acara Seminar (data lama):</label>
-                            <div class="mt-2">
-                                @foreach($applicationResultSeminar->report_document as $index => $media)
-                                    <div class="mb-2">
-                                        <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-file-pdf mr-1"></i> Berita Acara {{ $index + 1 }}
-                                        </a>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
+                    @endforeach
                 </div>
             </div>
 
@@ -304,6 +300,29 @@
     </div>
 </div>
 
+<!-- Document Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-alt mr-2"></i>
+                    <span id="previewModalTitle">Preview Dokumen</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="height: 80vh;">
+                <iframe id="pdfViewer" style="width: 100%; height: 100%; border: none; display: none;"></iframe>
+                <div id="imageViewerWrap" class="h-100 d-none align-items-center justify-content-center overflow-auto">
+                    <img id="imageViewer" src="" alt="Preview" class="img-fluid" style="max-height: 100%;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Approve Modal -->
 <div class="modal fade" id="approveModal" tabindex="-1">
     <div class="modal-dialog">
@@ -382,6 +401,32 @@
 @section('scripts')
 <script>
 $(document).ready(function() {
+    $('.preview-doc').on('click', function() {
+        const url = $(this).data('url');
+        const type = $(this).data('type') || 'pdf';
+        const name = $(this).data('name') || 'Preview Dokumen';
+
+        $('#previewModalTitle').text(name);
+
+        if (type === 'image') {
+            $('#pdfViewer').hide().attr('src', '');
+            $('#imageViewer').attr('src', url);
+            $('#imageViewerWrap').removeClass('d-none').addClass('d-flex');
+        } else {
+            $('#imageViewerWrap').removeClass('d-flex').addClass('d-none');
+            $('#imageViewer').attr('src', '');
+            $('#pdfViewer').show().attr('src', url);
+        }
+
+        $('#previewModal').modal('show');
+    });
+
+    $('#previewModal').on('hidden.bs.modal', function() {
+        $('#pdfViewer').attr('src', '').hide();
+        $('#imageViewer').attr('src', '');
+        $('#imageViewerWrap').removeClass('d-flex').addClass('d-none');
+    });
+
     // Approve Form Submit
     $('#approveForm').on('submit', function(e) {
         e.preventDefault();
@@ -469,7 +514,10 @@ $(document).ready(function() {
 
     // Clear modal on close
     $('.modal').on('hidden.bs.modal', function() {
-        $(this).find('form')[0].reset();
+        const form = $(this).find('form')[0];
+        if (form) {
+            form.reset();
+        }
     });
 });
 </script>
