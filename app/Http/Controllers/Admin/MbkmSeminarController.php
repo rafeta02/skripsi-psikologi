@@ -9,6 +9,8 @@ use App\Http\Requests\StoreMbkmSeminarRequest;
 use App\Http\Requests\UpdateMbkmSeminarRequest;
 use App\Models\Application;
 use App\Models\ApplicationAction;
+use App\Models\ApplicationAssignment;
+use App\Models\MbkmRegistration;
 use App\Models\MbkmSeminar;
 use Gate;
 use Illuminate\Http\Request;
@@ -21,12 +23,22 @@ class MbkmSeminarController extends Controller
 {
     use MediaUploadingTrait;
 
+    /** @var array<int, MbkmRegistration|null> */
+    private array $registrationCache = [];
+
     public function index(Request $request)
     {
         abort_if(Gate::denies('mbkm_seminar_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = MbkmSeminar::with(['application', 'created_by'])->select(sprintf('%s.*', (new MbkmSeminar)->table));
+            $query = MbkmSeminar::with([
+                'application.mahasiswa',
+                'application.mbkmRegistration.groupMembers.mahasiswa',
+                'application.mbkmRegistration.preference_supervision',
+                'application.parentApplication.mbkmRegistration.groupMembers.mahasiswa',
+                'application.parentApplication.mbkmRegistration.preference_supervision',
+                'created_by',
+            ])->select(sprintf('%s.*', (new MbkmSeminar)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -47,29 +59,124 @@ class MbkmSeminarController extends Controller
                 ));
             });
 
-            $table->addColumn('application_status', function ($row) {
-                return $row->application ? $row->application->status : '';
+            $table->addColumn('kelompok', function ($row) {
+                return $this->formatKelompokHtml($row);
             });
 
             $table->editColumn('title', function ($row) {
-                return $row->title ? $row->title : '';
-            });
-            $table->editColumn('proposal_document', function ($row) {
-                return $row->proposal_document ? '<a href="' . $row->proposal_document->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
-            });
-            $table->editColumn('approval_document', function ($row) {
-                return $row->approval_document ? '<a href="' . $row->approval_document->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
-            });
-            $table->editColumn('plagiarism_document', function ($row) {
-                return $row->plagiarism_document ? '<a href="' . $row->plagiarism_document->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
+                return $row->title ? e($row->title) : '<span class="text-muted">-</span>';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'proposal_document', 'approval_document', 'plagiarism_document']);
+            $table->addColumn('pembimbing', function ($row) {
+                return e($this->resolvePembimbingNama($row) ?? '-');
+            });
+
+            $table->rawColumns(['actions', 'placeholder', 'kelompok', 'title']);
 
             return $table->make(true);
         }
 
         return view('admin.mbkmSeminars.index');
+    }
+
+    private function formatKelompokHtml(MbkmSeminar $seminar): string
+    {
+        $registration = $this->resolveMbkmRegistration($seminar);
+        $members = $registration?->groupMembers;
+
+        if (!$members || $members->isEmpty()) {
+            $ketua = $seminar->application->mahasiswa ?? null;
+            if (!$ketua) {
+                return '<span class="text-muted">-</span>';
+            }
+
+            return '<div><span class="badge badge-success mr-1">Ketua</span>'
+                . e($ketua->nama)
+                . ' <small class="text-muted">(' . e($ketua->nim ?? '-') . ')</small></div>';
+        }
+
+        $sorted = $members->sortBy(fn ($m) => $m->role === 'ketua' ? 0 : 1);
+        $html = '<ul class="list-unstyled mb-0 small">';
+        foreach ($sorted as $member) {
+            $roleBadge = $member->role === 'ketua'
+                ? '<span class="badge badge-success mr-1">Ketua</span>'
+                : '<span class="badge badge-secondary mr-1">Anggota</span>';
+            $nama = e($member->mahasiswa->nama ?? '-');
+            $nim = e($member->mahasiswa->nim ?? '-');
+            $html .= '<li class="mb-1">' . $roleBadge . $nama
+                . ' <small class="text-muted">(' . $nim . ')</small></li>';
+        }
+        $html .= '</ul>';
+
+        return $html;
+    }
+
+    private function resolvePembimbingNama(MbkmSeminar $seminar): ?string
+    {
+        $registration = $this->resolveMbkmRegistration($seminar);
+        if (!$registration) {
+            return null;
+        }
+
+        $registrationAppId = $registration->application_id;
+        if ($registrationAppId) {
+            $assignment = ApplicationAssignment::with('lecturer')
+                ->where('application_id', $registrationAppId)
+                ->where('role', 'supervisor')
+                ->whereIn('status', ['accepted', 'assigned'])
+                ->orderByRaw("CASE status WHEN 'accepted' THEN 0 ELSE 1 END")
+                ->latest('id')
+                ->first();
+
+            if ($assignment?->lecturer?->nama) {
+                return $assignment->lecturer->nama;
+            }
+        }
+
+        return $registration->preference_supervision?->nama;
+    }
+
+    private function resolveMbkmRegistration(MbkmSeminar $seminar): ?MbkmRegistration
+    {
+        $application = $seminar->application;
+        if (!$application) {
+            return null;
+        }
+
+        $ownerMahasiswaId = (int) (
+            ($application->is_group_mirror && $application->parentApplication)
+                ? $application->parentApplication->mahasiswa_id
+                : $application->mahasiswa_id
+        );
+
+        if (!$ownerMahasiswaId) {
+            return null;
+        }
+
+        if (array_key_exists($ownerMahasiswaId, $this->registrationCache)) {
+            return $this->registrationCache[$ownerMahasiswaId];
+        }
+
+        $registration = $application->resolveOwnerMbkmRegistration();
+
+        if (!$registration) {
+            $registration = MbkmRegistration::with(['groupMembers.mahasiswa', 'preference_supervision'])
+                ->whereHas('application', function ($q) use ($ownerMahasiswaId) {
+                    $q->where('mahasiswa_id', $ownerMahasiswaId)
+                        ->where('type', 'mbkm')
+                        ->where('stage', 'registration')
+                        ->where(function ($inner) {
+                            $inner->where('is_group_mirror', false)
+                                ->orWhereNull('is_group_mirror');
+                        });
+                })
+                ->latest('id')
+                ->first();
+        } else {
+            $registration->loadMissing(['groupMembers.mahasiswa', 'preference_supervision']);
+        }
+
+        return $this->registrationCache[$ownerMahasiswaId] = $registration;
     }
 
     public function create()

@@ -15,37 +15,32 @@
     </div>
 
     <div class="card-body">
-        <table class=" table table-bordered table-striped table-hover ajaxTable datatable datatable-MbkmSeminar">
+        <table class="table table-bordered table-striped table-hover ajaxTable datatable datatable-MbkmSeminar text-center">
             <thead>
                 <tr>
-                    <th width="10">
-
-                    </th>
-                    <th>
-                        {{ trans('cruds.mbkmSeminar.fields.application') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.mbkmSeminar.fields.title') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.mbkmSeminar.fields.proposal_document') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.mbkmSeminar.fields.approval_document') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.mbkmSeminar.fields.plagiarism_document') }}
-                    </th>
-                    <th>
-                        &nbsp;
-                    </th>
+                    <th width="10" class="text-center"></th>
+                    <th class="text-center">{{ trans('cruds.mbkmSeminar.fields.kelompok') }}</th>
+                    <th class="text-center">{{ trans('cruds.mbkmSeminar.fields.title') }}</th>
+                    <th class="text-center">{{ trans('cruds.mbkmSeminar.fields.pembimbing') }}</th>
+                    <th class="text-center">&nbsp;</th>
                 </tr>
             </thead>
         </table>
     </div>
 </div>
 
-
+<style>
+    .datatable-MbkmSeminar th,
+    .datatable-MbkmSeminar td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+    .datatable-MbkmSeminar td ul.list-unstyled {
+        display: inline-block;
+        text-align: left;
+        margin: 0 auto;
+    }
+</style>
 
 @endsection
 @section('scripts')
@@ -54,7 +49,7 @@
     $(function () {
   let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
 @can('mbkm_seminar_delete')
-  let deleteButtonTrans = '{{ trans('global.datatables.delete') }}';
+  let deleteButtonTrans = '{{ trans('global.datatables.delete') }}'
   let deleteButton = {
     text: deleteButtonTrans,
     url: "{{ route('admin.mbkm-seminars.massDestroy') }}",
@@ -91,16 +86,14 @@
     aaSorting: [],
     ajax: "{{ route('admin.mbkm-seminars.index') }}",
     columns: [
-      { data: 'placeholder', name: 'placeholder' },
-{ data: 'application_status', name: 'application.status' },
-{ data: 'title', name: 'title' },
-{ data: 'proposal_document', name: 'proposal_document', sortable: false, searchable: false },
-{ data: 'approval_document', name: 'approval_document', sortable: false, searchable: false },
-{ data: 'plagiarism_document', name: 'plagiarism_document', sortable: false, searchable: false },
-{ data: 'actions', name: '{{ trans('global.actions') }}' }
+      { data: 'placeholder', name: 'placeholder', className: 'text-center' },
+      { data: 'kelompok', name: 'kelompok', searchable: false, orderable: false, className: 'text-center' },
+      { data: 'title', name: 'title', className: 'text-center' },
+      { data: 'pembimbing', name: 'pembimbing', searchable: false, orderable: false, className: 'text-center' },
+      { data: 'actions', name: '{{ trans('global.actions') }}', className: 'text-center' }
     ],
     orderCellsTop: true,
-    order: [[ 1, 'desc' ]],
+    order: [[ 2, 'desc' ]],
     pageLength: 50,
   };
   let table = $('.datatable-MbkmSeminar').DataTable(dtOverrideGlobals);

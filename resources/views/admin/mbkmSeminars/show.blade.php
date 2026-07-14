@@ -653,11 +653,6 @@
                     <a class="btn btn-default btn-block mb-2" href="{{ route('admin.mbkm-seminars.index') }}">
                         <i class="fas fa-arrow-left mr-2"></i> Kembali ke Daftar
                     </a>
-                    @can('mbkm_seminar_edit')
-                        <a class="btn btn-info btn-block mb-2" href="{{ route('admin.mbkm-seminars.edit', $mbkmSeminar->id) }}">
-                            <i class="fas fa-edit mr-2"></i> Edit Seminar
-                        </a>
-                    @endcan
                     @if($mbkmSeminar->application)
                         <a class="btn btn-primary btn-block" href="{{ route('admin.applications.show', $mbkmSeminar->application_id) }}">
                             <i class="fas fa-eye mr-2"></i> Lihat Detail Aplikasi
