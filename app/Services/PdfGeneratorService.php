@@ -300,27 +300,38 @@ class PdfGeneratorService
 
         $pembimbing = $this->resolveSupervisorForMahasiswa($application);
 
-        $application->loadMissing('assignments.lecturer');
-
-        $examiners = $application->assignments
-            ->where('role', 'examiner')
-            ->take(2)
-            ->pluck('lecturer')
-            ->filter()
-            ->values();
-
         // Get defense info
-        $defense = SkripsiDefense::where('application_id', $application->id)->first();
+        $defense = SkripsiDefense::with('examiners')->where('application_id', $application->id)->first();
 
         $defenseSchedule = ApplicationSchedule::where('application_id', $application->id)
-            ->where('schedule_type', 'skripsi_defense')
-            ->where('status', 'approved')
-            ->orderByDesc('scheduled_at')
-            ->first();
+            ->whereIn('schedule_type', ['skripsi_defense', 'defense'])
+            ->orderByDesc('id')
+            ->get()
+            ->first(fn (ApplicationSchedule $schedule) => $schedule->isDefenseScheduleVerified());
 
-        $defenseDate = $defenseSchedule?->scheduled_at
-            ? $this->formatDate($defenseSchedule->scheduled_at)
+        $rawWaktu = $defenseSchedule?->getRawOriginal('waktu');
+        $defenseDate = $rawWaktu
+            ? $this->formatDate($rawWaktu)
             : ($defense ? $this->formatDate($defense->created_at) : $this->formatDate(now()));
+
+        // Prefer penguji dari SkripsiDefense; fallback assignment role examiner
+        if ($defense) {
+            $examiners = $defense->examiners()
+                ->with('dosen')
+                ->orderBy('role')
+                ->get()
+                ->pluck('dosen')
+                ->filter()
+                ->values();
+        } else {
+            $application->loadMissing('assignments.lecturer');
+            $examiners = $application->assignments
+                ->where('role', 'examiner')
+                ->take(2)
+                ->pluck('lecturer')
+                ->filter()
+                ->values();
+        }
 
         $documentNumber = $application->transcript_document_number;
         if (!$documentNumber && $defenseResult && $defenseResult->isFinalizedByAdmin()) {
