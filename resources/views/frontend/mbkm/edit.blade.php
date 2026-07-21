@@ -895,7 +895,7 @@
                 theme: 'bootstrap4',
                 dropdownParent: $('body'),
                 dropdownAutoWidth: false,
-                closeOnSelect: false
+                closeOnSelect: true
             });
 
             $('#research_group_id').on('change', function() {

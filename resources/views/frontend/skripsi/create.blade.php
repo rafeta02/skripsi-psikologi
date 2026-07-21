@@ -513,7 +513,7 @@
                 theme: 'bootstrap4',
                 dropdownParent: $('body'),
                 dropdownAutoWidth: false,
-                closeOnSelect: false
+                closeOnSelect: true
             });
             
             $('#tps_lecturer_id').select2({

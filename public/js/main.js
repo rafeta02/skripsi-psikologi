@@ -60,7 +60,7 @@ $(document).ready(function () {
     $el.select2({
       width: '100%',
       dropdownParent: $modal.length ? $modal : $(document.body),
-      closeOnSelect: !isMultiple,
+      closeOnSelect: true,
       allowClear: !isMultiple,
       placeholder: $el.data('placeholder') || ($el.attr('placeholder') || undefined)
     })
