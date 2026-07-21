@@ -231,8 +231,8 @@
                         <h6 class="font-weight-bold text-primary mb-3"><i class="fas fa-file-alt mr-1"></i> Data Pendaftaran Skripsi Reguler</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="text-muted mb-1">Bidang Keilmuan</label>
-                                <p class="font-weight-semibold mb-0">{{ $registration->theme->name ?? '-' }}</p>
+                                <label class="text-muted mb-1">Tema Riset</label>
+                                <p class="font-weight-semibold mb-0">{{ $registration->themes_label }}</p>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="text-muted mb-1">Preferensi Dosen Pembimbing</label>

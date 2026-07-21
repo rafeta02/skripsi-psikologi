@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests;
 
-use App\Models\SkripsiRegistration;
 use Gate;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Response;
 
 class StoreSkripsiRegistrationRequest extends FormRequest
 {
@@ -17,7 +15,17 @@ class StoreSkripsiRegistrationRequest extends FormRequest
     public function rules()
     {
         return [
-            'theme_id' => [
+            'application_id' => [
+                'required',
+                'integer',
+                'exists:applications,id',
+            ],
+            'theme_ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'theme_ids.*' => [
                 'required',
                 'integer',
                 'exists:keilmuans,id',
@@ -60,8 +68,9 @@ class StoreSkripsiRegistrationRequest extends FormRequest
     public function messages()
     {
         return [
-            'theme_id.required' => 'Tema Keilmuan wajib dipilih.',
-            'theme_id.exists' => 'Tema Keilmuan yang dipilih tidak valid.',
+            'theme_ids.required' => 'Tema riset wajib dipilih.',
+            'theme_ids.min' => 'Pilih minimal satu tema riset.',
+            'theme_ids.*.exists' => 'Tema riset yang dipilih tidak valid.',
             'title.required' => 'Judul Skripsi wajib diisi.',
             'title.max' => 'Judul Skripsi maksimal 255 karakter.',
             'preference_supervision_id.required' => 'Preferensi Dosen Pembimbing wajib dipilih.',

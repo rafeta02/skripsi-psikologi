@@ -241,13 +241,13 @@
                 <h4 class="mb-4">Data Topik Skripsi</h4>
                 
                 <div class="form-group">
-                    <label for="theme_id">Bidang Keilmuan <span class="text-danger">*</span></label>
-                    <select name="theme_id" id="theme_id" class="form-control" required>
-                        <option value="">-- Pilih Bidang Keilmuan --</option>
+                    <label for="theme_ids">Tema Riset <span class="text-danger">*</span></label>
+                    <select name="theme_ids[]" id="theme_ids" class="form-control" multiple required>
                         @foreach($keilmuans as $id => $name)
-                            <option value="{{ $id }}">{{ $name }}</option>
+                            <option value="{{ $id }}" {{ collect(old('theme_ids'))->contains($id) ? 'selected' : '' }}>{{ $name }}</option>
                         @endforeach
                     </select>
+                    <small class="form-text text-muted">Dapat memilih lebih dari satu tema riset</small>
                 </div>
                 
                 <div class="form-group">
@@ -422,7 +422,10 @@
     }
     
     function updateSummary() {
-        const theme = $('#theme_id option:selected').text() || '-';
+        const themes = ($('#theme_ids').select2('data') || [])
+            .map(item => item.text)
+            .filter(Boolean)
+            .join(', ') || '-';
         const title = $('#title').val() || '-';
         const tpsLecturer = $('#tps_lecturer_id option:selected').text() || '-';
         const supervisor = $('#preference_supervision_id option:selected').text() || '-';
@@ -432,7 +435,7 @@
         let summary = `
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>Bidang Keilmuan:</strong><br>${theme}</p>
+                    <p><strong>Tema Riset:</strong><br>${themes}</p>
                     <p><strong>Judul:</strong><br>${title}</p>
                 </div>
                 <div class="col-md-6">
@@ -461,13 +464,14 @@
         if (typeof $.fn.select2 !== 'undefined') {
             console.log('[Skripsi Wizard] Initializing Select2...');
             
-            $('#theme_id').select2({
-                placeholder: '-- Pilih Bidang Keilmuan --',
+            $('#theme_ids').select2({
+                placeholder: '-- Pilih Tema Riset --',
                 allowClear: true,
                 width: '100%',
                 theme: 'bootstrap4',
                 dropdownParent: $('body'),
-                dropdownAutoWidth: false
+                dropdownAutoWidth: false,
+                closeOnSelect: false
             });
             
             $('#tps_lecturer_id').select2({

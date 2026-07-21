@@ -50,8 +50,8 @@
                     <h5 class="text-primary mb-3">Detail Pendaftaran</h5>
                     <table class="table table-borderless">
                         <tr>
-                            <td width="150"><strong>Bidang Keilmuan</strong></td>
-                            <td>: {{ $application->skripsiRegistration->theme->name ?? '-' }}</td>
+                            <td width="150"><strong>Tema Riset</strong></td>
+                            <td>: {{ $application->skripsiRegistration->themes_label }}</td>
                         </tr>
                         <tr>
                             <td><strong>Judul</strong></td>

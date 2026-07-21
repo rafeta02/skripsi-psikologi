@@ -214,6 +214,7 @@ class DashboardController extends Controller
             'application.mahasiswa.user',
             'application.mahasiswa.prodi',
             'application.mahasiswa.jenjang',
+            'application.skripsiRegistration.themes',
             'application.skripsiRegistration.theme',
             'application.skripsiRegistration.preference_supervision',
             'application.skripsiRegistration.tps_lecturer',

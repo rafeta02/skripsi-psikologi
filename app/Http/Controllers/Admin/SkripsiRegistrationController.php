@@ -29,7 +29,7 @@ class SkripsiRegistrationController extends Controller
         abort_if(Gate::denies('skripsi_registration_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = SkripsiRegistration::with(['application', 'theme', 'tps_lecturer', 'preference_supervision', 'created_by'])->select(sprintf('%s.*', (new SkripsiRegistration)->table));
+            $query = SkripsiRegistration::with(['application', 'themes', 'theme', 'tps_lecturer', 'preference_supervision', 'created_by'])->select(sprintf('%s.*', (new SkripsiRegistration)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -55,7 +55,7 @@ class SkripsiRegistrationController extends Controller
             });
 
             $table->addColumn('theme_name', function ($row) {
-                return $row->theme ? $row->theme->name : '';
+                return $row->themes_label;
             });
 
             $table->editColumn('title', function ($row) {
@@ -101,7 +101,7 @@ class SkripsiRegistrationController extends Controller
 
         $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $themes = Keilmuan::orderBy('name')->pluck('name', 'id');
 
         $tps_lecturers = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
 
@@ -112,7 +112,13 @@ class SkripsiRegistrationController extends Controller
 
     public function store(StoreSkripsiRegistrationRequest $request)
     {
-        $skripsiRegistration = SkripsiRegistration::create($request->all());
+        $data = $request->validated();
+        $themeIds = $data['theme_ids'] ?? [];
+        unset($data['theme_ids']);
+        $data['theme_id'] = $themeIds[0] ?? null;
+
+        $skripsiRegistration = SkripsiRegistration::create($data);
+        $skripsiRegistration->themes()->sync($themeIds);
 
         foreach ($request->input('khs_all', []) as $file) {
             $skripsiRegistration->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('khs_all');
@@ -135,20 +141,30 @@ class SkripsiRegistrationController extends Controller
 
         $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $themes = Keilmuan::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $themes = Keilmuan::orderBy('name')->pluck('name', 'id');
 
         $tps_lecturers = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $preference_supervisions = Dosen::pluck('nama', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $skripsiRegistration->load('application', 'theme', 'tps_lecturer', 'preference_supervision', 'created_by');
+        $skripsiRegistration->load('application', 'themes', 'theme', 'tps_lecturer', 'preference_supervision', 'created_by');
 
         return view('admin.skripsiRegistrations.edit', compact('applications', 'preference_supervisions', 'skripsiRegistration', 'themes', 'tps_lecturers'));
     }
 
     public function update(UpdateSkripsiRegistrationRequest $request, SkripsiRegistration $skripsiRegistration)
     {
-        $skripsiRegistration->update($request->all());
+        $data = $request->validated();
+        $themeIds = $data['theme_ids'] ?? [];
+        unset($data['theme_ids']);
+        if (!empty($themeIds)) {
+            $data['theme_id'] = $themeIds[0];
+        }
+
+        $skripsiRegistration->update($data);
+        if (!empty($themeIds)) {
+            $skripsiRegistration->themes()->sync($themeIds);
+        }
 
         if (count($skripsiRegistration->khs_all) > 0) {
             foreach ($skripsiRegistration->khs_all as $media) {
@@ -182,7 +198,7 @@ class SkripsiRegistrationController extends Controller
     {
         abort_if(Gate::denies('skripsi_registration_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $skripsiRegistration->load('application', 'theme', 'tps_lecturer', 'preference_supervision', 'created_by');
+        $skripsiRegistration->load('application', 'themes', 'theme', 'tps_lecturer', 'preference_supervision', 'created_by');
 
         return view('admin.skripsiRegistrations.show', compact('skripsiRegistration'));
     }

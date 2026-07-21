@@ -66,7 +66,8 @@ class SkripsiRegistrationController extends Controller
         }
         
         $validated = $request->validate([
-            'theme_id' => 'required|exists:keilmuans,id',
+            'theme_ids' => 'required|array|min:1',
+            'theme_ids.*' => 'required|exists:keilmuans,id',
             'title' => 'required|string|max:500',
             'title_en' => 'nullable|string|max:500',
             'abstract' => 'required|string',
@@ -80,10 +81,15 @@ class SkripsiRegistrationController extends Controller
         try {
             DB::beginTransaction();
             
+            $themeIds = $validated['theme_ids'];
+            unset($validated['theme_ids']);
+
             $validated['application_id'] = $application->id;
             $validated['created_by_id'] = $user->id;
-            
+            $validated['theme_id'] = $themeIds[0];
+
             $registration = SkripsiRegistration::create($validated);
+            $registration->themes()->sync($themeIds);
             
             // Get mahasiswa data for filename
             $mahasiswa = $application->mahasiswa;
@@ -148,7 +154,7 @@ class SkripsiRegistrationController extends Controller
     
     public function show($applicationId)
     {
-        $application = Application::with(['skripsiRegistration', 'mahasiswa', 'assignments.lecturer'])->findOrFail($applicationId);
+        $application = Application::with(['skripsiRegistration.themes', 'mahasiswa', 'assignments.lecturer'])->findOrFail($applicationId);
         
         // Verify ownership
         $user = Auth::user();
@@ -161,7 +167,7 @@ class SkripsiRegistrationController extends Controller
     
     public function edit($applicationId)
     {
-        $application = Application::with('skripsiRegistration')->findOrFail($applicationId);
+        $application = Application::with(['skripsiRegistration.themes'])->findOrFail($applicationId);
         
         // Verify ownership
         $user = Auth::user();
@@ -184,7 +190,7 @@ class SkripsiRegistrationController extends Controller
     
     public function update(Request $request, $applicationId)
     {
-        $application = Application::with('skripsiRegistration')->findOrFail($applicationId);
+        $application = Application::with(['skripsiRegistration.themes'])->findOrFail($applicationId);
         
         // Verify ownership
         $user = Auth::user();
@@ -193,7 +199,8 @@ class SkripsiRegistrationController extends Controller
         }
         
         $validated = $request->validate([
-            'theme_id' => 'required|exists:keilmuans,id',
+            'theme_ids' => 'required|array|min:1',
+            'theme_ids.*' => 'required|exists:keilmuans,id',
             'title' => 'required|string|max:500',
             'title_en' => 'nullable|string|max:500',
             'abstract' => 'required|string',
@@ -207,8 +214,13 @@ class SkripsiRegistrationController extends Controller
         try {
             DB::beginTransaction();
             
+            $themeIds = $validated['theme_ids'];
+            unset($validated['theme_ids']);
+            $validated['theme_id'] = $themeIds[0];
+
             $registration = $application->skripsiRegistration;
             $registration->update($validated);
+            $registration->themes()->sync($themeIds);
             
             // Handle file uploads
             if ($request->hasFile('khs_all')) {

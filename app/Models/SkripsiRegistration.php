@@ -69,6 +69,22 @@ class SkripsiRegistration extends Model implements HasMedia
         return $this->belongsTo(Keilmuan::class, 'theme_id');
     }
 
+    public function themes()
+    {
+        return $this->belongsToMany(Keilmuan::class, 'keilmuan_skripsi_registration', 'skripsi_registration_id', 'keilmuan_id');
+    }
+
+    public function getThemesLabelAttribute(): string
+    {
+        $names = $this->themes->pluck('name')->filter();
+
+        if ($names->isEmpty() && $this->theme) {
+            return $this->theme->name;
+        }
+
+        return $names->implode(', ') ?: '-';
+    }
+
     public function tps_lecturer()
     {
         return $this->belongsTo(Dosen::class, 'tps_lecturer_id');

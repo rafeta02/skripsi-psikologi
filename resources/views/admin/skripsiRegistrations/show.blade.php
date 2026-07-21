@@ -71,8 +71,8 @@
                 </div>
                 <div class="card-body">
                     <div class="form-group">
-                        <label class="font-weight-bold">Tema Keilmuan:</label>
-                        <p>{{ $skripsiRegistration->theme->name ?? 'N/A' }}</p>
+                        <label class="font-weight-bold">Tema Riset:</label>
+                        <p>{{ $skripsiRegistration->themes_label }}</p>
                     </div>
 
                     <div class="form-group">

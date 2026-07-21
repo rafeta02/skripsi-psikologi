@@ -23,16 +23,19 @@
                 <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.application_helper') }}</span>
             </div>
             <div class="form-group">
-                <label for="theme_id">{{ trans('cruds.skripsiRegistration.fields.theme') }}</label>
-                <select class="form-control select2 {{ $errors->has('theme') ? 'is-invalid' : '' }}" name="theme_id" id="theme_id">
+                @php
+                    $selectedThemeIds = collect(old('theme_ids', $skripsiRegistration->themes->pluck('id')->all()));
+                @endphp
+                <label for="theme_ids">Tema Riset</label>
+                <select class="form-control select2 {{ $errors->has('theme_ids') ? 'is-invalid' : '' }}" name="theme_ids[]" id="theme_ids" multiple>
                     @foreach($themes as $id => $entry)
-                        <option value="{{ $id }}" {{ (old('theme_id') ? old('theme_id') : $skripsiRegistration->theme->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
+                        <option value="{{ $id }}" {{ $selectedThemeIds->contains($id) ? 'selected' : '' }}>{{ $entry }}</option>
                     @endforeach
                 </select>
-                @if($errors->has('theme'))
-                    <span class="text-danger">{{ $errors->first('theme') }}</span>
+                @if($errors->has('theme_ids'))
+                    <span class="text-danger">{{ $errors->first('theme_ids') }}</span>
                 @endif
-                <span class="help-block">{{ trans('cruds.skripsiRegistration.fields.theme_helper') }}</span>
+                <span class="help-block">Dapat memilih lebih dari satu tema riset</span>
             </div>
             <div class="form-group">
                 <label for="title">{{ trans('cruds.skripsiRegistration.fields.title') }}</label>
