@@ -88,41 +88,70 @@
             <!-- Documents -->
             <div class="mb-4">
                 <h5 class="text-primary mb-3">Dokumen Persyaratan</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> KHS (Semua Semester)</h6>
-                                @if($application->skripsiRegistration->khs_all && count($application->skripsiRegistration->khs_all) > 0)
-                                    <ul class="list-unstyled">
-                                        @foreach($application->skripsiRegistration->khs_all as $file)
-                                        <li>
-                                            <a href="{{ $file->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-download"></i> {{ $file->file_name }}
-                                            </a>
-                                        </li>
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <p class="text-muted">Belum ada file</p>
-                                @endif
-                            </div>
+                @php $registration = $application->skripsiRegistration; @endphp
+
+                <div class="form-group">
+                    <label class="font-weight-bold">KHS (Kartu Hasil Studi):</label>
+                    @if($registration->khs_all && count($registration->khs_all) > 0)
+                        <div class="list-group">
+                            @foreach($registration->khs_all as $key => $media)
+                                <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                    <div class="mb-2 mb-md-0">
+                                        <i class="fas fa-file-pdf text-danger mr-2"></i>
+                                        <span>KHS File {{ $key + 1 }}</span>
+                                        <br>
+                                        <small class="text-muted">{{ $media->file_name }}</small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-info preview-doc"
+                                                data-url="{{ $media->getUrl() }}"
+                                                data-type="pdf">
+                                            <i class="fas fa-expand"></i> Preview
+                                        </button>
+                                        <a href="{{ $media->getUrl() }}" download class="btn btn-sm btn-success">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h6><i class="fas fa-file-pdf text-danger mr-2"></i> KRS (Semester Terbaru)</h6>
-                                @if($application->skripsiRegistration->krs_latest)
-                                    <a href="{{ $application->skripsiRegistration->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-download"></i> {{ $application->skripsiRegistration->krs_latest->file_name }}
+                    @else
+                        <p class="text-muted mb-0">Belum ada file KHS</p>
+                    @endif
+                </div>
+
+                <div class="form-group mb-0">
+                    <label class="font-weight-bold">KRS Semester Terakhir:</label>
+                    @if($registration->krs_latest)
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <div class="mb-2 mb-md-0">
+                                    <i class="fas fa-file-pdf text-danger mr-2"></i>
+                                    <span>KRS Latest</span>
+                                    <br>
+                                    <small class="text-muted">{{ $registration->krs_latest->file_name }}</small>
+                                </div>
+                                <div class="btn-group">
+                                    <a href="{{ $registration->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> View
                                     </a>
-                                @else
-                                    <p class="text-muted">Belum ada file</p>
-                                @endif
+                                    <button type="button" class="btn btn-sm btn-info preview-doc"
+                                            data-url="{{ $registration->krs_latest->getUrl() }}"
+                                            data-type="pdf">
+                                        <i class="fas fa-expand"></i> Preview
+                                    </button>
+                                    <a href="{{ $registration->krs_latest->getUrl() }}" download class="btn btn-sm btn-success">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @else
+                        <p class="text-muted mb-0">Belum ada file KRS</p>
+                    @endif
                 </div>
             </div>
             @endif
@@ -142,4 +171,40 @@
         </div>
     </div>
 </div>
+
+<!-- Document Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-pdf mr-2"></i>
+                    Preview Dokumen
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="height: 80vh;">
+                <iframe id="pdfViewer" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('.preview-doc').on('click', function() {
+        const url = $(this).data('url');
+        $('#pdfViewer').attr('src', url);
+        $('#previewModal').modal('show');
+    });
+
+    $('#previewModal').on('hidden.bs.modal', function() {
+        $('#pdfViewer').attr('src', '');
+    });
+});
+</script>
+@endpush
