@@ -15,46 +15,30 @@
     </div>
 
     <div class="card-body">
-        <table class=" table table-bordered table-striped table-hover ajaxTable datatable datatable-SkripsiRegistration">
+        <table class="table table-bordered table-striped table-hover ajaxTable datatable datatable-SkripsiRegistration text-center">
             <thead>
                 <tr>
-                    <th width="10">
-
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiRegistration.fields.application') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiRegistration.fields.theme') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiRegistration.fields.title') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiRegistration.fields.abstract') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiRegistration.fields.tps_lecturer') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiRegistration.fields.preference_supervision') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiRegistration.fields.khs_all') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiRegistration.fields.krs_latest') }}
-                    </th>
-                    <th>
-                        &nbsp;
-                    </th>
+                    <th width="10" class="text-center"></th>
+                    <th class="text-center">{{ trans('cruds.skripsiRegistration.fields.application') }}</th>
+                    <th class="text-center">Tema Riset</th>
+                    <th class="text-center">{{ trans('cruds.skripsiRegistration.fields.title') }}</th>
+                    <th class="text-center">{{ trans('cruds.skripsiRegistration.fields.preference_supervision') }}</th>
+                    <th class="text-center">{{ trans('cruds.skripsiRegistration.fields.khs_all') }}</th>
+                    <th class="text-center">{{ trans('cruds.skripsiRegistration.fields.krs_latest') }}</th>
+                    <th class="text-center">&nbsp;</th>
                 </tr>
             </thead>
         </table>
     </div>
 </div>
 
-
+<style>
+    .datatable-SkripsiRegistration th,
+    .datatable-SkripsiRegistration td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+</style>
 
 @endsection
 @section('scripts')
@@ -100,20 +84,21 @@
     aaSorting: [],
     ajax: "{{ route('admin.skripsi-registrations.index') }}",
     columns: [
-      { data: 'placeholder', name: 'placeholder' },
-{ data: 'application_status', name: 'application.status' },
-{ data: 'theme_name', name: 'theme.name' },
-{ data: 'title', name: 'title' },
-{ data: 'abstract', name: 'abstract' },
-{ data: 'tps_lecturer_nama', name: 'tps_lecturer.nama' },
-{ data: 'preference_supervision_nama', name: 'preference_supervision.nama' },
-{ data: 'khs_all', name: 'khs_all', sortable: false, searchable: false },
-{ data: 'krs_latest', name: 'krs_latest', sortable: false, searchable: false },
-{ data: 'actions', name: '{{ trans('global.actions') }}' }
+      { data: 'placeholder', name: 'placeholder', className: 'text-center' },
+      { data: 'application_status', name: 'application.status', className: 'text-center' },
+      { data: 'theme_name', name: 'theme.name', className: 'text-center', orderable: false, searchable: false },
+      { data: 'title', name: 'title', className: 'text-center' },
+      { data: 'preference_supervision_nama', name: 'preference_supervision.nama', className: 'text-center' },
+      { data: 'khs_all', name: 'khs_all', sortable: false, searchable: false, className: 'text-center' },
+      { data: 'krs_latest', name: 'krs_latest', sortable: false, searchable: false, className: 'text-center' },
+      { data: 'actions', name: '{{ trans('global.actions') }}', className: 'text-center' }
     ],
     orderCellsTop: true,
     order: [[ 1, 'desc' ]],
     pageLength: 50,
+    columnDefs: [
+      { className: 'text-center', targets: '_all' }
+    ],
   };
   let table = $('.datatable-SkripsiRegistration').DataTable(dtOverrideGlobals);
   $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){

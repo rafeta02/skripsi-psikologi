@@ -37,7 +37,7 @@ class SkripsiRegistrationController extends Controller
 
             $table->editColumn('actions', function ($row) {
                 $viewGate      = 'skripsi_registration_show';
-                $editGate      = 'skripsi_registration_edit';
+                $editGate      = 'skripsi_registration_admin_edit_disabled';
                 $deleteGate    = 'skripsi_registration_delete';
                 $crudRoutePart = 'skripsi-registrations';
 
@@ -55,39 +55,35 @@ class SkripsiRegistrationController extends Controller
             });
 
             $table->addColumn('theme_name', function ($row) {
-                return $row->themes_label;
+                return $row->themesBadgesHtml();
             });
 
             $table->editColumn('title', function ($row) {
-                return $row->title ? $row->title : '';
-            });
-            $table->editColumn('abstract', function ($row) {
-                return $row->abstract ? $row->abstract : '';
-            });
-            $table->addColumn('tps_lecturer_nama', function ($row) {
-                return $row->tps_lecturer ? $row->tps_lecturer->nama : '';
+                return $row->title ? e($row->title) : '<span class="text-muted">-</span>';
             });
 
             $table->addColumn('preference_supervision_nama', function ($row) {
-                return $row->preference_supervision ? $row->preference_supervision->nama : '';
+                return $row->preference_supervision ? e($row->preference_supervision->nama) : '<span class="text-muted">-</span>';
             });
 
             $table->editColumn('khs_all', function ($row) {
                 if (! $row->khs_all) {
-                    return '';
+                    return '<span class="text-muted">-</span>';
                 }
                 $links = [];
                 foreach ($row->khs_all as $media) {
-                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>';
+                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank" class="btn btn-xs btn-outline-primary"><i class="fas fa-download"></i> KHS</a>';
                 }
 
-                return implode(', ', $links);
+                return implode(' ', $links);
             });
             $table->editColumn('krs_latest', function ($row) {
-                return $row->krs_latest ? '<a href="' . $row->krs_latest->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
+                return $row->krs_latest
+                    ? '<a href="' . $row->krs_latest->getUrl() . '" target="_blank" class="btn btn-xs btn-outline-primary"><i class="fas fa-download"></i> KRS</a>'
+                    : '<span class="text-muted">-</span>';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'theme', 'tps_lecturer', 'preference_supervision', 'khs_all', 'krs_latest']);
+            $table->rawColumns(['actions', 'placeholder', 'theme_name', 'title', 'preference_supervision_nama', 'khs_all', 'krs_latest']);
 
             return $table->make(true);
         }

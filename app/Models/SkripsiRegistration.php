@@ -85,6 +85,29 @@ class SkripsiRegistration extends Model implements HasMedia
         return $names->implode(', ') ?: '-';
     }
 
+    public function themesBadgesHtml(): string
+    {
+        $themes = $this->relationLoaded('themes')
+            ? $this->themes
+            : $this->themes()->get();
+
+        if ($themes->isEmpty() && $this->theme) {
+            $themes = collect([$this->theme]);
+        }
+
+        if ($themes->isEmpty()) {
+            return '<span class="text-muted">-</span>';
+        }
+
+        $palette = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'dark'];
+
+        return $themes->map(function ($theme) use ($palette) {
+            $color = $palette[(int) $theme->id % count($palette)];
+
+            return '<span class="badge badge-' . $color . ' mr-1 mb-1">' . e($theme->name) . '</span>';
+        })->implode(' ');
+    }
+
     public function tps_lecturer()
     {
         return $this->belongsTo(Dosen::class, 'tps_lecturer_id');
