@@ -56,9 +56,13 @@ $(document).ready(function () {
     }
 
     var $modal = $el.closest('.modal')
+    var isMultiple = $el.prop('multiple')
     $el.select2({
       width: '100%',
-      dropdownParent: $modal.length ? $modal : $(document.body)
+      dropdownParent: $modal.length ? $modal : $(document.body),
+      closeOnSelect: !isMultiple,
+      allowClear: !isMultiple,
+      placeholder: $el.data('placeholder') || ($el.attr('placeholder') || undefined)
     })
   })
 
