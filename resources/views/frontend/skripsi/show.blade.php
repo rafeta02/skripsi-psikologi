@@ -17,18 +17,6 @@
         </div>
     @endif
 
-    @if($application->status === 'revision' && $application->skripsiRegistration?->revision_notes)
-        <div class="alert alert-warning mb-4">
-            <h5 class="alert-heading mb-2">
-                <i class="fas fa-exclamation-triangle mr-1"></i> Perlu Revisi
-            </h5>
-            <p class="mb-1">Admin meminta perbaikan pada pendaftaran Anda. Silakan perbaiki sesuai catatan berikut, lalu kirim ulang.</p>
-            <hr class="my-2">
-            <strong>Catatan revisi admin:</strong>
-            <p class="mb-0 mt-1">{{ $application->skripsiRegistration->revision_notes }}</p>
-        </div>
-    @endif
-
     <div class="card-modern">
         <div class="card-header bg-primary text-white">
             <h3 class="card-title mb-0">
@@ -57,7 +45,7 @@
                                     {{ $regStatus['label'] }}
                                 </span>
                                 <br>
-                                <small class="text-muted">{{ $regStatus['detail'] }}</small>
+                                <small class="text-muted">{!! nl2br(e($regStatus['detail'])) !!}</small>
                             </td>
                         </tr>
                         <tr>

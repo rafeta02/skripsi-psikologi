@@ -94,13 +94,7 @@
                                                 </span>
                                             </div>
                                             @if(!empty($regStatus['detail']))
-                                                <small class="text-muted d-block mt-2">{{ $regStatus['detail'] }}</small>
-                                            @endif
-                                            @if($application->status === 'revision' && $registration?->revision_notes)
-                                                <div class="alert alert-warning py-2 px-3 mt-2 mb-0 small text-left">
-                                                    <strong>Catatan revisi admin:</strong>
-                                                    <div class="mt-1">{{ $registration->revision_notes }}</div>
-                                                </div>
+                                                <small class="text-muted d-block mt-2">{!! nl2br(e($regStatus['detail'])) !!}</small>
                                             @endif
                                         </div>
                                     </div>

@@ -266,7 +266,7 @@ class Application extends Model implements HasMedia
                 'badge' => 'warning',
                 'icon' => 'edit',
                 'label' => 'Perlu Revisi',
-                'detail' => 'Perbaiki pendaftaran sesuai catatan yang diberikan',
+                'detail' => $this->buildRevisionStatusDetail('Perbaiki pendaftaran sesuai catatan yang diberikan'),
             ];
         }
 
@@ -330,11 +330,40 @@ class Application extends Model implements HasMedia
         return match ($this->status) {
             'approved' => ['badge' => 'success', 'icon' => 'check-circle', 'label' => 'Disetujui', 'detail' => 'Telah disetujui'],
             'rejected' => ['badge' => 'danger', 'icon' => 'times-circle', 'label' => 'Ditolak', 'detail' => 'Ditolak'],
-            'revision' => ['badge' => 'warning', 'icon' => 'edit', 'label' => 'Perlu Revisi', 'detail' => 'Memerlukan perbaikan'],
+            'revision' => [
+                'badge' => 'warning',
+                'icon' => 'edit',
+                'label' => 'Perlu Revisi',
+                'detail' => $this->buildRevisionStatusDetail('Memerlukan perbaikan'),
+            ],
             'scheduled' => ['badge' => 'info', 'icon' => 'calendar-check', 'label' => 'Terjadwal', 'detail' => 'Sudah dijadwalkan'],
             'done' => ['badge' => 'secondary', 'icon' => 'flag-checkered', 'label' => 'Selesai', 'detail' => 'Proses selesai'],
             default => ['badge' => 'warning', 'icon' => 'clock', 'label' => 'Menunggu Review', 'detail' => 'Menunggu verifikasi'],
         };
+    }
+
+    public function getRevisionNotesForMahasiswa(): ?string
+    {
+        if ($this->type === 'skripsi') {
+            return $this->skripsiRegistration?->revision_notes;
+        }
+
+        if ($this->type === 'mbkm') {
+            return $this->mbkmRegistration?->revision_notes;
+        }
+
+        return null;
+    }
+
+    protected function buildRevisionStatusDetail(string $fallback): string
+    {
+        $notes = $this->getRevisionNotesForMahasiswa();
+
+        if ($notes) {
+            return $fallback . ' Catatan revisi: ' . $notes;
+        }
+
+        return $fallback;
     }
 
     /**
