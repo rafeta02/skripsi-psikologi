@@ -29,7 +29,7 @@ class SkripsiRegistrationController extends Controller
         abort_if(Gate::denies('skripsi_registration_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = SkripsiRegistration::with(['application', 'themes', 'theme', 'tps_lecturer', 'preference_supervision', 'created_by'])->select(sprintf('%s.*', (new SkripsiRegistration)->table));
+            $query = SkripsiRegistration::with(['application.mahasiswa', 'themes', 'theme', 'tps_lecturer', 'preference_supervision', 'created_by'])->select(sprintf('%s.*', (new SkripsiRegistration)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -50,8 +50,10 @@ class SkripsiRegistrationController extends Controller
                 ));
             });
 
-            $table->addColumn('application_status', function ($row) {
-                return $row->application ? $row->application->status : '';
+            $table->addColumn('mahasiswa_name', function ($row) {
+                return $row->application && $row->application->mahasiswa
+                    ? e($row->application->mahasiswa->nama)
+                    : '<span class="text-muted">-</span>';
             });
 
             $table->addColumn('theme_name', function ($row) {
@@ -83,7 +85,7 @@ class SkripsiRegistrationController extends Controller
                     : '<span class="text-muted">-</span>';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'theme_name', 'title', 'preference_supervision_nama', 'khs_all', 'krs_latest']);
+            $table->rawColumns(['actions', 'placeholder', 'mahasiswa_name', 'theme_name', 'title', 'preference_supervision_nama', 'khs_all', 'krs_latest']);
 
             return $table->make(true);
         }
