@@ -25,7 +25,11 @@ class SkripsiRegistrationController extends Controller
         // Get all skripsi applications for this mahasiswa
         $applications = Application::where('mahasiswa_id', $mahasiswa->id)
             ->where('type', 'skripsi')
-            ->with('skripsiRegistration')
+            ->with([
+                'skripsiRegistration.themes',
+                'skripsiRegistration.preference_supervision',
+                'assignments',
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
         
