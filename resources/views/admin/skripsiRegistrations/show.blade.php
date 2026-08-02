@@ -233,6 +233,7 @@
                 <div class="card-body">
                     @php
                         $status = $skripsiRegistration->application->status ?? 'unknown';
+                        $adminAlreadyApproved = !empty($skripsiRegistration->approval_date);
                         $statusConfig = [
                             'submitted' => ['badge' => 'info', 'icon' => 'clock', 'text' => 'Menunggu Review'],
                             'approved' => ['badge' => 'success', 'icon' => 'check-circle', 'text' => 'Disetujui'],
@@ -240,6 +241,9 @@
                             'revision' => ['badge' => 'warning', 'icon' => 'edit', 'text' => 'Perlu Revisi'],
                         ];
                         $config = $statusConfig[$status] ?? ['badge' => 'secondary', 'icon' => 'question', 'text' => 'Unknown'];
+                        if ($adminAlreadyApproved && $status === 'submitted') {
+                            $config = ['badge' => 'success', 'icon' => 'check-circle', 'text' => 'Disetujui Admin'];
+                        }
                     @endphp
                     
                     <div class="text-center mb-3">
@@ -247,6 +251,9 @@
                             <i class="fas fa-{{ $config['icon'] }} mr-2"></i>
                             {{ $config['text'] }}
                         </span>
+                        @if($adminAlreadyApproved && $status === 'submitted')
+                            <div class="small text-muted mt-2">Menunggu persetujuan dosen pembimbing</div>
+                        @endif
                     </div>
 
                     <table class="table table-sm table-borderless">
@@ -329,7 +336,13 @@
             </div>
 
             <!-- Action Buttons Card -->
-            @if($skripsiRegistration->application && $skripsiRegistration->application->status === 'submitted')
+            @php
+                $showAdminActions = $skripsiRegistration->application
+                    && $skripsiRegistration->application->status === 'submitted'
+                    && empty($skripsiRegistration->approval_date)
+                    && !$supervisorAssignment;
+            @endphp
+            @if($showAdminActions)
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h3 class="card-title mb-0">

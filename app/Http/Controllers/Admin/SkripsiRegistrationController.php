@@ -239,6 +239,24 @@ class SkripsiRegistrationController extends Controller
     public function approve(Request $request, $id)
     {
         $registration = SkripsiRegistration::with('application')->findOrFail($id);
+
+        if ($registration->approval_date || $registration->assigned_supervisor_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pendaftaran sudah disetujui dan dosen pembimbing sudah ditugaskan.',
+            ], 422);
+        }
+
+        $hasSupervisorAssignment = ApplicationAssignment::where('application_id', $registration->application_id)
+            ->where('role', 'supervisor')
+            ->exists();
+
+        if ($hasSupervisorAssignment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dosen pembimbing sudah ditugaskan untuk pendaftaran ini.',
+            ], 422);
+        }
         
         $request->validate([
             'supervisor_id' => 'required|exists:dosens,id',
@@ -342,6 +360,24 @@ class SkripsiRegistrationController extends Controller
     public function requestRevision(Request $request, $id)
     {
         $registration = SkripsiRegistration::with('application')->findOrFail($id);
+
+        if ($registration->approval_date || $registration->assigned_supervisor_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pendaftaran sudah disetujui. Tidak dapat meminta revisi.',
+            ], 422);
+        }
+
+        $hasSupervisorAssignment = ApplicationAssignment::where('application_id', $registration->application_id)
+            ->where('role', 'supervisor')
+            ->exists();
+
+        if ($hasSupervisorAssignment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dosen pembimbing sudah ditugaskan. Tidak dapat meminta revisi.',
+            ], 422);
+        }
         
         $request->validate([
             'notes' => 'required|string|min:10',
