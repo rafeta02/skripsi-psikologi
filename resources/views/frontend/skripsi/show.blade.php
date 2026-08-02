@@ -4,6 +4,31 @@
 
 @section('content')
 <div class="container py-4">
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    @endif
+
+    @if($application->status === 'revision' && $application->skripsiRegistration?->revision_notes)
+        <div class="alert alert-warning mb-4">
+            <h5 class="alert-heading mb-2">
+                <i class="fas fa-exclamation-triangle mr-1"></i> Perlu Revisi
+            </h5>
+            <p class="mb-1">Admin meminta perbaikan pada pendaftaran Anda. Silakan perbaiki sesuai catatan berikut, lalu kirim ulang.</p>
+            <hr class="my-2">
+            <strong>Catatan revisi admin:</strong>
+            <p class="mb-0 mt-1">{{ $application->skripsiRegistration->revision_notes }}</p>
+        </div>
+    @endif
+
     <div class="card-modern">
         <div class="card-header bg-primary text-white">
             <h3 class="card-title mb-0">
@@ -162,9 +187,10 @@
                     <i class="fas fa-arrow-left mr-2"></i> Kembali
                 </a>
                 
-                @if(in_array($application->status, ['submitted', 'rejected']))
-                <a href="{{ route('frontend.skripsi.edit', $application->id) }}" class="btn btn-warning">
-                    <i class="fas fa-edit mr-2"></i> Edit Pendaftaran
+                @if(in_array($application->status, ['submitted', 'rejected', 'revision']))
+                <a href="{{ route('frontend.skripsi-registrations.edit', $application->skripsiRegistration->id) }}" class="btn btn-warning">
+                    <i class="fas fa-edit mr-2"></i>
+                    {{ $application->status === 'revision' ? 'Perbaiki Revisi' : 'Edit Pendaftaran' }}
                 </a>
                 @endif
             </div>

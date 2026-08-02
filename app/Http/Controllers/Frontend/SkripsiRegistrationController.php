@@ -13,6 +13,32 @@ use Illuminate\Support\Facades\DB;
 
 class SkripsiRegistrationController extends Controller
 {
+    /**
+     * Route skripsi-registrations/{id} memakai ID pendaftaran;
+     * route skripsi/{application} memakai ID aplikasi.
+     */
+    protected function resolveApplication(int|string $id): Application
+    {
+        $numericId = (int) $id;
+        $routeName = request()->route()?->getName() ?? '';
+
+        if (str_contains($routeName, 'skripsi-registrations')) {
+            $registration = SkripsiRegistration::find($numericId);
+            if ($registration) {
+                return Application::findOrFail($registration->application_id);
+            }
+        }
+
+        $application = Application::find($numericId);
+        if ($application) {
+            return $application;
+        }
+
+        $registration = SkripsiRegistration::findOrFail($numericId);
+
+        return Application::findOrFail($registration->application_id);
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -158,7 +184,8 @@ class SkripsiRegistrationController extends Controller
     
     public function show($applicationId)
     {
-        $application = Application::with(['skripsiRegistration.themes', 'mahasiswa', 'assignments.lecturer'])->findOrFail($applicationId);
+        $application = $this->resolveApplication($applicationId);
+        $application->load(['skripsiRegistration.themes', 'skripsiRegistration.preference_supervision', 'skripsiRegistration.tps_lecturer', 'mahasiswa', 'assignments.lecturer']);
         
         // Verify ownership
         $user = Auth::user();
@@ -171,7 +198,8 @@ class SkripsiRegistrationController extends Controller
     
     public function edit($applicationId)
     {
-        $application = Application::with(['skripsiRegistration.themes'])->findOrFail($applicationId);
+        $application = $this->resolveApplication($applicationId);
+        $application->load(['skripsiRegistration.themes']);
         
         // Verify ownership
         $user = Auth::user();
@@ -180,8 +208,8 @@ class SkripsiRegistrationController extends Controller
         }
         
         // Check if can edit
-        if (!in_array($application->status, ['submitted', 'rejected'])) {
-            return redirect()->route('frontend.skripsi.show', $application->id)
+        if (!in_array($application->status, ['submitted', 'rejected', 'revision'])) {
+            return redirect()->route('frontend.skripsi-registrations.show', $application->skripsiRegistration?->id ?? $application->id)
                 ->with('error', 'Pendaftaran tidak dapat diedit pada status ini.');
         }
         
@@ -194,12 +222,18 @@ class SkripsiRegistrationController extends Controller
     
     public function update(Request $request, $applicationId)
     {
-        $application = Application::with(['skripsiRegistration.themes'])->findOrFail($applicationId);
+        $application = $this->resolveApplication($applicationId);
+        $application->load(['skripsiRegistration.themes']);
         
         // Verify ownership
         $user = Auth::user();
         if ($application->mahasiswa_id != $user->mahasiswa_id) {
             abort(403, 'Unauthorized access');
+        }
+
+        if (!in_array($application->status, ['submitted', 'rejected', 'revision'])) {
+            return redirect()->route('frontend.skripsi-registrations.show', $application->skripsiRegistration?->id ?? $application->id)
+                ->with('error', 'Pendaftaran tidak dapat diperbarui pada status ini.');
         }
         
         $validated = $request->validate([
@@ -223,6 +257,7 @@ class SkripsiRegistrationController extends Controller
             $validated['theme_id'] = $themeIds[0];
 
             $registration = $application->skripsiRegistration;
+            $wasRevision = $application->status === 'revision';
             $registration->update($validated);
             $registration->themes()->sync($themeIds);
             
@@ -239,13 +274,17 @@ class SkripsiRegistrationController extends Controller
                 $registration->addMedia($request->file('krs_latest'))->toMediaCollection('krs_latest');
             }
             
-            // Update application status back to submitted
             $application->update(['status' => 'submitted']);
+            if ($wasRevision) {
+                $registration->update(['revision_notes' => null]);
+            }
             
             DB::commit();
             
-            return redirect()->route('frontend.skripsi.show', $application->id)
-                ->with('success', 'Pendaftaran skripsi berhasil diperbarui.');
+            return redirect()->route('frontend.skripsi-registrations.show', $registration->id)
+                ->with('success', $wasRevision
+                    ? 'Revisi pendaftaran berhasil dikirim ulang. Menunggu verifikasi admin.'
+                    : 'Pendaftaran skripsi berhasil diperbarui.');
                 
         } catch (\Exception $e) {
             DB::rollBack();

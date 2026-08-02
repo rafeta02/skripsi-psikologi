@@ -60,7 +60,7 @@
                             && !$registration
                             && in_array($application->status, ['submitted', 'revision', 'rejected'], true);
                         $canEdit = $registration
-                            && in_array($application->status, ['submitted', 'rejected'], true);
+                            && in_array($application->status, ['submitted', 'rejected', 'revision'], true);
                     @endphp
                     <div class="card-modern mb-4">
                         <div class="card-modern-body">
@@ -96,6 +96,12 @@
                                             @if(!empty($regStatus['detail']))
                                                 <small class="text-muted d-block mt-2">{{ $regStatus['detail'] }}</small>
                                             @endif
+                                            @if($application->status === 'revision' && $registration?->revision_notes)
+                                                <div class="alert alert-warning py-2 px-3 mt-2 mb-0 small text-left">
+                                                    <strong>Catatan revisi admin:</strong>
+                                                    <div class="mt-1">{{ $registration->revision_notes }}</div>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
 
@@ -109,7 +115,7 @@
 
                                 <div class="col-md-4 text-right">
                                     <div class="d-flex flex-column gap-2">
-                                        <a href="{{ route('frontend.skripsi.show', $application->id) }}" class="btn-modern btn-modern-primary">
+                                        <a href="{{ route('frontend.skripsi-registrations.show', $registration?->id ?? $application->id) }}" class="btn-modern btn-modern-primary">
                                             <i class="fas fa-eye"></i> Lihat Detail
                                         </a>
 
@@ -118,8 +124,9 @@
                                                 <i class="fas fa-plus-circle"></i> Lengkapi Form
                                             </a>
                                         @elseif($canEdit)
-                                            <a href="{{ route('frontend.skripsi.edit', $application->id) }}" class="btn-modern btn-modern-outline">
-                                                <i class="fas fa-edit"></i> Edit
+                                            <a href="{{ route('frontend.skripsi-registrations.edit', $registration->id) }}" class="btn-modern btn-modern-outline">
+                                                <i class="fas fa-edit"></i>
+                                                {{ $application->status === 'revision' ? 'Perbaiki Revisi' : 'Edit' }}
                                             </a>
                                         @endif
                                     </div>
