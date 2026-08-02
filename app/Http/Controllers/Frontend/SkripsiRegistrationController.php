@@ -216,7 +216,12 @@ class SkripsiRegistrationController extends Controller
         $keilmuans = Keilmuan::pluck('name', 'id');
         $dosens = Dosen::pluck('nama', 'id');
         $registration = $application->skripsiRegistration;
-        
+
+        if (!$registration) {
+            return redirect()->route('frontend.skripsi.create', $application->id)
+                ->with('info', 'Lengkapi form pendaftaran terlebih dahulu.');
+        }
+
         return view('frontend.skripsi.edit', compact('application', 'registration', 'keilmuans', 'dosens'));
     }
     
