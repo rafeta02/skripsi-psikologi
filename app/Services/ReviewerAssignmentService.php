@@ -33,6 +33,11 @@ class ReviewerAssignmentService
      */
     public function assignReviewers(SkripsiSeminar $seminar, int $reviewer1Id, int $reviewer2Id, ?string $notes = null): void
     {
+        $supervisorId = $seminar->application?->resolveSupervisorLecturerId();
+        if ($supervisorId && in_array($supervisorId, [$reviewer1Id, $reviewer2Id], true)) {
+            throw new \InvalidArgumentException('Dosen pembimbing tidak dapat ditugaskan sebagai reviewer.');
+        }
+
         $now = now();
         $responseDeadline = $now->copy()->addDays($this->responseDays());
         $feedbackDeadline = $now->copy()->addDays($this->feedbackDeadlineDays());
@@ -86,6 +91,12 @@ class ReviewerAssignmentService
      */
     public function reassignReviewer(ApplicationAssignment $oldAssignment, int $newLecturerId, ?string $note = null): ApplicationAssignment
     {
+        $seminar = SkripsiSeminar::with('application')->find($oldAssignment->skripsi_seminar_id);
+        $supervisorId = $seminar?->application?->resolveSupervisorLecturerId();
+        if ($supervisorId && $supervisorId === $newLecturerId) {
+            throw new \InvalidArgumentException('Dosen pembimbing tidak dapat ditugaskan sebagai reviewer.');
+        }
+
         return DB::transaction(function () use ($oldAssignment, $newLecturerId, $note) {
             $now = now();
             $oldAssignment->update(['status' => 'replaced']);

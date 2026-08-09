@@ -190,6 +190,7 @@ class SkripsiSeminarController extends Controller
 
         $skripsiSeminar->load(
             'application.mahasiswa',
+            'application.skripsiRegistration',
             'created_by',
             'reviewer1',
             'reviewer2',
@@ -201,9 +202,20 @@ class SkripsiSeminarController extends Controller
             ->orderBy('reviewer_slot')
             ->get();
 
-        $dosens = Dosen::orderBy('nama')->get(['id', 'nama', 'nidn']);
+        $supervisorId = $skripsiSeminar->application?->resolveSupervisorLecturerId();
+        $supervisor = $supervisorId ? Dosen::find($supervisorId) : null;
 
-        return view('admin.skripsiSeminars.show', compact('skripsiSeminar', 'reviewerAssignments', 'dosens'));
+        $dosens = Dosen::orderBy('nama')
+            ->when($supervisorId, fn ($query) => $query->where('id', '!=', $supervisorId))
+            ->get(['id', 'nama', 'nidn']);
+
+        return view('admin.skripsiSeminars.show', compact(
+            'skripsiSeminar',
+            'reviewerAssignments',
+            'dosens',
+            'supervisor',
+            'supervisorId'
+        ));
     }
 
     public function destroy(SkripsiSeminar $skripsiSeminar)
@@ -251,6 +263,14 @@ class SkripsiSeminarController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $supervisorId = $seminar->application?->resolveSupervisorLecturerId();
+        if ($supervisorId && in_array($supervisorId, [(int) $request->reviewer_1_id, (int) $request->reviewer_2_id], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dosen pembimbing tidak dapat ditugaskan sebagai reviewer.',
+            ], 422);
+        }
+
         try {
             app(ReviewerAssignmentService::class)->assignReviewers(
                 $seminar,
@@ -294,6 +314,15 @@ class SkripsiSeminarController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Pilih dosen reviewer yang berbeda dari penugasan sebelumnya.',
+            ], 422);
+        }
+
+        $seminar = SkripsiSeminar::with('application')->find($assignment->skripsi_seminar_id);
+        $supervisorId = $seminar?->application?->resolveSupervisorLecturerId();
+        if ($supervisorId && (int) $request->lecturer_id === $supervisorId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dosen pembimbing tidak dapat ditugaskan sebagai reviewer.',
             ], 422);
         }
 

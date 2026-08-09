@@ -447,13 +447,16 @@
                     <div class="alert alert-success">
                         <i class="fas fa-info-circle mr-2"></i>
                         Review Kelayakan Proposal (Reguler) akan disetujui dan 2 reviewer akan ditugaskan.
+                        @if($supervisor ?? null)
+                            <br><small class="d-block mt-1">Dosen pembimbing <strong>{{ $supervisor->nama }}</strong> tidak ditampilkan dalam daftar reviewer.</small>
+                        @endif
                     </div>
 
                     <div class="form-group">
                         <label for="reviewer_1_id">Reviewer 1 <span class="text-danger">*</span></label>
                         <select class="form-control select2" id="reviewer_1_id" name="reviewer_1_id" required>
                             <option value="">-- Pilih Reviewer 1 --</option>
-                            @foreach(\App\Models\Dosen::orderBy('nama')->get() as $dosen)
+                            @foreach($dosens ?? [] as $dosen)
                                 <option value="{{ $dosen->id }}">{{ $dosen->nama }}</option>
                             @endforeach
                         </select>
@@ -464,7 +467,7 @@
                         <label for="reviewer_2_id">Reviewer 2 <span class="text-danger">*</span></label>
                         <select class="form-control select2" id="reviewer_2_id" name="reviewer_2_id" required>
                             <option value="">-- Pilih Reviewer 2 --</option>
-                            @foreach(\App\Models\Dosen::orderBy('nama')->get() as $dosen)
+                            @foreach($dosens ?? [] as $dosen)
                                 <option value="{{ $dosen->id }}">{{ $dosen->nama }}</option>
                             @endforeach
                         </select>
@@ -537,6 +540,11 @@
                 @csrf
                 <div class="modal-body">
                     <input type="hidden" id="reassign_assignment_id" name="assignment_id">
+                    @if($supervisor ?? null)
+                        <div class="alert alert-info py-2">
+                            Dosen pembimbing <strong>{{ $supervisor->nama }}</strong> tidak ditampilkan dalam daftar reviewer.
+                        </div>
+                    @endif
                     <div class="form-group">
                         <label>Dosen Reviewer Pengganti</label>
                         <select name="lecturer_id" id="reassign_lecturer_id" class="form-control" required>

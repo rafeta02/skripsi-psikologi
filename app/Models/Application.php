@@ -238,6 +238,49 @@ class Application extends Model implements HasMedia
     }
 
     /**
+     * Dosen pembimbing aktif mahasiswa (dari aplikasi pendaftaran skripsi).
+     */
+    public function resolveSupervisorLecturerId(): ?int
+    {
+        if (! $this->mahasiswa_id) {
+            return null;
+        }
+
+        $registrationApplication = static::query()
+            ->where('mahasiswa_id', $this->mahasiswa_id)
+            ->where('type', 'skripsi')
+            ->where('stage', 'registration')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($registrationApplication) {
+            $registrationApplication->loadMissing('skripsiRegistration');
+
+            if ($registrationApplication->skripsiRegistration?->assigned_supervisor_id) {
+                return (int) $registrationApplication->skripsiRegistration->assigned_supervisor_id;
+            }
+
+            $acceptedSupervisorId = ApplicationAssignment::query()
+                ->where('application_id', $registrationApplication->id)
+                ->where('role', 'supervisor')
+                ->where('status', 'accepted')
+                ->value('lecturer_id');
+
+            if ($acceptedSupervisorId) {
+                return (int) $acceptedSupervisorId;
+            }
+        }
+
+        $acceptedSupervisorId = ApplicationAssignment::query()
+            ->where('application_id', $this->id)
+            ->where('role', 'supervisor')
+            ->where('status', 'accepted')
+            ->value('lecturer_id');
+
+        return $acceptedSupervisorId ? (int) $acceptedSupervisorId : null;
+    }
+
+    /**
      * Registration is fully accepted for mahasiswa only after supervisor accepts assignment.
      */
     public function isRegistrationAcceptedBySupervisor(): bool
