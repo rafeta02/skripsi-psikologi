@@ -176,10 +176,16 @@
                 </a>
                 
                 @if(in_array($application->status, ['submitted', 'rejected', 'revision']))
-                <a href="{{ route('frontend.skripsi-registrations.edit', $application->skripsiRegistration->id) }}" class="btn btn-warning">
-                    <i class="fas fa-edit mr-2"></i>
-                    {{ $application->status === 'revision' ? 'Perbaiki Revisi' : 'Edit Pendaftaran' }}
-                </a>
+                    @if($application->skripsiRegistration)
+                        <a href="{{ route('frontend.skripsi-registrations.edit', $application->skripsiRegistration->id) }}" class="btn btn-warning">
+                            <i class="fas fa-edit mr-2"></i>
+                            {{ $application->status === 'revision' ? 'Perbaiki Revisi' : 'Edit Pendaftaran' }}
+                        </a>
+                    @else
+                        <a href="{{ route('frontend.skripsi.create', $application->id) }}" class="btn btn-warning">
+                            <i class="fas fa-edit mr-2"></i> Lengkapi Pendaftaran
+                        </a>
+                    @endif
                 @endif
             </div>
         </div>

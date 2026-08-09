@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\SkripsiRegistration;
 use App\Models\Keilmuan;
 use App\Models\Dosen;
+use App\Support\HashId;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,22 +20,27 @@ class SkripsiRegistrationController extends Controller
      */
     protected function resolveApplication(int|string $id): Application
     {
-        $numericId = (int) $id;
+        $decodedId = HashId::decode($id) ?? (is_numeric($id) ? (int) $id : null);
+
+        if (! $decodedId) {
+            abort(404);
+        }
+
         $routeName = request()->route()?->getName() ?? '';
 
         if (str_contains($routeName, 'skripsi-registrations')) {
-            $registration = SkripsiRegistration::find($numericId);
+            $registration = SkripsiRegistration::find($decodedId);
             if ($registration) {
                 return Application::findOrFail($registration->application_id);
             }
         }
 
-        $application = Application::find($numericId);
+        $application = Application::find($decodedId);
         if ($application) {
             return $application;
         }
 
-        $registration = SkripsiRegistration::findOrFail($numericId);
+        $registration = SkripsiRegistration::findOrFail($decodedId);
 
         return Application::findOrFail($registration->application_id);
     }
