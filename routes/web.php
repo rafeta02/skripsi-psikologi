@@ -192,6 +192,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::post('application-reports/{application_report}/mark-reviewed', 'ApplicationReportController@markAsReviewed')->name('application-reports.mark-reviewed');
     Route::resource('application-reports', 'ApplicationReportController');
 
+    Route::get('mahasiswa-watchlists', 'MahasiswaWatchlistController@index')->name('mahasiswa-watchlists.index');
+
     // Application Assignment
     Route::delete('application-assignments/destroy', 'ApplicationAssignmentController@massDestroy')->name('application-assignments.massDestroy');
     Route::resource('application-assignments', 'ApplicationAssignmentController');

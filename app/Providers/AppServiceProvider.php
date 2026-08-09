@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\DosenPortalService;
 use App\Services\FormAccessService;
 use App\Services\MahasiswaPortalService;
+use App\Services\MahasiswaWatchlistService;
 use App\Services\ReviewerAssignmentService;
 use App\Models\Application;
 use App\Observers\ApplicationObserver;
@@ -139,17 +140,26 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer(['layouts.admin', 'partials.menu'], function ($view) {
             $skripsiSeminarOverdueCount = 0;
+            $mahasiswaWatchlistCount = 0;
 
             try {
                 if (Auth::check()) {
                     $skripsiSeminarOverdueCount = app(ReviewerAssignmentService::class)
                         ->countOverdueRegulerReviewers();
+
+                    if (Auth::user()->can('mahasiswa_watchlist_access')) {
+                        $mahasiswaWatchlistCount = app(MahasiswaWatchlistService::class)
+                            ->countRegulerWatchlist();
+                    }
                 }
             } catch (\Throwable $e) {
                 report($e);
             }
 
-            $view->with('skripsiSeminarOverdueCount', $skripsiSeminarOverdueCount);
+            $view->with([
+                'skripsiSeminarOverdueCount' => $skripsiSeminarOverdueCount,
+                'mahasiswaWatchlistCount' => $mahasiswaWatchlistCount,
+            ]);
         });
     }
 }

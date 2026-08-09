@@ -642,6 +642,10 @@ class PermissionsTableSeeder extends Seeder
                 'id'    => 158,
                 'title' => 'announcement_access',
             ],
+            [
+                'id'    => 159,
+                'title' => 'mahasiswa_watchlist_access',
+            ],
         ];
 
         Permission::insert($permissions);

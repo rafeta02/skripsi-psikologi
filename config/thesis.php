@@ -12,4 +12,11 @@ return [
 
     'reviewer_feedback_mimes' => 'pdf,doc,docx',
     'reviewer_feedback_max_kb' => 10240,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Batas waktu daftar sidang setelah validasi admin laporan hasil (Reguler)
+    |--------------------------------------------------------------------------
+    */
+    'defense_registration_grace_days' => (int) env('THESIS_DEFENSE_REGISTRATION_GRACE_DAYS', 30),
 ];

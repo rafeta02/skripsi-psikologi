@@ -437,6 +437,22 @@
                             </li>
                         @endcan
 
+                        @can('mahasiswa_watchlist_access')
+                            <li class="nav-item">
+                                <a href="{{ route("admin.mahasiswa-watchlists.index") }}"
+                                   class="nav-link nav-link-wrap {{ request()->is("admin/mahasiswa-watchlists") || request()->is("admin/mahasiswa-watchlists/*") ? "active" : "" }}"
+                                   @if(($mahasiswaWatchlistCount ?? 0) > 0) title="{{ $mahasiswaWatchlistCount }} mahasiswa belum daftar sidang" @endif>
+                                    <span class="nav-link-inner">
+                                        <i class="fa-fw nav-icon fas fa-user-clock"></i>
+                                        @if(($mahasiswaWatchlistCount ?? 0) > 0)
+                                            <span class="sidebar-menu-badge">{{ $mahasiswaWatchlistCount }}</span>
+                                        @endif
+                                    </span>
+                                    <p>Watchlist Mahasiswa</p>
+                                </a>
+                            </li>
+                        @endcan
+
                         @can('dosen_workload_pembimbing_access')
                             <li class="nav-item">
                                 <a href="{{ route("admin.dosen-workload.rekap-pembimbing") }}" class="nav-link {{ request()->is("admin/rekap-pembimbing*") ? "active" : "" }}">
