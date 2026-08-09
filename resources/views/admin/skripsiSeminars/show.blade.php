@@ -130,20 +130,23 @@
 
             @if($skripsiSeminar->admin_validated_at && isset($reviewerAssignments) && $reviewerAssignments->isNotEmpty())
             <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h3 class="card-title mb-0"><i class="fas fa-users mr-2"></i> Status Penugasan Reviewer</h3>
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-users mr-2"></i>
+                        Status Penugasan Reviewer
+                    </h3>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-sm table-striped mb-0">
+                        <table class="table table-bordered table-striped table-hover mb-0">
                             <thead class="thead-light">
                                 <tr>
-                                    <th>Slot</th>
-                                    <th>Dosen</th>
-                                    <th>Status</th>
-                                    <th>Deadline Respons</th>
-                                    <th>Deadline Feedback</th>
-                                    <th class="text-center" style="min-width: 140px;">Aksi</th>
+                                    <th width="10%">Slot</th>
+                                    <th width="22%">Dosen</th>
+                                    <th width="14%">Status</th>
+                                    <th width="16%">Deadline Respons</th>
+                                    <th width="16%">Deadline Feedback</th>
+                                    <th width="22%" class="text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -153,7 +156,7 @@
                                         <td>
                                             {{ $ra->lecturer->nama ?? '-' }}
                                             @if($ra->lecturer?->user?->displayPhoneNumber())
-                                                <br><small class="text-muted">{{ $ra->lecturer->user->displayPhoneNumber() }}</small>
+                                                <br><small class="text-muted"><i class="fab fa-whatsapp text-success"></i> {{ $ra->lecturer->user->displayPhoneNumber() }}</small>
                                             @endif
                                         </td>
                                         <td>{!! $ra->statusBadgeHtml() !!}</td>
@@ -181,6 +184,9 @@
                                                         data-slot="{{ $ra->reviewer_slot }}">
                                                     Ganti Reviewer
                                                 </button>
+                                            @endif
+                                            @if(!($ra->needsReviewerAcceptanceReminder() || $ra->needsFeedbackReminder()) && !in_array($ra->status, ['expired', 'rejected'], true))
+                                                <span class="text-muted small">—</span>
                                             @endif
                                         </td>
                                     </tr>
