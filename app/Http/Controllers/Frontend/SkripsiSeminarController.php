@@ -202,11 +202,15 @@ class SkripsiSeminarController extends Controller
         }
 
         $skripsiSeminar->load('application', 'reviewer1', 'reviewer2');
+        $reviewerAssignments = $skripsiSeminar->activeReviewerAssignments();
+        $reviewStatus = $skripsiSeminar->mahasiswaReviewStatus();
         $formAccessService = new FormAccessService();
         $canEdit = $formAccessService->canEditSkripsiSeminar($skripsiSeminar, $mahasiswaId);
 
         return view('frontend.skripsiSeminars.show', [
             'skripsiSeminar' => $skripsiSeminar,
+            'reviewerAssignments' => $reviewerAssignments,
+            'reviewStatus' => $reviewStatus,
             'canEdit' => $canEdit,
         ]);
     }

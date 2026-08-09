@@ -173,46 +173,54 @@
             <div class="card-modern mb-4">
                 <div class="card-modern-body">
                     <h5 class="font-weight-bold mb-3">Status</h5>
-                    
-                    @if($skripsiSeminar->application)
-                        @if(!$skripsiSeminar->admin_validated_at && $skripsiSeminar->application->status == 'submitted')
-                            <div class="alert alert-warning">
-                                <i class="fas fa-clock"></i> <strong>Menunggu Validasi Admin</strong>
-                                <p class="mb-0 mt-2 small">Pengajuan Anda sedang direview admin</p>
-                            </div>
-                        @elseif($skripsiSeminar->admin_validated_at && $skripsiSeminar->application->status == 'submitted')
-                            <div class="alert alert-info">
-                                <i class="fas fa-user-check"></i> <strong>Menunggu Reviewer</strong>
-                                <p class="mb-0 mt-2 small">Reviewer ditugaskan — menunggu respons dan feedback dosen</p>
-                            </div>
-                        @elseif($skripsiSeminar->application->status == 'approved')
-                            <div class="alert alert-success">
-                                <i class="fas fa-check-circle"></i> <strong>Review Selesai</strong>
-                                <p class="mb-0 mt-2 small">Kedua reviewer telah mengirim feedback. Silakan kirim laporan hasil review.</p>
-                            </div>
-                        @elseif($skripsiSeminar->application->status == 'revision')
-                            <div class="alert alert-warning">
-                                <i class="fas fa-edit"></i> <strong>Revisi</strong>
-                                <p class="mb-0 mt-2 small">Silakan lakukan revisi sesuai catatan</p>
-                            </div>
-                        @elseif($skripsiSeminar->application->status == 'rejected')
-                            <div class="alert alert-danger">
-                                <i class="fas fa-times-circle"></i> <strong>Ditolak</strong>
-                                <p class="mb-0 mt-2 small">Pendaftaran Anda ditolak</p>
-                            </div>
-                        @elseif($skripsiSeminar->application->status == 'done')
-                            <div class="alert alert-secondary">
-                                <i class="fas fa-flag-checkered"></i> <strong>Selesai</strong>
-                                <p class="mb-0 mt-2 small">Seminar telah selesai dilaksanakan</p>
-                            </div>
+
+                    @php
+                        $reviewStatus = $reviewStatus ?? $skripsiSeminar->mahasiswaReviewStatus();
+                    @endphp
+
+                    <div class="alert alert-{{ $reviewStatus['badge'] }}">
+                        <i class="fas fa-{{ $reviewStatus['icon'] }}"></i>
+                        <strong>{{ $reviewStatus['label'] }}</strong>
+                        @if(!empty($reviewStatus['description']))
+                            <p class="mb-0 mt-2 small">{{ $reviewStatus['description'] }}</p>
                         @endif
-                    @else
-                        <div class="alert alert-secondary">
-                            <i class="fas fa-info-circle"></i> Status tidak tersedia
-                        </div>
-                    @endif
+                    </div>
                 </div>
             </div>
+
+            @if(($reviewStatus['show_reviewers'] ?? false) && ($reviewerAssignments ?? collect())->isNotEmpty())
+            <div class="card-modern mb-4">
+                <div class="card-modern-body">
+                    <h5 class="font-weight-bold mb-3">
+                        <i class="fas fa-users mr-1"></i> Dosen Reviewer
+                    </h5>
+
+                    @foreach($reviewerAssignments as $reviewerAssignment)
+                        @php [$reviewerStatusText, $reviewerStatusBadge] = $skripsiSeminar->reviewerStatusLabelForMahasiswa($reviewerAssignment); @endphp
+                        <div class="border rounded p-3 mb-3 {{ $loop->last ? 'mb-0' : '' }}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge badge-light mr-1">
+                                        {{ str_replace('_', ' ', ucfirst($reviewerAssignment->reviewer_slot ?? 'Reviewer')) }}
+                                    </span>
+                                    <strong>{{ $reviewerAssignment->lecturer->nama ?? '-' }}</strong>
+                                    @if($reviewerAssignment->lecturer?->nidn)
+                                        <br><small class="text-muted">NIDN {{ $reviewerAssignment->lecturer->nidn }}</small>
+                                    @endif
+                                </div>
+                                <span class="badge badge-{{ $reviewerStatusBadge }}">{{ $reviewerStatusText }}</span>
+                            </div>
+
+                            @if($reviewStatus['review_complete'] && $reviewerAssignment->status === 'feedback_submitted' && $reviewerAssignment->feedback_note)
+                                <p class="small text-muted mb-0 mt-2">
+                                    <strong>Catatan:</strong> {{ $reviewerAssignment->feedback_note }}
+                                </p>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             <!-- Application Info -->
             @if($skripsiSeminar->application)

@@ -99,6 +99,116 @@ class SkripsiSeminar extends Model implements HasMedia
             ->where('role', 'reviewer');
     }
 
+    public function activeReviewerAssignments()
+    {
+        return ApplicationAssignment::query()
+            ->where('skripsi_seminar_id', $this->id)
+            ->where('role', 'reviewer')
+            ->whereNotIn('status', ['replaced'])
+            ->with('lecturer')
+            ->orderBy('reviewer_slot')
+            ->get();
+    }
+
+    public function bothReviewersFeedbackSubmitted(): bool
+    {
+        return $this->activeReviewerAssignments()
+            ->where('status', 'feedback_submitted')
+            ->count() >= 2;
+    }
+
+    /**
+     * Status review proposal untuk tampilan mahasiswa.
+     *
+     * @return array{label: string, badge: string, icon: string, description: string, show_reviewers: bool, review_complete: bool}
+     */
+    public function mahasiswaReviewStatus(): array
+    {
+        $application = $this->application;
+
+        if (! $application) {
+            return [
+                'label' => 'Status tidak tersedia',
+                'badge' => 'secondary',
+                'icon' => 'info-circle',
+                'description' => '',
+                'show_reviewers' => false,
+                'review_complete' => false,
+            ];
+        }
+
+        if ($application->status === 'rejected') {
+            return [
+                'label' => 'Ditolak',
+                'badge' => 'danger',
+                'icon' => 'times-circle',
+                'description' => 'Pengajuan review kelayakan proposal ditolak.',
+                'show_reviewers' => false,
+                'review_complete' => false,
+            ];
+        }
+
+        if ($application->status === 'revision') {
+            return [
+                'label' => 'Revisi',
+                'badge' => 'warning',
+                'icon' => 'edit',
+                'description' => 'Silakan lakukan revisi sesuai catatan.',
+                'show_reviewers' => false,
+                'review_complete' => false,
+            ];
+        }
+
+        if (! $this->admin_validated_at) {
+            return [
+                'label' => 'Menunggu Validasi Admin',
+                'badge' => 'warning',
+                'icon' => 'clock',
+                'description' => 'Pengajuan Anda sedang direview admin.',
+                'show_reviewers' => false,
+                'review_complete' => false,
+            ];
+        }
+
+        if ($this->bothReviewersFeedbackSubmitted() || $application->status === 'approved') {
+            return [
+                'label' => 'Review Proposal Selesai',
+                'badge' => 'success',
+                'icon' => 'check-circle',
+                'description' => 'Kedua reviewer telah mengirim feedback. Silakan lanjutkan ke laporan hasil review.',
+                'show_reviewers' => true,
+                'review_complete' => true,
+            ];
+        }
+
+        return [
+            'label' => 'Menunggu Review Proposal',
+            'badge' => 'info',
+            'icon' => 'hourglass-half',
+            'description' => 'Proposal sedang direview oleh dosen reviewer yang ditugaskan admin.',
+            'show_reviewers' => false,
+            'review_complete' => false,
+        ];
+    }
+
+    public function reviewerStatusLabelForMahasiswa(ApplicationAssignment $assignment): array
+    {
+        if ($assignment->status === 'feedback_submitted') {
+            $result = ApplicationAssignment::FEEDBACK_RESULT_SELECT[$assignment->feedback_result ?? '']
+                ?? ucfirst(str_replace('_', ' ', $assignment->feedback_result ?? '-'));
+
+            return ['Selesai — ' . $result, 'success'];
+        }
+
+        return match ($assignment->status) {
+            'assigned' => ['Menunggu respons reviewer', 'warning'],
+            'accepted' => ['Menunggu feedback reviewer', 'info'],
+            'rejected' => ['Reviewer menolak penugasan', 'danger'],
+            'expired' => ['Reviewer kedaluwarsa', 'dark'],
+            default => [ucfirst($assignment->status ?? '-'), 'secondary'],
+        };
+    }
+
     public function adminStatusBadgeHtml(): string
     {
         $application = $this->application;
