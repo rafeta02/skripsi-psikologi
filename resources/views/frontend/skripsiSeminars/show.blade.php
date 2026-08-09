@@ -211,7 +211,7 @@
                                 <span class="badge badge-{{ $reviewerStatusBadge }}">{{ $reviewerStatusText }}</span>
                             </div>
 
-                            @if($reviewStatus['review_complete'] && $reviewerAssignment->status === 'feedback_submitted' && $reviewerAssignment->feedback_note)
+                            @if($reviewerAssignment->status === 'feedback_submitted' && $reviewerAssignment->feedback_note)
                                 <p class="small text-muted mb-0 mt-2">
                                     <strong>Catatan:</strong> {{ $reviewerAssignment->feedback_note }}
                                 </p>

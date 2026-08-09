@@ -110,6 +110,19 @@ class SkripsiSeminar extends Model implements HasMedia
             ->get();
     }
 
+    /** Reviewer yang sudah menerima penugasan — ditampilkan ke mahasiswa. */
+    public function visibleReviewerAssignmentsForMahasiswa()
+    {
+        return $this->activeReviewerAssignments()
+            ->whereIn('status', ['accepted', 'feedback_submitted'])
+            ->values();
+    }
+
+    public function hasVisibleReviewersForMahasiswa(): bool
+    {
+        return $this->visibleReviewerAssignmentsForMahasiswa()->isNotEmpty();
+    }
+
     public function bothReviewersFeedbackSubmitted(): bool
     {
         return $this->activeReviewerAssignments()
@@ -176,7 +189,7 @@ class SkripsiSeminar extends Model implements HasMedia
                 'badge' => 'success',
                 'icon' => 'check-circle',
                 'description' => 'Kedua reviewer telah mengirim feedback. Silakan lanjutkan ke laporan hasil review.',
-                'show_reviewers' => true,
+                'show_reviewers' => $this->hasVisibleReviewersForMahasiswa(),
                 'review_complete' => true,
             ];
         }
@@ -186,7 +199,7 @@ class SkripsiSeminar extends Model implements HasMedia
             'badge' => 'info',
             'icon' => 'hourglass-half',
             'description' => 'Proposal sedang direview oleh dosen reviewer yang ditugaskan admin.',
-            'show_reviewers' => false,
+            'show_reviewers' => $this->hasVisibleReviewersForMahasiswa(),
             'review_complete' => false,
         ];
     }

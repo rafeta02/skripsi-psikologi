@@ -202,7 +202,7 @@ class SkripsiSeminarController extends Controller
         }
 
         $skripsiSeminar->load('application', 'reviewer1', 'reviewer2');
-        $reviewerAssignments = $skripsiSeminar->activeReviewerAssignments();
+        $reviewerAssignments = $skripsiSeminar->visibleReviewerAssignmentsForMahasiswa();
         $reviewStatus = $skripsiSeminar->mahasiswaReviewStatus();
         $formAccessService = new FormAccessService();
         $canEdit = $formAccessService->canEditSkripsiSeminar($skripsiSeminar, $mahasiswaId);
