@@ -26,8 +26,9 @@
 
 .sidebar .nav-link p {
   position: relative;
-  display: block;
+  display: inline;
   padding-right: 1.5rem;
+  white-space: normal;
 }
 
 .sidebar .nav-link p .right {
@@ -48,12 +49,11 @@
 
 .sidebar .nav-icon-with-badge {
   position: relative;
-  display: inline-block;
-  flex: 0 0 1.6rem;
+  float: left;
   width: 1.6rem;
   margin-right: .2rem;
   text-align: center;
-  line-height: 1;
+  line-height: 1.2rem;
 }
 
 .sidebar .nav-icon-with-badge > .nav-icon {
