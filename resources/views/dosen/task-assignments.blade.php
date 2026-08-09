@@ -2,19 +2,9 @@
 
 @section('content')
 @php
-    $pendingAssignmentCount = $assignments->whereIn('status', ['assigned', 'accepted'])->count();
+    $pendingAssignmentCount = $assignments->filter(fn ($assignment) => $assignment->isPendingAction())->count();
 
-    $assignmentStatusLabel = function ($status) {
-        return match ($status) {
-            'assigned' => ['Menunggu Respons', 'warning'],
-            'accepted' => ['Menunggu Feedback', 'info'],
-            'feedback_submitted' => ['Feedback Terkirim', 'success'],
-            'rejected' => ['Ditolak', 'danger'],
-            'expired' => ['Kedaluwarsa', 'dark'],
-            'replaced' => ['Diganti', 'secondary'],
-            default => [ucfirst($status ?? '-'), 'secondary'],
-        };
-    };
+    $assignmentStatusLabel = fn ($assignment) => $assignment->displayStatusLabel();
 @endphp
 @include('partials.dosen.page-header', [
     'title' => 'Penugasan',
@@ -24,7 +14,7 @@
 
 @if($pendingAssignmentCount > 0)
 <div class="alert alert-warning alert-dismissible fade show">
-    <strong>{{ $pendingAssignmentCount }} penugasan</strong> belum disetujui atau ditolak. Klik <strong>Tinjau</strong> untuk memberikan respons.
+    <strong>{{ $pendingAssignmentCount }} penugasan</strong> memerlukan tindakan Anda. Klik <strong>Tinjau</strong> atau <strong>Kirim Feedback</strong> untuk menanggapi.
     <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
 </div>
 @endif
@@ -72,14 +62,14 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @php [$statusText, $statusBadge] = $assignmentStatusLabel($assignment->status); @endphp
+                                            @php [$statusText, $statusBadge] = $assignmentStatusLabel($assignment); @endphp
                                             <span class="badge badge-{{ $statusBadge }}">{{ $statusText }}</span>
                                         </td>
                                         <td>{{ $assignment->assigned_at ? \Carbon\Carbon::parse($assignment->assigned_at)->format('d M Y') : '-' }}</td>
                                         <td class="text-nowrap">
-                                            @if(in_array($assignment->status, ['assigned', 'accepted']))
+                                            @if($assignment->isPendingAction())
                                                 <a href="{{ route('dosen.review-proposal', $assignment->id) }}" class="btn btn-sm btn-outline-primary">
-                                                    {{ $assignment->status === 'accepted' ? 'Kirim Feedback' : 'Tinjau' }}
+                                                    {{ $assignment->status === 'assigned' ? 'Tinjau' : 'Kirim Feedback' }}
                                                 </a>
                                             @else
                                                 <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#detailModal{{ $assignment->id }}">
@@ -138,11 +128,8 @@
                             <tr>
                                 <th>Status</th>
                                 <td>:
-                                    @if($assignment->status == 'accepted')
-                                        <span class="badge badge-success">Diterima</span>
-                                    @else
-                                        <span class="badge badge-danger">Ditolak</span>
-                                    @endif
+                                    @php [$statusText, $statusBadge] = $assignment->displayStatusLabel(); @endphp
+                                    <span class="badge badge-{{ $statusBadge }}">{{ $statusText }}</span>
                                 </td>
                             </tr>
                             <tr>

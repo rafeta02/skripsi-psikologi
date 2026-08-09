@@ -87,12 +87,12 @@ class DashboardController extends Controller
 
         $pendingReviews = ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosen->id)
-            ->whereIn('status', ['assigned', 'accepted'])
+            ->pendingAction()
             ->count();
 
         $totalTasksPending = ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosen->id)
-            ->whereIn('status', ['assigned', 'accepted'])
+            ->pendingAction()
             ->count();
 
         $totalTasksCompleted = ApplicationAssignment::withoutGroupMirrors()
@@ -263,6 +263,10 @@ class DashboardController extends Controller
             return $this->handleProposalReviewerResponse($request, $assignment);
         }
 
+        if ($assignment->isSupervisorAssignment()) {
+            return $this->handleSupervisorResponse($request, $assignment);
+        }
+
         if ($request->has('status')) {
             $request->validate([
                 'status' => 'required|in:accepted,rejected',
@@ -381,6 +385,55 @@ class DashboardController extends Controller
 
         return redirect()->route('dosen.review-proposal', $assignment->id)
             ->with('success', $message);
+    }
+
+    private function handleSupervisorResponse(Request $request, ApplicationAssignment $assignment)
+    {
+        if ($assignment->status !== 'assigned') {
+            return redirect()->back()->with('error', 'Penugasan pembimbingan ini sudah ditanggapi.');
+        }
+
+        if ($request->filled('review_decision')) {
+            $validated = $request->validate([
+                'review_decision' => 'required|in:approved,rejected',
+                'feedback' => 'nullable|string',
+            ]);
+
+            $response = $validated['review_decision'] === 'approved' ? 'accepted' : 'rejected';
+            $note = $validated['feedback'] ?? null;
+            $rejectionReason = $response === 'rejected' ? $note : null;
+        } else {
+            $validated = $request->validate([
+                'supervisor_response' => 'required|in:accepted,rejected',
+                'rejection_reason' => 'required_if:supervisor_response,rejected|nullable|string|min:10',
+                'note' => 'nullable|string',
+            ]);
+
+            $response = $validated['supervisor_response'];
+            $note = $validated['note'] ?? null;
+            $rejectionReason = $response === 'rejected'
+                ? ($validated['rejection_reason'] ?? $note)
+                : null;
+        }
+
+        $assignment->update([
+            'status' => $response,
+            'responded_at' => now(),
+            'note' => $note,
+            'rejection_reason' => $rejectionReason,
+        ]);
+
+        if ($assignment->application) {
+            $assignment->application->update([
+                'status' => $response === 'accepted' ? 'approved' : 'rejected',
+            ]);
+        }
+
+        $message = $response === 'accepted'
+            ? 'Anda menerima permintaan pembimbingan.'
+            : 'Permintaan pembimbingan ditolak.';
+
+        return redirect()->route('dosen.task-assignments')->with('success', $message);
     }
 
 }

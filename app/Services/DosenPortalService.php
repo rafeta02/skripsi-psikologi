@@ -68,7 +68,7 @@ class DosenPortalService
 
         $pendingAssignments = ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosenId)
-            ->where('status', 'assigned')
+            ->pendingAction()
             ->count();
 
         if ($pendingAssignments > 0) {
@@ -186,7 +186,7 @@ class DosenPortalService
     {
         return ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosenId)
-            ->where('status', 'assigned')
+            ->pendingAction()
             ->count();
     }
 

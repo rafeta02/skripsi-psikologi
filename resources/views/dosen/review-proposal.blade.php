@@ -4,14 +4,18 @@
 @php
     $app = $assignment->application;
     $reviewSubtitle = match (true) {
+        $assignment->isSupervisorAssignment() => 'Persetujuan pembimbing — terima atau tolak permintaan bimbingan',
         ($app->type ?? null) === 'mbkm' && ($app->stage ?? null) === 'seminar' => 'Review Kelayakan Proposal (MBKM) — berikan keputusan dan feedback',
-        ($app->type ?? null) === 'mbkm' => 'Pendaftaran Skripsi MBKM — berikan keputusan dan feedback',
+        ($app->type ?? null) === 'mbkm' => 'Pendaftaran Skripsi MBKM — berikan keputusan',
         ($app->stage ?? null) === 'seminar' => 'Review Kelayakan Proposal (Reguler) — berikan keputusan dan feedback',
-        default => 'Pendaftaran Skripsi Reguler — berikan keputusan dan feedback',
+        default => 'Pendaftaran Skripsi Reguler — persetujuan pembimbing',
     };
-    $reviewTitle = (($app->stage ?? null) === 'seminar' && ($assignment->role ?? null) === 'reviewer')
-        ? 'Tinjau Review Kelayakan Proposal (' . (($app->type ?? null) === 'mbkm' ? 'MBKM' : 'Reguler') . ')'
-        : 'Tinjau Proposal';
+    $reviewTitle = match (true) {
+        ($app->stage ?? null) === 'seminar' && ($assignment->role ?? null) === 'reviewer'
+            => 'Tinjau Review Kelayakan Proposal (' . (($app->type ?? null) === 'mbkm' ? 'MBKM' : 'Reguler') . ')',
+        $assignment->isSupervisorAssignment() => 'Persetujuan Pembimbing',
+        default => 'Tinjau Proposal',
+    };
 @endphp
 @include('partials.dosen.page-header', [
     'title' => $reviewTitle,
@@ -392,6 +396,48 @@
                     <a href="{{ $assignment->feedback_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
                         <i class="fas fa-download"></i> Unduh Dokumen Feedback
                     </a>
+                @endif
+            </div>
+
+        @elseif($assignment->isSupervisorAssignment() && $assignment->status === 'assigned')
+            <div class="card-modern">
+                <div class="card-modern-body">
+                    <h5 class="font-weight-bold mb-3">Respons Permintaan Pembimbing</h5>
+                    <p class="text-muted small">Terima atau tolak permintaan menjadi dosen pembimbing. Tidak perlu mengunggah dokumen feedback.</p>
+                    <form action="{{ route('dosen.task-assignments.respond', $assignment->id) }}" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label class="form-label-modern required">Keputusan</label>
+                            <select name="supervisor_response" class="form-control-modern" required>
+                                <option value="">-- Pilih --</option>
+                                <option value="accepted">Terima — bersedia membimbing mahasiswa</option>
+                                <option value="rejected">Tolak permintaan pembimbingan</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-modern">Alasan Penolakan</label>
+                            <textarea name="rejection_reason" class="form-control-modern" rows="3" placeholder="Wajib diisi jika menolak permintaan pembimbingan"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-modern">Catatan (opsional)</label>
+                            <textarea name="note" class="form-control-modern" rows="2" placeholder="Catatan tambahan untuk admin atau mahasiswa"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Kirim Keputusan</button>
+                    </form>
+                </div>
+            </div>
+
+        @elseif($assignment->isSupervisorAssignment() && $assignment->status === 'accepted')
+            <div class="alert alert-success">
+                <h5 class="alert-heading">Pembimbingan diterima</h5>
+                <p class="mb-0">Anda telah menerima permintaan menjadi dosen pembimbing mahasiswa ini.</p>
+            </div>
+
+        @elseif($assignment->isSupervisorAssignment() && $assignment->status === 'rejected')
+            <div class="alert alert-danger">
+                <h5 class="alert-heading">Pembimbingan ditolak</h5>
+                @if($assignment->rejection_reason)
+                    <p class="mb-0"><strong>Alasan:</strong> {{ $assignment->rejection_reason }}</p>
                 @endif
             </div>
 

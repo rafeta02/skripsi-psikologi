@@ -145,6 +145,54 @@ class ApplicationAssignment extends Model implements HasMedia
             && $this->application?->stage === 'seminar';
     }
 
+    public function isSupervisorAssignment(): bool
+    {
+        return $this->role === 'supervisor';
+    }
+
+    public function requiresFeedback(): bool
+    {
+        return $this->isProposalReviewer();
+    }
+
+    public function isPendingAction(): bool
+    {
+        if ($this->status === 'assigned') {
+            return true;
+        }
+
+        return $this->status === 'accepted' && $this->requiresFeedback();
+    }
+
+    public function displayStatusLabel(): array
+    {
+        return match (true) {
+            $this->status === 'assigned' => ['Menunggu Respons', 'warning'],
+            $this->status === 'accepted' && $this->requiresFeedback() => ['Menunggu Feedback', 'info'],
+            $this->status === 'accepted' => ['Diterima', 'success'],
+            $this->status === 'feedback_submitted' => ['Feedback Terkirim', 'success'],
+            $this->status === 'rejected' => ['Ditolak', 'danger'],
+            $this->status === 'expired' => ['Kedaluwarsa', 'dark'],
+            $this->status === 'replaced' => ['Diganti', 'secondary'],
+            default => [ucfirst($this->status ?? '-'), 'secondary'],
+        };
+    }
+
+    public function scopePendingAction($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('status', 'assigned')
+                ->orWhere(function ($inner) {
+                    $inner->where('status', 'accepted')
+                        ->where('role', 'reviewer')
+                        ->whereNotNull('skripsi_seminar_id')
+                        ->whereHas('application', function ($app) {
+                            $app->where('type', 'skripsi')->where('stage', 'seminar');
+                        });
+                });
+        });
+    }
+
     public function canRespondToAssignment(): bool
     {
         return $this->status === 'assigned'
@@ -171,15 +219,9 @@ class ApplicationAssignment extends Model implements HasMedia
 
     public function statusBadgeHtml(): string
     {
-        return match ($this->status) {
-            'assigned' => '<span class="badge badge-warning">Menunggu Respons</span>',
-            'accepted' => '<span class="badge badge-info">Menunggu Feedback</span>',
-            'feedback_submitted' => '<span class="badge badge-success">Feedback Terkirim</span>',
-            'rejected' => '<span class="badge badge-danger">Ditolak</span>',
-            'expired' => '<span class="badge badge-dark">Kedaluwarsa</span>',
-            'replaced' => '<span class="badge badge-secondary">Diganti</span>',
-            default => '<span class="badge badge-secondary">' . e(ucfirst($this->status ?? '-')) . '</span>',
-        };
+        [$label, $badge] = $this->displayStatusLabel();
+
+        return sprintf('<span class="badge badge-%s">%s</span>', $badge, e($label));
     }
 
     public function getFeedbackDocumentAttribute()
