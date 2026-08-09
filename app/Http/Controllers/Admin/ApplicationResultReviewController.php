@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateApplicationResultReviewRequest;
 use App\Models\Application;
 use App\Models\ApplicationAction;
 use App\Models\ApplicationResultReview;
+use App\Models\Dosen;
 use Gate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,8 +27,13 @@ class ApplicationResultReviewController extends Controller
         abort_if(Gate::denies('application_result_review_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = ApplicationResultReview::with(['application.mahasiswa'])->select(sprintf('%s.*', (new ApplicationResultReview)->table));
+            $query = ApplicationResultReview::with([
+                'application.mahasiswa',
+                'reviewer1Assignment.lecturer',
+                'reviewer2Assignment.lecturer',
+            ])->select(sprintf('%s.*', (new ApplicationResultReview)->table));
             $table = Datatables::of($query);
+            $supervisorNames = [];
 
             $table->addColumn('placeholder', '&nbsp;');
             $table->addColumn('actions', '&nbsp;');
@@ -48,31 +54,53 @@ class ApplicationResultReviewController extends Controller
             });
 
             $table->addColumn('mahasiswa_name', function ($row) {
-                return $row->application && $row->application->mahasiswa ? $row->application->mahasiswa->nama : '';
+                if (! $row->application?->mahasiswa) {
+                    return '<span class="text-muted">-</span>';
+                }
+
+                $nama = e($row->application->mahasiswa->nama);
+                $nim = e($row->application->mahasiswa->nim);
+
+                return '<div class="font-weight-bold">'.$nama.'</div><small class="text-muted">'.$nim.'</small>';
             });
 
-            $table->addColumn('mahasiswa_nim', function ($row) {
-                return $row->application && $row->application->mahasiswa ? $row->application->mahasiswa->nim : '';
+            $table->addColumn('dosen_pembimbing', function ($row) use (&$supervisorNames) {
+                if (! $row->application) {
+                    return '<span class="text-muted">-</span>';
+                }
+
+                $supervisorId = $row->application->resolveSupervisorLecturerId();
+                if (! $supervisorId) {
+                    return '<span class="text-muted">-</span>';
+                }
+
+                if (! array_key_exists($supervisorId, $supervisorNames)) {
+                    $supervisorNames[$supervisorId] = Dosen::find($supervisorId)?->nama;
+                }
+
+                return $supervisorNames[$supervisorId]
+                    ? e($supervisorNames[$supervisorId])
+                    : '<span class="text-muted">-</span>';
             });
 
-            $table->editColumn('result', function ($row) {
-                return $row->result ? $row->resultLabel() : '';
+            $table->addColumn('dosen_reviewer', function ($row) {
+                $names = collect([
+                    $row->reviewer1Assignment?->lecturer?->nama,
+                    $row->reviewer2Assignment?->lecturer?->nama,
+                ])->filter()->values();
+
+                if ($names->isEmpty()) {
+                    return '<span class="text-muted">-</span>';
+                }
+
+                return $names->map(fn ($name) => '<div>'.e($name).'</div>')->implode('');
             });
 
-            $table->addColumn('application_status', function ($row) {
-                if (!$row->application) return '';
-                
-                $status = $row->application->status;
-                $badges = [
-                    'submitted' => '<span class="badge badge-info">Menunggu</span>',
-                    'approved' => '<span class="badge badge-success">Disetujui</span>',
-                    'rejected' => '<span class="badge badge-danger">Ditolak</span>',
-                ];
-                
-                return $badges[$status] ?? '<span class="badge badge-secondary">Unknown</span>';
+            $table->addColumn('status', function ($row) {
+                return $row->adminValidationStatusHtml();
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'application_status']);
+            $table->rawColumns(['actions', 'placeholder', 'mahasiswa_name', 'dosen_pembimbing', 'dosen_reviewer', 'status']);
 
             return $table->make(true);
         }
@@ -155,9 +183,21 @@ class ApplicationResultReviewController extends Controller
     {
         abort_if(Gate::denies('application_result_review_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $applicationResultReview->load('application.mahasiswa.prodi', 'application.mahasiswa.jenjang', 'application.actions');
+        $applicationResultReview->load(
+            'application.mahasiswa.prodi',
+            'application.mahasiswa.jenjang',
+            'application.actions',
+            'reviewer1Assignment.lecturer',
+            'reviewer2Assignment.lecturer',
+        );
 
-        return view('admin.applicationResultReviews.show', compact('applicationResultReview'));
+        $supervisor = null;
+        $supervisorId = $applicationResultReview->application?->resolveSupervisorLecturerId();
+        if ($supervisorId) {
+            $supervisor = Dosen::find($supervisorId);
+        }
+
+        return view('admin.applicationResultReviews.show', compact('applicationResultReview', 'supervisor'));
     }
 
     public function approve(Request $request, $id)

@@ -2,28 +2,32 @@
 @section('content')
 <div class="card">
     <div class="card-header">
-        <i class="fas fa-file-check mr-2"></i> Hasil Review Proposal
+        <i class="fas fa-clipboard-list mr-2"></i> Laporan Hasil Review Kelayakan Proposal (Reguler)
     </div>
 
     <div class="card-body">
-        <table class="table table-bordered table-striped table-hover ajaxTable datatable datatable-ApplicationResultReview">
+        <table class="table table-bordered table-striped table-hover ajaxTable datatable datatable-ApplicationResultReview text-center">
             <thead>
                 <tr>
-                    <th width="10"></th>
-                    <th width="80">ID</th>
-                    <th>Mahasiswa</th>
-                    <th width="120">NIM</th>
-                    <th width="120">Hasil</th>
-                    <th width="120">Status</th>
-                    <th width="150">Batas Revisi</th>
-                    <th width="120">Aksi</th>
+                    <th width="10" class="text-center"></th>
+                    <th class="text-center">Mahasiswa</th>
+                    <th class="text-center">Dosen Pembimbing</th>
+                    <th class="text-center">Dosen Reviewer</th>
+                    <th width="180" class="text-center">Status</th>
+                    <th width="120" class="text-center">Aksi</th>
                 </tr>
             </thead>
         </table>
     </div>
 </div>
 
-
+<style>
+    .datatable-ApplicationResultReview th,
+    .datatable-ApplicationResultReview td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+</style>
 
 @endsection
 @section('scripts')
@@ -69,14 +73,13 @@
     aaSorting: [],
     ajax: "{{ route('admin.application-result-reviews.index') }}",
     columns: [
-      { data: 'placeholder', name: 'placeholder' },
-      { data: 'id', name: 'id' },
-      { data: 'mahasiswa_name', name: 'mahasiswa_name', orderable: false, searchable: false },
-      { data: 'mahasiswa_nim', name: 'mahasiswa_nim', orderable: false, searchable: false },
-      { data: 'result', name: 'result' },
-      { data: 'application_status', name: 'application_status', orderable: false, searchable: false },
-      { data: 'revision_deadline', name: 'revision_deadline' },
-      { data: 'actions', name: 'actions', orderable: false, searchable: false }
+      { data: 'placeholder', name: 'placeholder', className: 'text-center' },
+      { data: 'id', name: 'id', visible: false },
+      { data: 'mahasiswa_name', name: 'mahasiswa_name', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'dosen_pembimbing', name: 'dosen_pembimbing', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'dosen_reviewer', name: 'dosen_reviewer', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'status', name: 'status', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-center' }
     ],
     orderCellsTop: true,
     order: [[ 1, 'desc' ]],
@@ -92,12 +95,3 @@
 
 </script>
 @endsection
-
-
-
-
-
-
-
-
-

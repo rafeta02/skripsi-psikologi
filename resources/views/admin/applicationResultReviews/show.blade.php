@@ -1,6 +1,61 @@
 @extends('layouts.admin')
 @section('content')
 
+@php
+    $mahasiswa = $applicationResultReview->application?->mahasiswa;
+    $reviewers = collect([
+        $applicationResultReview->reviewer1Assignment?->lecturer,
+        $applicationResultReview->reviewer2Assignment?->lecturer,
+    ])->filter()->values();
+
+    $documentSections = [
+        [
+            'label' => 'Form Umpan Balik Reviewer 1',
+            'items' => collect($applicationResultReview->reviewer_feedback_forms ?? [])->take(1),
+            'type' => 'pdf',
+            'icon' => 'fa-file-pdf text-danger',
+        ],
+        [
+            'label' => 'Form Umpan Balik Reviewer 2',
+            'items' => collect($applicationResultReview->reviewer_feedback_forms ?? [])->slice(1, 1),
+            'type' => 'pdf',
+            'icon' => 'fa-file-pdf text-danger',
+        ],
+        [
+            'label' => 'Surat Permohonan Review Proposal',
+            'items' => $applicationResultReview->application_letter
+                ? collect([$applicationResultReview->application_letter])
+                : collect(),
+            'type' => 'pdf',
+            'icon' => 'fa-file-pdf text-danger',
+        ],
+        [
+            'label' => 'Berita Acara Review Proposal',
+            'items' => $applicationResultReview->minutes_document
+                ? collect([$applicationResultReview->minutes_document])
+                : collect(),
+            'type' => 'pdf',
+            'icon' => 'fa-file-pdf text-danger',
+        ],
+        [
+            'label' => 'Naskah Proposal',
+            'items' => $applicationResultReview->proposal_manuscript
+                ? collect([$applicationResultReview->proposal_manuscript])
+                : collect(),
+            'type' => 'pdf',
+            'icon' => 'fa-file-pdf text-danger',
+        ],
+        [
+            'label' => 'Lembar Etika Penelitian',
+            'items' => $applicationResultReview->research_ethics_form
+                ? collect([$applicationResultReview->research_ethics_form])
+                : collect(),
+            'type' => 'pdf',
+            'icon' => 'fa-file-pdf text-danger',
+        ],
+    ];
+@endphp
+
 <div class="container-fluid">
     <div class="row mb-3">
         <div class="col-md-12">
@@ -11,130 +66,138 @@
     </div>
 
     <div class="row">
-        <!-- Main Content -->
         <div class="col-lg-8">
-            <!-- Student Information Card -->
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="fas fa-user-graduate mr-2"></i>Informasi Mahasiswa</h5>
                 </div>
                 <div class="card-body">
-                    @if($applicationResultReview->application && $applicationResultReview->application->mahasiswa)
+                    @if($mahasiswa)
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="font-weight-bold">Nama Mahasiswa:</label>
-                                    <p class="form-control-plaintext">{{ $applicationResultReview->application->mahasiswa->nama }}</p>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold text-muted small mb-1">Nama Mahasiswa</label>
+                                    <p class="form-control-plaintext mb-0 h6">{{ $mahasiswa->nama }}</p>
                                 </div>
-                                <div class="form-group">
-                                    <label class="font-weight-bold">NIM:</label>
-                                    <p class="form-control-plaintext">{{ $applicationResultReview->application->mahasiswa->nim }}</p>
+                                <div class="form-group mb-0">
+                                    <label class="font-weight-bold text-muted small mb-1">NIM</label>
+                                    <p class="form-control-plaintext mb-0">{{ $mahasiswa->nim }}</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="font-weight-bold">Program Studi:</label>
-                                    <p class="form-control-plaintext">
-                                        {{ $applicationResultReview->application->mahasiswa->prodi->name ?? '-' }}
-                                    </p>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold text-muted small mb-1">Program Studi</label>
+                                    <p class="form-control-plaintext mb-0">{{ $mahasiswa->prodi->name ?? '-' }}</p>
                                 </div>
-                                <div class="form-group">
-                                    <label class="font-weight-bold">Jenjang:</label>
-                                    <p class="form-control-plaintext">
-                                        {{ $applicationResultReview->application->mahasiswa->jenjang->name ?? '-' }}
-                                    </p>
+                                <div class="form-group mb-0">
+                                    <label class="font-weight-bold text-muted small mb-1">Jenjang</label>
+                                    <p class="form-control-plaintext mb-0">{{ $mahasiswa->jenjang->name ?? '-' }}</p>
                                 </div>
                             </div>
                         </div>
                     @else
-                        <p class="text-muted">Data mahasiswa tidak tersedia</p>
+                        <p class="text-muted mb-0">Data mahasiswa tidak tersedia</p>
                     @endif
                 </div>
             </div>
 
-            <!-- Result Review Details Card -->
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-file-check mr-2"></i>Detail Hasil Review</h5>
+                    <h5 class="mb-0"><i class="fas fa-chalkboard-teacher mr-2"></i>Dosen Terkait</h5>
                 </div>
-    <div class="card-body">
+                <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Hasil Review:</label>
-                                <p class="form-control-plaintext">
-                                    @if($applicationResultReview->result)
-                                        @php
-                                            $resultClass = match($applicationResultReview->result) {
-                                                'approved_no_revision', 'passed' => 'success',
-                                                'approved_minor_revision' => 'info',
-                                                'approved_major_revision' => 'warning',
-                                                'revision' => 'warning',
-                                                'failed' => 'danger',
-                                                default => 'secondary',
-                                            };
-                                        @endphp
-                                        <span class="badge badge-{{ $resultClass }} badge-lg">{{ $applicationResultReview->resultLabel() }}</span>
-                                        @if($applicationResultReview->isEligibleOutcome())
-                                            {!! ' ' . $applicationResultReview->adminValidationStatusHtml() !!}
-                                        @endif
-                                    @else
-                                        -
-                                    @endif
-                                </p>
+                            <div class="border rounded p-3 h-100 bg-light">
+                                <label class="font-weight-bold text-muted small mb-2 d-block">Dosen Pembimbing</label>
+                                <p class="mb-0 h6">{{ $supervisor?->nama ?? '-' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <div class="border rounded p-3 h-100 bg-light">
+                                <label class="font-weight-bold text-muted small mb-2 d-block">Dosen Reviewer</label>
+                                @if($reviewers->isNotEmpty())
+                                    @foreach($reviewers as $index => $reviewer)
+                                        <p class="mb-1"><span class="badge badge-secondary mr-1">R{{ $index + 1 }}</span> {{ $reviewer->nama }}</p>
+                                    @endforeach
+                                @else
+                                    <p class="mb-0 text-muted">-</p>
+                                @endif
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Documents Card -->
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-check mr-2"></i>Detail Hasil Review</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold text-muted small mb-2 d-block">Hasil Review</label>
+                        @if($applicationResultReview->result)
+                            @php
+                                $resultClass = match($applicationResultReview->result) {
+                                    'approved_no_revision', 'passed' => 'success',
+                                    'approved_minor_revision' => 'info',
+                                    'approved_major_revision' => 'warning',
+                                    'revision' => 'warning',
+                                    'failed' => 'danger',
+                                    default => 'secondary',
+                                };
+                            @endphp
+                            <span class="badge badge-{{ $resultClass }} badge-lg px-3 py-2">{{ $applicationResultReview->resultLabel() }}</span>
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-secondary text-white">
                     <h5 class="mb-0"><i class="fas fa-file-pdf mr-2"></i>Dokumen Laporan</h5>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label class="font-weight-bold">Form Umpan Balik Reviewer:</label>
-                        <div class="mt-2">
-                            @if($applicationResultReview->reviewer_feedback_forms && count($applicationResultReview->reviewer_feedback_forms) > 0)
-                                @foreach($applicationResultReview->reviewer_feedback_forms as $index => $media)
-                                    <div class="mb-2">
-                                        <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-file-pdf mr-1"></i> Form Umpan Balik {{ $index + 1 }}
-                                        </a>
-                                    </div>
-                                @endforeach
+                <div class="card-body p-0">
+                    @foreach($documentSections as $section)
+                        <div class="border-bottom px-4 py-3">
+                            <label class="font-weight-bold mb-2 d-block">{{ $section['label'] }}</label>
+                            @if($section['items']->count() > 0)
+                                <div class="list-group list-group-flush">
+                                    @foreach($section['items'] as $media)
+                                        <div class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap">
+                                            <div class="mr-3 mb-2 mb-md-0">
+                                                <i class="fas {{ $section['icon'] }} mr-2"></i>
+                                                <span class="text-muted small">{{ $media->file_name }}</span>
+                                            </div>
+                                            <div class="btn-group flex-shrink-0">
+                                                <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-primary" title="View">
+                                                    <i class="fas fa-eye mr-1"></i> View
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-info preview-doc"
+                                                        data-url="{{ $media->getUrl() }}"
+                                                        data-type="{{ $section['type'] }}"
+                                                        data-name="{{ $section['label'] }}"
+                                                        title="Preview">
+                                                    <i class="fas fa-expand mr-1"></i> Preview
+                                                </button>
+                                                <a href="{{ $media->getUrl() }}" download class="btn btn-sm btn-success" title="Download">
+                                                    <i class="fas fa-download mr-1"></i> Download
+                                                </a>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             @else
-                                <p class="text-muted">Tidak ada dokumen</p>
+                                <p class="text-muted mb-0">Tidak ada dokumen</p>
                             @endif
-                        </div>
-                    </div>
-
-                    @foreach([
-                        'application_letter' => 'Surat Permohonan Review Proposal',
-                        'minutes_document' => 'Berita Acara Review Proposal',
-                        'proposal_manuscript' => 'Naskah Proposal',
-                        'research_ethics_form' => 'Lembar Etika Penelitian',
-                    ] as $field => $label)
-                        <div class="form-group">
-                            <label class="font-weight-bold">{{ $label }}:</label>
-                            <div class="mt-2">
-                                @if($applicationResultReview->{$field})
-                                    <a href="{{ $applicationResultReview->{$field}->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-file-pdf mr-1"></i> Lihat Dokumen
-                                    </a>
-                                @else
-                                    <p class="text-muted">Tidak ada dokumen</p>
-                                @endif
-                            </div>
                         </div>
                     @endforeach
                 </div>
             </div>
 
-            <!-- Action History Card -->
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-dark text-white">
                     <h5 class="mb-0"><i class="fas fa-history mr-2"></i>Riwayat Aksi</h5>
                 </div>
@@ -169,44 +232,38 @@
                             @endforeach
                         </div>
                     @else
-                        <p class="text-muted">Belum ada riwayat aksi</p>
+                        <p class="text-muted mb-0">Belum ada riwayat aksi</p>
                     @endif
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Status Card -->
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Status Aplikasi</h5>
+                    <h5 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Status Validasi Laporan</h5>
                 </div>
                 <div class="card-body text-center">
+                    <h3 class="mb-3">
+                        {!! $applicationResultReview->adminValidationStatusHtml() !!}
+                    </h3>
                     @if($applicationResultReview->application)
-                        @php
-                            $statusBadges = [
-                                'submitted' => 'badge-info',
-                                'approved' => 'badge-success',
-                                'rejected' => 'badge-danger',
-                            ];
-                            $statusClass = $statusBadges[$applicationResultReview->application->status] ?? 'badge-secondary';
-                        @endphp
-                        <h3 class="mb-3">
-                            <span class="badge {{ $statusClass }} badge-lg px-4 py-3" style="font-size: 1.2rem;">
-                                {{ ucfirst($applicationResultReview->application->status) }}
-                            </span>
-                        </h3>
-                        <p class="text-muted">Stage: <strong>{{ ucfirst($applicationResultReview->application->stage) }}</strong></p>
-                    @else
-                        <p class="text-muted">Status tidak tersedia</p>
+                        <p class="text-muted mb-0">Stage: <strong>{{ ucfirst($applicationResultReview->application->stage) }}</strong></p>
                     @endif
                 </div>
             </div>
 
-            <!-- Actions Card -->
+            @if($applicationResultReview->isEligibleOutcome() && $applicationResultReview->isValidatedByAdmin())
+                <div class="card shadow-sm mb-4 border-success">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                        <p class="mb-0 text-success font-weight-bold">Sudah divalidasi — mahasiswa dapat melanjutkan ke tahap sidang.</p>
+                    </div>
+                </div>
+            @endif
+
             @if($applicationResultReview->application && $applicationResultReview->isEligibleOutcome() && ! $applicationResultReview->isValidatedByAdmin() && ! $applicationResultReview->isRejectedByAdmin())
-                <div class="card shadow-sm mb-4">
+                <div class="card shadow-sm mb-4 border-0">
                     <div class="card-header bg-white">
                         <h5 class="mb-0"><i class="fas fa-tasks mr-2"></i>Aksi</h5>
                     </div>
@@ -224,7 +281,28 @@
     </div>
 </div>
 
-<!-- Approve Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-alt mr-2"></i>
+                    <span id="previewModalTitle">Preview Dokumen</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="height: 80vh;">
+                <iframe id="pdfViewer" style="width: 100%; height: 100%; border: none; display: none;"></iframe>
+                <div id="imageViewerWrap" class="h-100 d-none align-items-center justify-content-center overflow-auto">
+                    <img id="imageViewer" src="" alt="Preview" class="img-fluid" style="max-height: 100%;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="approveModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -245,7 +323,7 @@
                     </div>
                     <div class="form-group">
                         <label for="approve_notes">Catatan (Opsional)</label>
-                        <textarea class="form-control" id="approve_notes" name="notes" rows="3" 
+                        <textarea class="form-control" id="approve_notes" name="notes" rows="3"
                                   placeholder="Tambahkan catatan jika diperlukan..."></textarea>
                     </div>
                 </div>
@@ -260,7 +338,6 @@
     </div>
 </div>
 
-<!-- Reject Modal -->
 <div class="modal fade" id="rejectModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -281,7 +358,7 @@
                     </div>
                     <div class="form-group">
                         <label for="reject_reason">Alasan Penolakan <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="reject_reason" name="reason" rows="4" 
+                        <textarea class="form-control" id="reject_reason" name="reason" rows="4"
                                   placeholder="Jelaskan alasan penolakan..." required minlength="10"></textarea>
                         <small class="form-text text-muted">Minimal 10 karakter</small>
                     </div>
@@ -302,13 +379,38 @@
 @section('scripts')
 <script>
 $(document).ready(function() {
-    // Approve Form Submit
+    $('.preview-doc').on('click', function() {
+        const url = $(this).data('url');
+        const type = $(this).data('type') || 'pdf';
+        const name = $(this).data('name') || 'Preview Dokumen';
+
+        $('#previewModalTitle').text(name);
+
+        if (type === 'image') {
+            $('#pdfViewer').hide().attr('src', '');
+            $('#imageViewer').attr('src', url);
+            $('#imageViewerWrap').removeClass('d-none').addClass('d-flex');
+        } else {
+            $('#imageViewerWrap').removeClass('d-flex').addClass('d-none');
+            $('#imageViewer').attr('src', '');
+            $('#pdfViewer').show().attr('src', url);
+        }
+
+        $('#previewModal').modal('show');
+    });
+
+    $('#previewModal').on('hidden.bs.modal', function() {
+        $('#pdfViewer').attr('src', '').hide();
+        $('#imageViewer').attr('src', '');
+        $('#imageViewerWrap').removeClass('d-flex').addClass('d-none');
+    });
+
     $('#approveForm').on('submit', function(e) {
         e.preventDefault();
-        
+
         const submitBtn = $(this).find('button[type="submit"]');
         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
-        
+
         $.ajax({
             url: '{{ route("admin.application-result-reviews.approve", $applicationResultReview->id) }}',
             method: 'POST',
@@ -341,13 +443,12 @@ $(document).ready(function() {
         });
     });
 
-    // Reject Form Submit
     $('#rejectForm').on('submit', function(e) {
         e.preventDefault();
-        
+
         const submitBtn = $(this).find('button[type="submit"]');
         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
-        
+
         $.ajax({
             url: '{{ route("admin.application-result-reviews.reject", $applicationResultReview->id) }}',
             method: 'POST',
@@ -374,7 +475,7 @@ $(document).ready(function() {
                 } else if (xhr.responseJSON?.message) {
                     errorMessage = xhr.responseJSON.message;
                 }
-                
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal!',
@@ -387,11 +488,9 @@ $(document).ready(function() {
         });
     });
 
-    // Clear modal on close
     $('.modal').on('hidden.bs.modal', function() {
         $(this).find('form')[0].reset();
     });
 });
 </script>
 @endsection
-
