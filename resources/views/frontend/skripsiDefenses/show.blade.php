@@ -93,136 +93,179 @@
             <div class="card-modern">
                 <div class="card-modern-body">
                     <h4 class="font-weight-bold mb-3">Dokumen</h4>
-                    
+
                     <div class="row">
-                        {{-- Dokumen utama --}}
                         @if($skripsiDefense->defence_document)
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
-                                        <h6 class="mb-2">Naskah Skripsi Final</h6>
-                                        <a href="{{ $skripsiDefense->defence_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('frontend.skripsiDefenses.partials.document-card', [
+                                'media' => $skripsiDefense->defence_document,
+                                'label' => 'Naskah Skripsi Final',
+                                'icon' => 'fa-file-pdf',
+                                'iconColor' => 'text-danger',
+                            ])
                         @endif
 
                         @if($skripsiDefense->plagiarism_report)
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-file-pdf fa-3x text-info mb-3"></i>
-                                        <h6 class="mb-2">Laporan Plagiarisme Maksimal 20%</h6>
-                                        <a href="{{ $skripsiDefense->plagiarism_report->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('frontend.skripsiDefenses.partials.document-card', [
+                                'media' => $skripsiDefense->plagiarism_report,
+                                'label' => trans('cruds.skripsiDefense.fields.plagiarism_report'),
+                                'icon' => 'fa-file-pdf',
+                                'iconColor' => 'text-info',
+                            ])
                         @endif
 
                         @if($skripsiDefense->signed_scientific_publication_statement)
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-file-signature fa-3x text-success mb-3"></i>
-                                        <h6 class="mb-2">Surat Pernyataan Publikasi Ilmiah sudah ditanda tangani</h6>
-                                        <a href="{{ $skripsiDefense->signed_scientific_publication_statement->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('frontend.skripsiDefenses.partials.document-card', [
+                                'media' => $skripsiDefense->signed_scientific_publication_statement,
+                                'label' => trans('cruds.skripsiDefense.fields.signed_scientific_publication_statement'),
+                                'icon' => 'fa-file-signature',
+                                'iconColor' => 'text-success',
+                            ])
                         @endif
 
-                        {{-- Dokumen administrasi --}}
+                        @include('frontend.skripsiDefenses.partials.document-collection-card', [
+                            'items' => $skripsiDefense->ethics_statement,
+                            'label' => trans('cruds.skripsiDefense.fields.ethics_statement'),
+                            'icon' => 'fa-balance-scale',
+                            'iconColor' => 'text-success',
+                        ])
+
+                        @include('frontend.skripsiDefenses.partials.document-collection-card', [
+                            'items' => $skripsiDefense->research_instruments,
+                            'label' => trans('cruds.skripsiDefense.fields.research_instruments'),
+                            'icon' => 'fa-clipboard-list',
+                            'iconColor' => 'text-primary',
+                        ])
+
+                        @include('frontend.skripsiDefenses.partials.document-collection-card', [
+                            'items' => $skripsiDefense->data_collection_letter,
+                            'label' => trans('cruds.skripsiDefense.fields.data_collection_letter'),
+                            'icon' => 'fa-envelope-open-text',
+                            'iconColor' => 'text-info',
+                        ])
+
+                        @include('frontend.skripsiDefenses.partials.document-collection-card', [
+                            'items' => $skripsiDefense->research_module,
+                            'label' => trans('cruds.skripsiDefense.fields.research_module'),
+                            'icon' => 'fa-book-open',
+                            'iconColor' => 'text-secondary',
+                        ])
+
+                        @include('frontend.skripsiDefenses.partials.document-collection-card', [
+                            'items' => $skripsiDefense->defense_approval_page,
+                            'label' => trans('cruds.skripsiDefense.fields.defense_approval_page'),
+                            'icon' => 'fa-stamp',
+                            'iconColor' => 'text-warning',
+                        ])
+
+                        @include('frontend.skripsiDefenses.partials.document-collection-card', [
+                            'items' => $skripsiDefense->research_poster,
+                            'label' => trans('cruds.skripsiDefense.fields.research_poster'),
+                            'icon' => 'fa-image',
+                            'iconColor' => 'text-danger',
+                        ])
+
+                        @include('frontend.skripsiDefenses.partials.document-collection-card', [
+                            'items' => $skripsiDefense->supervision_logbook,
+                            'label' => trans('cruds.skripsiDefense.fields.supervision_logbook'),
+                            'icon' => 'fa-book',
+                            'iconColor' => 'text-dark',
+                        ])
+
                         @if($skripsiDefense->spp_receipt)
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-file-invoice-dollar fa-3x text-warning mb-3"></i>
-                                        <h6 class="mb-2">Bukti Pembayaran SPP</h6>
-                                        <a href="{{ $skripsiDefense->spp_receipt->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-warning">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('frontend.skripsiDefenses.partials.document-card', [
+                                'media' => $skripsiDefense->spp_receipt,
+                                'label' => trans('cruds.skripsiDefense.fields.spp_receipt'),
+                                'icon' => 'fa-file-invoice-dollar',
+                                'iconColor' => 'text-warning',
+                            ])
                         @endif
 
                         @if($skripsiDefense->krs_latest)
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-file-alt fa-3x text-primary mb-3"></i>
-                                        <h6 class="mb-2">KRS Terbaru</h6>
-                                        <a href="{{ $skripsiDefense->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('frontend.skripsiDefenses.partials.document-card', [
+                                'media' => $skripsiDefense->krs_latest,
+                                'label' => trans('cruds.skripsiDefense.fields.krs_latest'),
+                                'icon' => 'fa-file-alt',
+                                'iconColor' => 'text-primary',
+                            ])
                         @endif
 
                         @if($skripsiDefense->eap_certificate)
                             <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
+                                <div class="card h-100 border shadow-sm">
+                                    <div class="card-body text-center d-flex flex-column">
                                         <i class="fas fa-certificate fa-3x text-success mb-3"></i>
-                                        <h6 class="mb-2">Sertifikat EAP yang sudah dilegalisir</h6>
+                                        <h6 class="mb-2">{{ trans('cruds.skripsiDefense.fields.eap_certificate') }}</h6>
                                         @if($skripsiDefense->eap_grade)
-                                            <p class="mb-2"><span class="badge badge-primary">Nilai EAP: {{ $skripsiDefense->eapGradeLabel() }}</span></p>
+                                            <p class="mb-2">
+                                                <span class="badge badge-primary">Nilai EAP: {{ $skripsiDefense->eapGradeLabel() }}</span>
+                                            </p>
                                         @endif
-                                        <a href="{{ $skripsiDefense->eap_certificate->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
+                                        <small class="text-muted d-block mb-2 text-truncate px-2" title="{{ $skripsiDefense->eap_certificate->file_name }}">
+                                            {{ $skripsiDefense->eap_certificate->file_name }}
+                                        </small>
+                                        <div class="mt-auto">
+                                            @include('frontend.skripsiDefenses.partials.media-actions', ['media' => $skripsiDefense->eap_certificate])
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         @endif
 
                         @if($skripsiDefense->transcript)
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-file-alt fa-3x text-secondary mb-3"></i>
-                                        <h6 class="mb-2">Transkrip Nilai Sementara (tanpa nilai skripsi minimal 138 SKS)</h6>
-                                        <a href="{{ $skripsiDefense->transcript->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('frontend.skripsiDefenses.partials.document-card', [
+                                'media' => $skripsiDefense->transcript,
+                                'label' => trans('cruds.skripsiDefense.fields.transcript'),
+                                'icon' => 'fa-file-alt',
+                                'iconColor' => 'text-secondary',
+                            ])
                         @endif
 
                         @if($skripsiDefense->siakad_supervisor_screenshot)
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-desktop fa-3x text-info mb-3"></i>
-                                        <h6 class="mb-2">Screenshot Pembimbing Skripsi dari SIAKAD</h6>
-                                        <a href="{{ $skripsiDefense->siakad_supervisor_screenshot->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('frontend.skripsiDefenses.partials.document-card', [
+                                'media' => $skripsiDefense->siakad_supervisor_screenshot,
+                                'label' => trans('cruds.skripsiDefense.fields.siakad_supervisor_screenshot'),
+                                'icon' => 'fa-desktop',
+                                'iconColor' => 'text-info',
+                            ])
                         @endif
 
-                        {{-- Jika benar-benar tidak ada dokumen --}}
-                        @if(
-                            !$skripsiDefense->defence_document &&
-                            !$skripsiDefense->plagiarism_report &&
-                            !$skripsiDefense->signed_scientific_publication_statement &&
-                            !$skripsiDefense->spp_receipt &&
-                            !$skripsiDefense->krs_latest &&
-                            !$skripsiDefense->eap_certificate &&
-                            !$skripsiDefense->transcript &&
-                            !$skripsiDefense->siakad_supervisor_screenshot
-                        )
+                        @if($skripsiDefense->mbkm_recommendation_letter)
+                            @include('frontend.skripsiDefenses.partials.document-card', [
+                                'media' => $skripsiDefense->mbkm_recommendation_letter,
+                                'label' => trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter'),
+                                'icon' => 'fa-file-pdf',
+                                'iconColor' => 'text-primary',
+                            ])
+                        @endif
+
+                        @include('frontend.skripsiDefenses.partials.document-collection-card', [
+                            'items' => $skripsiDefense->mbkm_report,
+                            'label' => trans('cruds.skripsiDefense.fields.mbkm_report'),
+                            'icon' => 'fa-globe',
+                            'iconColor' => 'text-info',
+                        ])
+
+                        @php
+                            $hasAnyDocument = $skripsiDefense->defence_document
+                                || $skripsiDefense->plagiarism_report
+                                || $skripsiDefense->signed_scientific_publication_statement
+                                || count($skripsiDefense->ethics_statement) > 0
+                                || count($skripsiDefense->research_instruments) > 0
+                                || count($skripsiDefense->data_collection_letter) > 0
+                                || count($skripsiDefense->research_module) > 0
+                                || count($skripsiDefense->defense_approval_page) > 0
+                                || count($skripsiDefense->research_poster) > 0
+                                || count($skripsiDefense->supervision_logbook) > 0
+                                || $skripsiDefense->spp_receipt
+                                || $skripsiDefense->krs_latest
+                                || $skripsiDefense->eap_certificate
+                                || $skripsiDefense->transcript
+                                || $skripsiDefense->siakad_supervisor_screenshot
+                                || $skripsiDefense->mbkm_recommendation_letter
+                                || count($skripsiDefense->mbkm_report) > 0;
+                        @endphp
+
+                        @if(!$hasAnyDocument)
                             <div class="col-12 text-center text-muted py-4">
                                 <i class="fas fa-folder-open fa-3x mb-3"></i>
                                 <p>Tidak ada dokumen terlampir</p>
@@ -355,4 +398,39 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-pdf mr-2"></i>
+                    Preview Dokumen
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="height: 80vh;">
+                <iframe id="pdfViewer" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('.preview-doc').on('click', function() {
+        const url = $(this).data('url');
+        $('#pdfViewer').attr('src', url);
+        $('#previewModal').modal('show');
+    });
+
+    $('#previewModal').on('hidden.bs.modal', function() {
+        $('#pdfViewer').attr('src', '');
+    });
+});
+</script>
+@endpush
