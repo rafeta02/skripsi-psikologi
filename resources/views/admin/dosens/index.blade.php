@@ -46,7 +46,7 @@
                     <th>
                         {{ trans('cruds.dosen.fields.prodi') }}
                     </th>
-                    <th>
+                    <th class="text-center">
                         {{ trans('cruds.dosen.fields.mbkm_availability') }}
                     </th>
                     <th>
@@ -115,7 +115,7 @@
 { data: 'tanggal_lahir', name: 'tanggal_lahir' },
 { data: 'gender', name: 'gender' },
 { data: 'prodi_name', name: 'prodi.name' },
-{ data: 'mbkm_availability', name: 'mbkm_availability', orderable: false, searchable: false },
+{ data: 'mbkm_availability', name: 'mbkm_availability', orderable: false, searchable: false, className: 'text-center' },
 { data: 'riset_grup_name', name: 'riset_grup.name' },
 { data: 'actions', name: '{{ trans('global.actions') }}' }
     ],

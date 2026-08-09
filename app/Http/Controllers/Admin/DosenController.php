@@ -70,13 +70,15 @@ class DosenController extends Controller
 
             $table->editColumn('mbkm_availability', function ($row) {
                 if (Gate::denies('dosen_edit')) {
-                    return $row->mbkm_availability
+                    $content = $row->mbkm_availability
                         ? '<span class="badge badge-success">Ya</span>'
                         : '<span class="badge badge-secondary">Tidak</span>';
+
+                    return '<div class="text-center">' . $content . '</div>';
                 }
 
                 return sprintf(
-                    '<input type="checkbox" class="toggle-mbkm-availability" data-url="%s" %s>',
+                    '<div class="text-center"><input type="checkbox" class="toggle-mbkm-availability" data-url="%s" %s></div>',
                     route('admin.dosens.toggleMbkmAvailability', $row->id),
                     $row->mbkm_availability ? 'checked' : ''
                 );

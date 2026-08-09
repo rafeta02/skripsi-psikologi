@@ -115,22 +115,8 @@
                                 <div class="card h-100 border">
                                     <div class="card-body text-center">
                                         <i class="fas fa-file-pdf fa-3x text-info mb-3"></i>
-                                        <h6 class="mb-2">Laporan Plagiarisme</h6>
+                                        <h6 class="mb-2">Laporan Plagiarisme Maksimal 20%</h6>
                                         <a href="{{ $skripsiDefense->plagiarism_report->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-                        @if($skripsiDefense->publication_statement)
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-file-pdf fa-3x text-success mb-3"></i>
-                                        <h6 class="mb-2">Pernyataan Publikasi</h6>
-                                        <a href="{{ $skripsiDefense->publication_statement->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
                                             <i class="fas fa-download"></i> Download
                                         </a>
                                     </div>
@@ -203,7 +189,7 @@
                                 <div class="card h-100 border">
                                     <div class="card-body text-center">
                                         <i class="fas fa-file-alt fa-3x text-secondary mb-3"></i>
-                                        <h6 class="mb-2">Transkrip Nilai</h6>
+                                        <h6 class="mb-2">Transkrip Nilai Sementara (tanpa nilai skripsi minimal 138 SKS)</h6>
                                         <a href="{{ $skripsiDefense->transcript->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">
                                             <i class="fas fa-download"></i> Download
                                         </a>
@@ -217,7 +203,7 @@
                                 <div class="card h-100 border">
                                     <div class="card-body text-center">
                                         <i class="fas fa-desktop fa-3x text-info mb-3"></i>
-                                        <h6 class="mb-2">Screenshot Pembimbing SIAKAD</h6>
+                                        <h6 class="mb-2">Screenshot Pembimbing Skripsi dari SIAKAD</h6>
                                         <a href="{{ $skripsiDefense->siakad_supervisor_screenshot->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
                                             <i class="fas fa-download"></i> Download
                                         </a>
@@ -230,7 +216,6 @@
                         @if(
                             !$skripsiDefense->defence_document &&
                             !$skripsiDefense->plagiarism_report &&
-                            !$skripsiDefense->publication_statement &&
                             !$skripsiDefense->signed_scientific_publication_statement &&
                             !$skripsiDefense->spp_receipt &&
                             !$skripsiDefense->krs_latest &&

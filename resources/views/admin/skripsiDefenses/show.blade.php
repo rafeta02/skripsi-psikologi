@@ -498,27 +498,6 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="document-item mb-3 p-3 border rounded {{ $skripsiDefense->publication_statement ? 'border-success bg-light' : 'border-danger' }}">
-                                <strong><i class="fas fa-file-alt mr-2"></i>{{ trans('cruds.skripsiDefense.fields.publication_statement') }}</strong>
-                                @if($skripsiDefense->publication_statement)
-                                    <div class="mt-2">
-                                        <button type="button" class="btn btn-sm btn-primary preview-doc" 
-                                                data-url="{{ $skripsiDefense->publication_statement->getUrl() }}">
-                                            <i class="fas fa-eye mr-1"></i> Lihat Dokumen
-                                        </button>
-                                        <a href="{{ $skripsiDefense->publication_statement->getUrl() }}" download class="btn btn-sm btn-success">
-                                            <i class="fas fa-download mr-1"></i> Download
-                                        </a>
-                                        <small class="d-block mt-2 text-muted">
-                                            Size: {{ number_format($skripsiDefense->publication_statement->size / 1024, 2) }} KB
-                                        </small>
-                                    </div>
-                                @else
-                                    <span class="badge badge-danger ml-2">Tidak ada file</span>
-                            @endif
-                            </div>
-                        </div>
-                        <div class="col-md-6">
                             <div class="document-item mb-3 p-3 border rounded {{ $skripsiDefense->signed_scientific_publication_statement ? 'border-success bg-light' : 'border-danger' }}">
                                 <strong><i class="fas fa-file-signature mr-2"></i>{{ trans('cruds.skripsiDefense.fields.signed_scientific_publication_statement') }}</strong>
                                 @if($skripsiDefense->signed_scientific_publication_statement)

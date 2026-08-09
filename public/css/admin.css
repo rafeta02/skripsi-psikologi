@@ -41,6 +41,12 @@
   margin: 0;
 }
 
+.datatable-Dosen td.text-center,
+.datatable-Dosen th.text-center {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
 .sidebar .nav-link.nav-link-wrap p {
   white-space: normal;
   line-height: 1.25;

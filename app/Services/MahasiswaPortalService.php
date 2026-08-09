@@ -179,8 +179,8 @@ class MahasiswaPortalService
         $forms = [
             ['label' => 'Pendaftaran Skripsi', 'route' => 'frontend.skripsi-registrations.index', 'icon' => 'fa-file-signature', 'routes' => ['frontend.skripsi-registrations.*'], 'always' => true],
             ['label' => 'Pendaftaran MBKM', 'route' => 'frontend.mbkm-registrations.index', 'icon' => 'fa-file-signature', 'routes' => ['frontend.mbkm-registrations.*'], 'always' => true],
-            ['label' => 'Review Kelayakan Proposal (Reguler)', 'route' => 'frontend.skripsi-seminars.index', 'icon' => 'fa-presentation', 'routes' => ['frontend.skripsi-seminars.*'], 'always' => true],
-            ['label' => 'Review Kelayakan Proposal (MBKM)', 'route' => 'frontend.mbkm-seminars.index', 'icon' => 'fa-presentation', 'routes' => ['frontend.mbkm-seminars.*'], 'always' => true],
+            ['label' => 'Review Kelayakan Proposal (Reguler)', 'route' => 'frontend.skripsi-seminars.index', 'icon' => 'fa-clipboard-check', 'routes' => ['frontend.skripsi-seminars.*'], 'always' => true],
+            ['label' => 'Review Kelayakan Proposal (MBKM)', 'route' => 'frontend.mbkm-seminars.index', 'icon' => 'fa-clipboard-check', 'routes' => ['frontend.mbkm-seminars.*'], 'always' => true],
             ['label' => 'Jadwal', 'route' => 'frontend.application-schedules.index', 'icon' => 'fa-calendar-plus', 'routes' => ['frontend.application-schedules.*'], 'always' => true],
             ['label' => 'Laporan Review', 'route' => 'frontend.application-result-reviews.index', 'icon' => 'fa-clipboard-list', 'routes' => ['frontend.application-result-reviews.*'], 'key' => 'application_result_review'],
             ['label' => 'Laporan Seminar', 'route' => 'frontend.application-result-seminars.index', 'icon' => 'fa-clipboard-check', 'routes' => ['frontend.application-result-seminars.*'], 'key' => 'application_result_seminar'],

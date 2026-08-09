@@ -56,13 +56,7 @@
 
                         @include('frontend.skripsiDefenses.partials.file-input', [
                             'name' => 'plagiarism_report',
-                            'label' => 'Laporan Plagiarisme',
-                            'required' => true,
-                        ])
-
-                        @include('frontend.skripsiDefenses.partials.file-input', [
-                            'name' => 'publication_statement',
-                            'label' => 'Pernyataan Publikasi',
+                            'label' => 'Laporan Plagiarisme Maksimal 20%',
                             'required' => true,
                         ])
 
@@ -77,9 +71,9 @@
                         <h5 class="font-weight-bold mb-3 text-primary"><i class="fas fa-folder-open mr-2"></i>Dokumen Penelitian (boleh lebih dari 1 file)</h5>
 
                         @foreach([
-                            'ethics_statement' => 'Pernyataan Etika Penelitian',
-                            'research_instruments' => 'Instrumen Penelitian',
-                            'data_collection_letter' => 'Surat Keterangan Telah Melaksanakan Penelitian / Informed consent',
+                            'ethics_statement' => 'Pernyataan Etika Penelitian / Ethical clearance',
+                            'research_instruments' => 'Instrumen Penelitian yang telah terisi, verbatim/ guideline (minimal 10 pcs)',
+                            'data_collection_letter' => 'Surat Keterangan Telah Melaksanakan Penelitian / Data Responden / Informed consent',
                             'defense_approval_page' => 'Halaman Persetujuan Sidang',
                             'research_poster' => 'Poster Penelitian',
                             'supervision_logbook' => 'Tangkapan Layar Panel Konsultasi Siakad yang sudah divalidasi dosen pembimbing Minimal 12 Kali',
@@ -94,7 +88,7 @@
 
                         @include('frontend.skripsiDefenses.partials.file-input', [
                             'name' => 'research_module',
-                            'label' => 'Modul Penelitian (opsional)',
+                            'label' => 'Modul Penelitian (Opsional untuk penelitian eksperimen dan terpisah dari naskah)',
                             'required' => false,
                             'multiple' => true,
                         ])
@@ -125,13 +119,13 @@
 
                         @include('frontend.skripsiDefenses.partials.file-input', [
                             'name' => 'transcript',
-                            'label' => 'Transkrip Nilai',
+                            'label' => 'Transkrip Nilai Sementara (tanpa nilai skripsi minimal 138 SKS)',
                             'required' => true,
                         ])
 
                         @include('frontend.skripsiDefenses.partials.file-input', [
                             'name' => 'siakad_supervisor_screenshot',
-                            'label' => 'Screenshot Pembimbing SIAKAD',
+                            'label' => 'Screenshot Pembimbing Skripsi dari SIAKAD',
                             'required' => true,
                             'accept' => '.pdf,.jpg,.jpeg,.png',
                             'hint' => 'PDF atau gambar, maks. 10MB',
