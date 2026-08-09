@@ -67,6 +67,12 @@
     ])
 @endif
 
+@include('shared.announcements._widget', [
+    'recentAnnouncements' => $recentAnnouncements ?? collect(),
+    'indexRoute' => route('mahasiswa.pengumuman'),
+    'showRoute' => 'mahasiswa.pengumuman.show',
+])
+
 <div class="row">
     <div class="col-lg-12">
         @include('partials.mahasiswa.quick-actions')

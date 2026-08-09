@@ -29,6 +29,12 @@
 </div>
 @endif
 
+@include('shared.announcements._widget', [
+    'recentAnnouncements' => $recentAnnouncements ?? collect(),
+    'indexRoute' => route('dosen.pengumuman'),
+    'showRoute' => 'dosen.pengumuman.show',
+])
+
 <div class="row">
     <div class="col-lg-12">
         @include('partials.dosen.quick-actions')

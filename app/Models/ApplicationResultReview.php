@@ -39,6 +39,8 @@ class ApplicationResultReview extends Model implements HasMedia
 
     protected $fillable = [
         'application_id',
+        'reviewer_1_assignment_id',
+        'reviewer_2_assignment_id',
         'result',
         'note',
         'revision_deadline',
@@ -61,6 +63,16 @@ class ApplicationResultReview extends Model implements HasMedia
     public function application()
     {
         return $this->belongsTo(Application::class, 'application_id');
+    }
+
+    public function reviewer1Assignment()
+    {
+        return $this->belongsTo(ApplicationAssignment::class, 'reviewer_1_assignment_id');
+    }
+
+    public function reviewer2Assignment()
+    {
+        return $this->belongsTo(ApplicationAssignment::class, 'reviewer_2_assignment_id');
     }
 
     public function isValidatedByAdmin(): bool

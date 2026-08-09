@@ -163,6 +163,21 @@
                                 </div>
                             </div>
                         </div>
+                        @if(($unresolvedAlertCount ?? 0) > 0)
+                        <div class="mt-3 border-top pt-3">
+                            <h6 class="font-weight-bold text-danger mb-2">
+                                <i class="fas fa-bell"></i> Peringatan Reviewer ({{ $unresolvedAlertCount }})
+                            </h6>
+                            <ul class="list-unstyled mb-0 small">
+                                @foreach($adminAlerts ?? [] as $alert)
+                                    <li class="mb-2">
+                                        <span class="badge badge-{{ $alert->severity === 'critical' ? 'danger' : 'warning' }}">{{ ucfirst(str_replace('_', ' ', $alert->alert_type)) }}</span>
+                                        {{ $alert->message }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>

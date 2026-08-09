@@ -28,6 +28,7 @@ class MahasiswaPortalService
                     $this->navItem('Bimbingan', 'mahasiswa.bimbingan', 'fa-user-tie', ['mahasiswa.bimbingan']),
                     $this->navItem('Jadwal', 'mahasiswa.jadwal', 'fa-calendar-alt', ['mahasiswa.jadwal']),
                     $this->navItem('Dokumen', 'mahasiswa.dokumen', 'fa-folder-open', ['mahasiswa.dokumen']),
+                    $this->navItem('Pengumuman', 'mahasiswa.pengumuman', 'fa-bullhorn', ['mahasiswa.pengumuman', 'mahasiswa.pengumuman.show']),
                 ],
             ],
             [

@@ -20,6 +20,7 @@ class SkripsiSeminar extends Model implements HasMedia
     public $table = 'skripsi_seminars';
 
     protected $dates = [
+        'admin_validated_at',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -35,6 +36,9 @@ class SkripsiSeminar extends Model implements HasMedia
         'application_id',
         'reviewer_1_id',
         'reviewer_2_id',
+        'admin_validated_at',
+        'admin_validated_by',
+        'admin_revision_notes',
         'title',
         'title_en',
         'created_at',
@@ -89,6 +93,12 @@ class SkripsiSeminar extends Model implements HasMedia
         return $this->belongsTo(Dosen::class, 'reviewer_2_id');
     }
 
+    public function reviewerAssignments()
+    {
+        return $this->hasMany(ApplicationAssignment::class, 'skripsi_seminar_id')
+            ->where('role', 'reviewer');
+    }
+
     public function adminStatusBadgeHtml(): string
     {
         $application = $this->application;
@@ -96,20 +106,47 @@ class SkripsiSeminar extends Model implements HasMedia
             return '<span class="badge badge-secondary">-</span>';
         }
 
-        $status = $application->status;
-
-        if ($status === 'approved' && $this->reviewer_1_id && $this->reviewer_2_id) {
-            return '<span class="badge badge-success">Reviewer Ditugaskan</span>';
+        if ($application->status === 'rejected') {
+            return '<span class="badge badge-danger">Ditolak</span>';
         }
 
-        return match ($status) {
-            'submitted' => '<span class="badge badge-info">Menunggu Review</span>',
+        if ($application->status === 'revision') {
+            return '<span class="badge badge-warning">Perlu Revisi</span>';
+        }
+
+        if (! $this->admin_validated_at) {
+            return '<span class="badge badge-info">Menunggu Review Admin</span>';
+        }
+
+        $assignments = ApplicationAssignment::where('skripsi_seminar_id', $this->id)
+            ->where('role', 'reviewer')
+            ->whereNotIn('status', ['replaced'])
+            ->get();
+
+        if ($assignments->isEmpty()) {
+            return '<span class="badge badge-info">Menunggu Review</span>';
+        }
+
+        if ($assignments->contains(fn ($a) => in_array($a->status, ['expired'], true))) {
+            return '<span class="badge badge-dark">Reviewer Kedaluwarsa</span>';
+        }
+
+        if ($assignments->where('status', 'feedback_submitted')->count() >= 2) {
+            return '<span class="badge badge-success">Review Selesai</span>';
+        }
+
+        if ($assignments->contains(fn ($a) => $a->status === 'assigned')) {
+            return '<span class="badge badge-warning">Menunggu Respons Reviewer</span>';
+        }
+
+        if ($assignments->contains(fn ($a) => $a->status === 'accepted')) {
+            return '<span class="badge badge-primary">Menunggu Feedback Reviewer</span>';
+        }
+
+        return match ($application->status) {
+            'submitted' => '<span class="badge badge-info">Dalam Proses Review</span>',
             'approved' => '<span class="badge badge-success">Disetujui</span>',
-            'rejected' => '<span class="badge badge-danger">Ditolak</span>',
-            'revision' => '<span class="badge badge-warning">Perlu Revisi</span>',
-            'scheduled' => '<span class="badge badge-primary">Terjadwal</span>',
-            'done' => '<span class="badge badge-secondary">Selesai</span>',
-            default => '<span class="badge badge-secondary">' . e(ucfirst($status)) . '</span>',
+            default => '<span class="badge badge-secondary">' . e(ucfirst($application->status)) . '</span>',
         };
     }
 }

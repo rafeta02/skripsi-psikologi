@@ -3,30 +3,47 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use App\Traits\FileNamingTrait;
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class ApplicationAssignment extends Model
+class ApplicationAssignment extends Model implements HasMedia
 {
-    use SoftDeletes, Auditable, HasFactory;
+    use SoftDeletes, Auditable, HasFactory, InteractsWithMedia, FileNamingTrait;
 
     public $table = 'application_assignments';
 
     protected $dates = [
         'assigned_at',
         'responded_at',
+        'response_deadline',
+        'feedback_deadline',
+        'feedback_submitted_at',
         'created_at',
         'updated_at',
         'deleted_at',
     ];
 
     public const STATUS_SELECT = [
-        'assigned' => 'Assigned',
-        'accepted' => 'Accepted',
-        'rejected' => 'Rejected',
+        'assigned'           => 'Assigned',
+        'accepted'           => 'Accepted',
+        'rejected'           => 'Rejected',
+        'expired'            => 'Expired',
+        'feedback_submitted' => 'Feedback Submitted',
+        'replaced'           => 'Replaced',
+    ];
+
+    public const FEEDBACK_RESULT_SELECT = [
+        'passed'   => 'Lulus (Passed)',
+        'revision' => 'Revisi (Revision)',
+        'failed'   => 'Tidak Lulus (Failed)',
     ];
 
     public const ROLE_SELECT = [
@@ -35,14 +52,27 @@ class ApplicationAssignment extends Model
         'examiner'   => 'Examiner',
     ];
 
+    protected $appends = [
+        'feedback_document',
+    ];
+
     protected $fillable = [
         'application_id',
+        'skripsi_seminar_id',
         'lecturer_id',
         'role',
+        'reviewer_slot',
         'status',
         'assigned_at',
         'responded_at',
+        'response_deadline',
+        'feedback_deadline',
         'note',
+        'rejection_reason',
+        'feedback_result',
+        'feedback_note',
+        'feedback_submitted_at',
+        'replaced_by_assignment_id',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -65,15 +95,27 @@ class ApplicationAssignment extends Model
         return $date->format('Y-m-d H:i:s');
     }
 
-    public function application()
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')->fit('crop', 50, 50);
+        $this->addMediaConversion('preview')->fit('crop', 120, 120);
+    }
+
+    public function application(): BelongsTo
     {
         return $this->belongsTo(Application::class, 'application_id');
     }
 
-    /**
-     * Sembunyikan penugasan pada Application mirror MBKM (progres anggota).
-     * Dosen hanya melihat 1 penugasan per kelompok (aplikasi ketua).
-     */
+    public function skripsiSeminar(): BelongsTo
+    {
+        return $this->belongsTo(SkripsiSeminar::class, 'skripsi_seminar_id');
+    }
+
+    public function replacedBy(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'replaced_by_assignment_id');
+    }
+
     public function scopeWithoutGroupMirrors($query)
     {
         return $query->whereHas('application', function ($q) {
@@ -84,9 +126,65 @@ class ApplicationAssignment extends Model
         });
     }
 
-    public function lecturer()
+    public function scopeActiveReviewers($query)
+    {
+        return $query->where('role', 'reviewer')
+            ->whereNotIn('status', ['replaced', 'expired']);
+    }
+
+    public function lecturer(): BelongsTo
     {
         return $this->belongsTo(Dosen::class, 'lecturer_id');
+    }
+
+    public function isProposalReviewer(): bool
+    {
+        return $this->role === 'reviewer'
+            && $this->skripsi_seminar_id
+            && $this->application?->type === 'skripsi'
+            && $this->application?->stage === 'seminar';
+    }
+
+    public function canRespondToAssignment(): bool
+    {
+        return $this->status === 'assigned'
+            && (!$this->getRawOriginal('response_deadline') || now()->lte(Carbon::parse($this->getRawOriginal('response_deadline'))));
+    }
+
+    public function canSubmitFeedback(): bool
+    {
+        return $this->status === 'accepted'
+            && !$this->getRawOriginal('feedback_submitted_at')
+            && (!$this->getRawOriginal('feedback_deadline') || now()->lte(Carbon::parse($this->getRawOriginal('feedback_deadline'))));
+    }
+
+    public function isFeedbackOverdue(): bool
+    {
+        if ($this->status !== 'accepted' || $this->getRawOriginal('feedback_submitted_at')) {
+            return false;
+        }
+
+        $deadline = $this->getRawOriginal('feedback_deadline');
+
+        return $deadline && now()->gt(Carbon::parse($deadline));
+    }
+
+    public function statusBadgeHtml(): string
+    {
+        return match ($this->status) {
+            'assigned' => '<span class="badge badge-warning">Menunggu Respons</span>',
+            'accepted' => '<span class="badge badge-info">Menunggu Feedback</span>',
+            'feedback_submitted' => '<span class="badge badge-success">Feedback Terkirim</span>',
+            'rejected' => '<span class="badge badge-danger">Ditolak</span>',
+            'expired' => '<span class="badge badge-dark">Kedaluwarsa</span>',
+            'replaced' => '<span class="badge badge-secondary">Diganti</span>',
+            default => '<span class="badge badge-secondary">' . e(ucfirst($this->status ?? '-')) . '</span>',
+        };
+    }
+
+    public function getFeedbackDocumentAttribute()
+    {
+        return $this->getMedia('feedback_document')->last();
     }
 
     public function getAssignedAtAttribute($value)
@@ -100,14 +198,12 @@ class ApplicationAssignment extends Model
             $this->attributes['assigned_at'] = null;
             return;
         }
-        
-        // If already a Carbon instance, just format it
+
         if ($value instanceof Carbon || $value instanceof \DateTimeInterface) {
             $this->attributes['assigned_at'] = $value->format('Y-m-d H:i:s');
             return;
         }
-        
-        // Otherwise, parse from string
+
         try {
             $this->attributes['assigned_at'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
         } catch (\Exception $e) {
@@ -126,14 +222,12 @@ class ApplicationAssignment extends Model
             $this->attributes['responded_at'] = null;
             return;
         }
-        
-        // If already a Carbon instance, just format it
+
         if ($value instanceof Carbon || $value instanceof \DateTimeInterface) {
             $this->attributes['responded_at'] = $value->format('Y-m-d H:i:s');
             return;
         }
-        
-        // Otherwise, parse from string
+
         try {
             $this->attributes['responded_at'] = Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s');
         } catch (\Exception $e) {

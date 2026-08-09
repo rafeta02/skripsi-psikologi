@@ -58,9 +58,6 @@
                                     @if($activeApplication->type === 'mbkm' && $activeApplication->stage === 'seminar')
                                         <option value="mbkm_seminar" selected>Review Kelayakan Proposal (MBKM)</option>
                                     @endif
-                                    @if($activeApplication->type === 'skripsi' && $activeApplication->stage === 'seminar')
-                                        <option value="skripsi_seminar" selected>Review Kelayakan Proposal (Reguler)</option>
-                                    @endif
                                     @if($activeApplication->stage === 'defense')
                                         <option value="skripsi_defense" selected>Sidang Skripsi</option>
                                     @endif

@@ -325,8 +325,50 @@
                 </div>
             </div>
 
+            @if($skripsiSeminar->admin_validated_at && isset($reviewerAssignments) && $reviewerAssignments->isNotEmpty())
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3 class="card-title mb-0"><i class="fas fa-users mr-2"></i> Status Penugasan Reviewer</h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Slot</th>
+                                <th>Dosen</th>
+                                <th>Status</th>
+                                <th>Deadline Respons</th>
+                                <th>Deadline Feedback</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($reviewerAssignments as $ra)
+                                <tr>
+                                    <td>{{ str_replace('_', ' ', ucfirst($ra->reviewer_slot ?? '-')) }}</td>
+                                    <td>{{ $ra->lecturer->nama ?? '-' }}</td>
+                                    <td>{!! $ra->statusBadgeHtml() !!}</td>
+                                    <td>{{ $ra->getRawOriginal('response_deadline') ? \Carbon\Carbon::parse($ra->getRawOriginal('response_deadline'))->format('d M Y H:i') : '-' }}</td>
+                                    <td>{{ $ra->getRawOriginal('feedback_deadline') ? \Carbon\Carbon::parse($ra->getRawOriginal('feedback_deadline'))->format('d M Y H:i') : '-' }}</td>
+                                    <td>
+                                        @if(in_array($ra->status, ['expired', 'rejected'], true))
+                                            <button type="button" class="btn btn-xs btn-warning reassign-reviewer-btn"
+                                                    data-assignment-id="{{ $ra->id }}"
+                                                    data-slot="{{ $ra->reviewer_slot }}">
+                                                Ganti Reviewer
+                                            </button>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
+
             <!-- Action Buttons Card -->
-            @if($skripsiSeminar->application && $skripsiSeminar->application->status === 'submitted')
+            @if($skripsiSeminar->application && $skripsiSeminar->application->status === 'submitted' && !$skripsiSeminar->admin_validated_at)
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h3 class="card-title mb-0">
@@ -483,6 +525,41 @@
     </div>
 </div>
 
+<!-- Reassign Reviewer Modal -->
+<div class="modal fade" id="reassignReviewerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Ganti Reviewer</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <form id="reassignReviewerForm">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" id="reassign_assignment_id" name="assignment_id">
+                    <div class="form-group">
+                        <label>Dosen Reviewer Pengganti</label>
+                        <select name="lecturer_id" id="reassign_lecturer_id" class="form-control" required>
+                            <option value="">-- Pilih Dosen --</option>
+                            @foreach($dosens ?? [] as $d)
+                                <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->nidn ?? '-' }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label>Catatan (opsional)</label>
+                        <textarea name="note" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
@@ -629,6 +706,30 @@ $('#rejectForm').on('submit', function(e) {
                 text: message
             });
             $('#rejectForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-times mr-1"></i> Tolak');
+        }
+    });
+});
+
+$('.reassign-reviewer-btn').on('click', function() {
+    $('#reassign_assignment_id').val($(this).data('assignment-id'));
+    $('#reassignReviewerModal').modal('show');
+});
+
+$('#reassignReviewerForm').on('submit', function(e) {
+    e.preventDefault();
+    const assignmentId = $('#reassign_assignment_id').val();
+    $.ajax({
+        url: `/admin/skripsi-seminars/reviewer-assignments/${assignmentId}/reassign`,
+        method: 'POST',
+        data: $(this).serialize(),
+        success: function(response) {
+            if (response.success) {
+                $('#reassignReviewerModal').modal('hide');
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }).then(() => location.reload());
+            }
+        },
+        error: function(xhr) {
+            Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Gagal mengganti reviewer' });
         }
     });
 });

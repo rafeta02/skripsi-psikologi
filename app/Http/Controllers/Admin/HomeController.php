@@ -10,7 +10,7 @@ use App\Models\SkripsiSeminar;
 use App\Models\MbkmSeminar;
 use App\Models\SkripsiDefense;
 use App\Models\Mahasiswa;
-use App\Models\Dosen;
+use App\Models\AdminAlert;
 use LaravelDaily\LaravelCharts\Classes\LaravelChart;
 
 class HomeController
@@ -54,11 +54,21 @@ class HomeController
             $q->where('status', 'submitted');
         })->count();
 
-        $pendingSeminars = SkripsiSeminar::whereHas('application', function($q) {
-            $q->where('status', 'submitted');
-        })->count() + MbkmSeminar::whereHas('application', function($q) {
-            $q->where('status', 'submitted');
-        })->count();
+        $pendingSeminars = SkripsiSeminar::whereNull('admin_validated_at')
+            ->whereHas('application', function ($q) {
+                $q->where('status', 'submitted');
+            })->count()
+            + MbkmSeminar::whereHas('application', function ($q) {
+                $q->where('status', 'submitted');
+            })->count();
+
+        $adminAlerts = AdminAlert::unresolved()
+            ->with(['dosen', 'application.mahasiswa'])
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
+
+        $unresolvedAlertCount = AdminAlert::unresolved()->count();
 
         $pendingDefenses = SkripsiDefense::whereHas('application', function($q) {
             $q->where('status', 'submitted');
@@ -71,7 +81,9 @@ class HomeController
             'recentApplications',
             'pendingRegistrations',
             'pendingSeminars',
-            'pendingDefenses'
+            'pendingDefenses',
+            'adminAlerts',
+            'unresolvedAlertCount'
         ));
     }
 

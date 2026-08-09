@@ -175,20 +175,20 @@
                     <h5 class="font-weight-bold mb-3">Status</h5>
                     
                     @if($skripsiSeminar->application)
-                        @if($skripsiSeminar->application->status == 'submitted')
+                        @if(!$skripsiSeminar->admin_validated_at && $skripsiSeminar->application->status == 'submitted')
                             <div class="alert alert-warning">
-                                <i class="fas fa-clock"></i> <strong>Menunggu Review</strong>
-                                <p class="mb-0 mt-2 small">Pendaftaran Anda sedang dalam proses review</p>
+                                <i class="fas fa-clock"></i> <strong>Menunggu Validasi Admin</strong>
+                                <p class="mb-0 mt-2 small">Pengajuan Anda sedang direview admin</p>
+                            </div>
+                        @elseif($skripsiSeminar->admin_validated_at && $skripsiSeminar->application->status == 'submitted')
+                            <div class="alert alert-info">
+                                <i class="fas fa-user-check"></i> <strong>Menunggu Reviewer</strong>
+                                <p class="mb-0 mt-2 small">Reviewer ditugaskan — menunggu respons dan feedback dosen</p>
                             </div>
                         @elseif($skripsiSeminar->application->status == 'approved')
                             <div class="alert alert-success">
-                                <i class="fas fa-check-circle"></i> <strong>Disetujui</strong>
-                                <p class="mb-0 mt-2 small">Pendaftaran Anda telah disetujui</p>
-                            </div>
-                        @elseif($skripsiSeminar->application->status == 'scheduled')
-                            <div class="alert alert-info">
-                                <i class="fas fa-calendar-check"></i> <strong>Terjadwal</strong>
-                                <p class="mb-0 mt-2 small">Seminar Anda telah dijadwalkan</p>
+                                <i class="fas fa-check-circle"></i> <strong>Review Selesai</strong>
+                                <p class="mb-0 mt-2 small">Kedua reviewer telah mengirim feedback. Silakan kirim laporan hasil review.</p>
                             </div>
                         @elseif($skripsiSeminar->application->status == 'revision')
                             <div class="alert alert-warning">

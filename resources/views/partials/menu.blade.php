@@ -134,6 +134,16 @@
                         </a>
                     </li>
                 @endcan
+                @can('announcement_access')
+                    <li class="nav-item">
+                        <a href="{{ route("admin.announcements.index") }}" class="nav-link {{ request()->is("admin/announcements") || request()->is("admin/announcements/*") ? "active" : "" }}">
+                            <i class="fa-fw nav-icon fas fa-bullhorn"></i>
+                            <p>
+                                {{ trans('cruds.announcement.title') }}
+                            </p>
+                        </a>
+                    </li>
+                @endcan
                 @can('master_access')
                     <li class="nav-item has-treeview {{ request()->is("admin/jenjangs*") ? "menu-open" : "" }} {{ request()->is("admin/faculties*") ? "menu-open" : "" }} {{ request()->is("admin/prodis*") ? "menu-open" : "" }} {{ request()->is("admin/keilmuans*") ? "menu-open" : "" }} {{ request()->is("admin/research-groups*") ? "menu-open" : "" }} {{ request()->is("admin/ruangs*") ? "menu-open" : "" }}">
                         <a class="nav-link nav-dropdown-toggle {{ request()->is("admin/jenjangs*") ? "active" : "" }} {{ request()->is("admin/faculties*") ? "active" : "" }} {{ request()->is("admin/prodis*") ? "active" : "" }} {{ request()->is("admin/keilmuans*") ? "active" : "" }} {{ request()->is("admin/research-groups*") ? "active" : "" }} {{ request()->is("admin/ruangs*") ? "active" : "" }}" href="#">

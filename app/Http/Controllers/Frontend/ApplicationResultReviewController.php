@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\MediaUploadingTrait;
 use App\Models\Application;
 use App\Models\ApplicationResultReview;
+use App\Services\ReviewerAssignmentService;
 use App\Services\FormAccessService;
 use Gate;
 use Illuminate\Http\Request;
@@ -94,8 +95,16 @@ class ApplicationResultReviewController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        $reviewerService = app(ReviewerAssignmentService::class);
+        $assignments = $reviewerService->activeReviewerAssignments($validated['application_id'])
+            ->where('status', 'feedback_submitted')
+            ->sortBy('reviewer_slot')
+            ->values();
+
         $applicationResultReview = ApplicationResultReview::create([
             'application_id' => $validated['application_id'],
+            'reviewer_1_assignment_id' => $assignments->get(0)?->id,
+            'reviewer_2_assignment_id' => $assignments->get(1)?->id,
             'result' => $validated['result'],
             'note' => $validated['note'] ?? null,
             'revision_deadline' => $validated['revision_deadline'] ?? null,

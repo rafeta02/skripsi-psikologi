@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\ApplicationAssignment;
 use App\Models\ApplicationScore;
+use App\Models\Announcement;
 use App\Models\Dosen;
+use App\Services\ReviewerAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -48,14 +50,12 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        // Get dosen data by user - prioritize dosen_id relationship
         $dosen = null;
         
         if ($user->dosen_id) {
             $dosen = Dosen::find($user->dosen_id);
         }
         
-        // If no dosen_id, try to find by email matching NIP/NIDN
         if (!$dosen) {
             $dosen = Dosen::where('nip', $user->email)
                 ->orWhere('nidn', $user->email)
@@ -63,13 +63,11 @@ class DashboardController extends Controller
         }
 
         if (!$dosen) {
-            // If still not found, show error
             abort(404, 'Data dosen tidak ditemukan. Silakan hubungi administrator untuk mengatur profil dosen Anda.');
         }
 
         app(\App\Services\MbkmGroupProgressService::class)->purgeMirrorAssignments();
 
-        // Statistics — exclude MBKM mirror applications (1 kelompok = 1 penugasan)
         $totalMahasiswaBimbingan = ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosen->id)
             ->where('role', 'supervisor')
@@ -89,17 +87,17 @@ class DashboardController extends Controller
 
         $pendingReviews = ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosen->id)
-            ->where('status', 'assigned')
+            ->whereIn('status', ['assigned', 'accepted'])
             ->count();
 
         $totalTasksPending = ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosen->id)
-            ->where('status', 'assigned')
+            ->whereIn('status', ['assigned', 'accepted'])
             ->count();
 
         $totalTasksCompleted = ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosen->id)
-            ->whereIn('status', ['accepted', 'rejected'])
+            ->whereIn('status', ['accepted', 'rejected', 'feedback_submitted'])
             ->count();
 
         $totalScores = ApplicationScore::where('examiner_id', $dosen->id)->count();
@@ -118,7 +116,6 @@ class DashboardController extends Controller
             })
             ->count();
 
-        // Recent assignments
         $recentAssignments = ApplicationAssignment::withoutGroupMirrors()
             ->with([
                 'application.mahasiswa',
@@ -130,6 +127,8 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $recentAnnouncements = Announcement::recentForAudience('dosen');
+
         return view('dosen.dashboard', compact(
             'dosen',
             'totalMahasiswaBimbingan',
@@ -140,7 +139,8 @@ class DashboardController extends Controller
             'totalTasksCompleted',
             'totalScores',
             'pendingDefenseScores',
-            'recentAssignments'
+            'recentAssignments',
+            'recentAnnouncements'
         ));
     }
 
@@ -148,7 +148,6 @@ class DashboardController extends Controller
     {
         $dosen = $this->resolveDosen();
 
-        // Get all students under supervision (exclude MBKM mirrors)
         $mahasiswaBimbingan = ApplicationAssignment::withoutGroupMirrors()
             ->with([
                 'application.mahasiswa.prodi',
@@ -176,6 +175,7 @@ class DashboardController extends Controller
                 'application.mahasiswa.prodi',
                 'application.mahasiswa.jenjang',
                 'application.mbkmRegistration.groupMembers.mahasiswa',
+                'application.skripsiSeminar',
             ])
             ->where('lecturer_id', $dosen->id)
             ->orderBy('assigned_at', 'desc')
@@ -219,6 +219,7 @@ class DashboardController extends Controller
             'application.skripsiRegistration.theme',
             'application.skripsiRegistration.preference_supervision',
             'application.skripsiRegistration.tps_lecturer',
+            'application.skripsiSeminar',
             'application.mbkmRegistration.theme',
             'application.mbkmRegistration.themes',
             'application.mbkmRegistration.research_group',
@@ -226,11 +227,11 @@ class DashboardController extends Controller
             'application.mbkmRegistration.groupMembers.mahasiswa',
             'application.mbkmRegistration.groupMembers.media',
             'application.mbkmRegistration.media',
+            'skripsiSeminar',
         ])->findOrFail($assignmentId);
 
         $this->authorizeAssignmentOwnership($assignment);
 
-        // Mirror assignment should not be reviewed — redirect to owner assignment if any
         if ($assignment->application && $assignment->application->is_group_mirror) {
             $ownerId = $assignment->application->parent_application_id;
             $ownerAssignment = ApplicationAssignment::withoutGroupMirrors()
@@ -258,29 +259,32 @@ class DashboardController extends Controller
             abort(403, 'Penugasan mirror tidak dapat ditanggapi. Gunakan penugasan kelompok (ketua).');
         }
 
-        // If it's a simple accept/reject (old flow)
+        if ($assignment->isProposalReviewer()) {
+            return $this->handleProposalReviewerResponse($request, $assignment);
+        }
+
         if ($request->has('status')) {
             $request->validate([
                 'status' => 'required|in:accepted,rejected',
-                'note' => 'nullable|string'
+                'note' => 'nullable|string',
             ]);
 
             $assignment->update([
                 'status' => $request->status,
                 'responded_at' => now(),
-                'note' => $request->note
+                'note' => $request->note,
             ]);
 
-            if ($assignment->application) {
+            if ($assignment->application && $assignment->role === 'supervisor') {
                 $applicationStatus = $request->status === 'accepted' ? 'approved' : 'rejected';
                 $assignment->application->update(['status' => $applicationStatus]);
             }
 
             $statusText = $request->status === 'accepted' ? 'menyetujui' : 'menolak';
-            return redirect()->back()->with('message', "Anda berhasil {$statusText} penugasan pembimbingan.");
+
+            return redirect()->back()->with('message', "Anda berhasil {$statusText} penugasan.");
         }
 
-        // If it's a review with decision (new flow)
         $validated = $request->validate([
             'review_decision' => 'required|in:approved,rejected',
             'feedback' => 'required|string',
@@ -294,7 +298,7 @@ class DashboardController extends Controller
             'responded_at' => now(),
         ]);
 
-        if ($assignment->application) {
+        if ($assignment->application && $assignment->role === 'supervisor') {
             $assignment->application->update([
                 'status' => $validated['review_decision'] === 'approved' ? 'approved' : 'rejected',
             ]);
@@ -305,6 +309,77 @@ class DashboardController extends Controller
             : 'Penugasan ditolak.';
 
         return redirect()->route('dosen.task-assignments')
+            ->with('success', $message);
+    }
+
+    private function handleProposalReviewerResponse(Request $request, ApplicationAssignment $assignment)
+    {
+        $action = $request->input('action', 'respond_assignment');
+
+        if ($action === 'submit_feedback') {
+            if (!$assignment->canSubmitFeedback()) {
+                return redirect()->back()->with('error', 'Anda tidak dapat mengirim feedback pada status penugasan ini atau batas waktu telah lewat.');
+            }
+
+            $mimes = config('thesis.reviewer_feedback_mimes', 'pdf,doc,docx');
+            $maxKb = (int) config('thesis.reviewer_feedback_max_kb', 10240);
+
+            $validated = $request->validate([
+                'feedback_result' => 'required|in:passed,revision,failed',
+                'feedback_note' => 'required|string|min:10',
+                'feedback_document' => "required|file|mimes:{$mimes}|max:{$maxKb}",
+            ]);
+
+            $assignment->update([
+                'status' => 'feedback_submitted',
+                'feedback_result' => $validated['feedback_result'],
+                'feedback_note' => $validated['feedback_note'],
+                'feedback_submitted_at' => now(),
+            ]);
+
+            if ($assignment->feedback_document) {
+                $assignment->feedback_document->delete();
+            }
+
+            $assignment->addMedia($request->file('feedback_document'))
+                ->toMediaCollection('feedback_document');
+
+            app(ReviewerAssignmentService::class)->syncApplicationReviewStatus($assignment->application);
+
+            return redirect()->route('dosen.task-assignments')
+                ->with('success', 'Feedback review proposal berhasil dikirim.');
+        }
+
+        if (!$assignment->canRespondToAssignment()) {
+            return redirect()->back()->with('error', 'Batas waktu respons penugasan telah lewat atau penugasan sudah ditanggapi.');
+        }
+
+        $validated = $request->validate([
+            'assignment_response' => 'required|in:accepted,rejected',
+            'rejection_reason' => 'required_if:assignment_response,rejected|nullable|string|min:10',
+        ]);
+
+        if ($validated['assignment_response'] === 'accepted') {
+            $assignment->update([
+                'status' => 'accepted',
+                'responded_at' => now(),
+            ]);
+        } else {
+            $assignment->update([
+                'status' => 'rejected',
+                'responded_at' => now(),
+                'rejection_reason' => $validated['rejection_reason'],
+            ]);
+        }
+
+        app(ReviewerAssignmentService::class)->syncApplicationReviewStatus($assignment->application);
+
+        $message = $validated['assignment_response'] === 'accepted'
+            ? 'Anda menerima penugasan review. Silakan kirim feedback maksimal '
+                . config('thesis.reviewer_feedback_deadline_days', 14) . ' hari sejak penugasan.'
+            : 'Penugasan review ditolak.';
+
+        return redirect()->route('dosen.review-proposal', $assignment->id)
             ->with('success', $message);
     }
 

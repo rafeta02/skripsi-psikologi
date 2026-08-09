@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Mahasiswa;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\ApplicationAssignment;
+use App\Models\Announcement;
 use App\Models\ApplicationSchedule;
 use App\Models\ApplicationAction;
 use App\Models\ApplicationResultDefense;
@@ -301,6 +302,8 @@ class DashboardController extends Controller
 
         $graduationDocs = $this->getGraduationDocumentsContext($mahasiswa->id);
 
+        $recentAnnouncements = Announcement::recentForAudience('mahasiswa');
+
         return view('mahasiswa.dashboard', compact(
             'mahasiswa',
             'totalApplications',
@@ -315,7 +318,8 @@ class DashboardController extends Controller
             'phaseDescription',
             'nextStep',
             'supervisorAccepted',
-            'allowedForms'
+            'allowedForms',
+            'recentAnnouncements'
         ) + $graduationDocs);
     }
 

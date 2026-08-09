@@ -9,6 +9,9 @@ use App\Http\Requests\StoreSkripsiSeminarRequest;
 use App\Http\Requests\UpdateSkripsiSeminarRequest;
 use App\Models\Application;
 use App\Models\SkripsiSeminar;
+use App\Models\Dosen;
+use App\Models\ApplicationAssignment;
+use App\Services\ReviewerAssignmentService;
 use Gate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -185,9 +188,22 @@ class SkripsiSeminarController extends Controller
     {
         abort_if(Gate::denies('skripsi_seminar_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $skripsiSeminar->load('application', 'created_by', 'reviewer1', 'reviewer2');
+        $skripsiSeminar->load(
+            'application.mahasiswa',
+            'created_by',
+            'reviewer1',
+            'reviewer2',
+            'reviewerAssignments.lecturer'
+        );
 
-        return view('admin.skripsiSeminars.show', compact('skripsiSeminar'));
+        $reviewerAssignments = $skripsiSeminar->reviewerAssignments()
+            ->with('lecturer')
+            ->orderBy('reviewer_slot')
+            ->get();
+
+        $dosens = Dosen::orderBy('nama')->get(['id', 'nama', 'nidn']);
+
+        return view('admin.skripsiSeminars.show', compact('skripsiSeminar', 'reviewerAssignments', 'dosens'));
     }
 
     public function destroy(SkripsiSeminar $skripsiSeminar)
@@ -236,30 +252,12 @@ class SkripsiSeminarController extends Controller
         ]);
 
         try {
-            DB::transaction(function () use ($seminar, $request) {
-                // Update seminar with reviewers
-                $seminar->update([
-                    'reviewer_1_id' => $request->reviewer_1_id,
-                    'reviewer_2_id' => $request->reviewer_2_id,
-                ]);
-
-                // Update application status to approved
-                $seminar->application->update([
-                    'status' => 'approved',
-                ]);
-
-                // Log action
-                \App\Models\ApplicationAction::create([
-                    'application_id' => $seminar->application_id,
-                    'action_type' => 'seminar_approved',
-                    'action_by' => auth()->id(),
-                    'notes' => $request->notes ?? 'Review Kelayakan Proposal (Reguler) disetujui',
-                    'metadata' => [
-                        'reviewer_1_id' => $request->reviewer_1_id,
-                        'reviewer_2_id' => $request->reviewer_2_id,
-                    ],
-                ]);
-            });
+            app(ReviewerAssignmentService::class)->assignReviewers(
+                $seminar,
+                (int) $request->reviewer_1_id,
+                (int) $request->reviewer_2_id,
+                $request->notes
+            );
 
             return response()->json([
                 'success' => true,
@@ -269,6 +267,52 @@ class SkripsiSeminarController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reassign reviewer when expired/rejected.
+     */
+    public function reassignReviewer(Request $request, ApplicationAssignment $assignment)
+    {
+        abort_if(Gate::denies('skripsi_seminar_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        if ($assignment->role !== 'reviewer' || ! in_array($assignment->status, ['expired', 'rejected'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Penugasan reviewer tidak dapat diganti pada status ini.',
+            ], 422);
+        }
+
+        $request->validate([
+            'lecturer_id' => 'required|exists:dosens,id',
+            'note' => 'nullable|string|max:1000',
+        ]);
+
+        if ((int) $request->lecturer_id === (int) $assignment->lecturer_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pilih dosen reviewer yang berbeda dari penugasan sebelumnya.',
+            ], 422);
+        }
+
+        try {
+            $newAssignment = app(ReviewerAssignmentService::class)->reassignReviewer(
+                $assignment,
+                (int) $request->lecturer_id,
+                $request->note
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reviewer berhasil diganti.',
+                'assignment_id' => $newAssignment->id,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }

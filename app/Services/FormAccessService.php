@@ -10,6 +10,7 @@ use App\Models\SkripsiSeminar;
 use App\Models\ApplicationAction;
 use App\Models\ApplicationResultSeminar;
 use App\Models\ApplicationResultReview;
+use App\Services\ReviewerAssignmentService;
 use App\Models\ApplicationSchedule;
 use App\Models\SkripsiDefense;
 use App\Models\ApplicationResultDefense;
@@ -476,8 +477,7 @@ class FormAccessService
                 ->where('type', 'skripsi')
                 ->where('stage', 'seminar');
         })
-            ->whereHas('application', fn ($query) => $query->where('status', 'approved'))
-            ->whereNotNull('reviewer_1_id')
+            ->whereNotNull('admin_validated_at')
             ->with('application')
             ->orderByDesc('created_at')
             ->first();
@@ -485,8 +485,18 @@ class FormAccessService
         if (!$seminar) {
             return [
                 'allowed' => false,
-                'message' => 'Anda harus menyelesaikan pendaftaran reviewer proposal dan mendapat persetujuan admin terlebih dahulu.',
+                'message' => 'Anda harus menyelesaikan pendaftaran Review Kelayakan Proposal (Reguler) dan mendapat persetujuan admin terlebih dahulu.',
                 'application' => null,
+            ];
+        }
+
+        $reviewerService = app(ReviewerAssignmentService::class);
+
+        if (!$reviewerService->bothReviewersFeedbackSubmitted($seminar->application_id)) {
+            return [
+                'allowed' => false,
+                'message' => 'Laporan hasil review tersedia setelah kedua reviewer mengirim feedback.',
+                'application' => $seminar->application,
             ];
         }
 
@@ -880,6 +890,11 @@ class FormAccessService
         }
 
         $seminarApp = $this->findScheduleEligibleApplication($mahasiswaId, 'seminar');
+
+        // Reguler: review proposal tidak memerlukan jadwal seminar
+        if ($seminarApp && $seminarApp->type === 'skripsi') {
+            $seminarApp = null;
+        }
 
         if ($seminarApp && ApplicationSchedule::applicationEligibleForNewSchedule($seminarApp->id)) {
             return [

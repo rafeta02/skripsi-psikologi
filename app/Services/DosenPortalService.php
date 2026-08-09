@@ -37,6 +37,7 @@ class DosenPortalService
                 'title' => 'Beranda',
                 'items' => [
                     $this->navItem('Dashboard', 'dosen.dashboard', 'fa-home', ['dosen.dashboard']),
+                    $this->navItem('Pengumuman', 'dosen.pengumuman', 'fa-bullhorn', ['dosen.pengumuman', 'dosen.pengumuman.show']),
                 ],
             ],
             [

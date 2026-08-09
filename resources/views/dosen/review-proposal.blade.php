@@ -235,8 +235,41 @@
 
                     <hr class="my-3">
 
-                    @php $registration = $app?->skripsiRegistration; @endphp
-                    @if($registration)
+                    @php
+                        $seminar = $assignment->skripsiSeminar ?? $app?->skripsiSeminar;
+                        $registration = $app?->skripsiRegistration;
+                        $isProposalReviewer = $assignment->isProposalReviewer();
+                    @endphp
+
+                    @if($isProposalReviewer && $seminar)
+                        <h6 class="font-weight-bold text-primary mb-3">
+                            <i class="fas fa-presentation mr-1"></i> Review Kelayakan Proposal (Reguler)
+                        </h6>
+                        <div class="mb-3">
+                            <label class="text-muted mb-1">Judul Proposal</label>
+                            <h6 class="font-weight-semibold mb-0">{{ $seminar->title ?? '-' }}</h6>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted mb-1">Slot Reviewer</label>
+                            <p class="mb-0"><span class="badge badge-info">{{ str_replace('_', ' ', ucfirst($assignment->reviewer_slot ?? 'reviewer')) }}</span></p>
+                        </div>
+                        @if($assignment->getRawOriginal('response_deadline'))
+                            <div class="alert alert-light border small">
+                                Batas respons penugasan:
+                                <strong>{{ \Carbon\Carbon::parse($assignment->getRawOriginal('response_deadline'))->format('d M Y H:i') }}</strong>
+                                @if($assignment->getRawOriginal('feedback_deadline'))
+                                    · Batas kirim feedback:
+                                    <strong>{{ \Carbon\Carbon::parse($assignment->getRawOriginal('feedback_deadline'))->format('d M Y H:i') }}</strong>
+                                @endif
+                            </div>
+                        @endif
+                        <h6 class="font-weight-semibold mb-2">Dokumen Proposal:</h6>
+                        <div class="list-group mb-0">
+                            @include('partials.document-action-buttons', ['media' => $seminar->proposal_document, 'label' => 'Dokumen Proposal'])
+                            @include('partials.document-action-buttons', ['media' => $seminar->approval_document, 'label' => 'Persetujuan Pembimbing'])
+                            @include('partials.document-action-buttons', ['media' => $seminar->plagiarism_document, 'label' => 'Cek Plagiarisme'])
+                        </div>
+                    @elseif($registration)
                         <h6 class="font-weight-bold text-primary mb-3"><i class="fas fa-file-alt mr-1"></i> Data Pendaftaran Skripsi Reguler</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -286,9 +319,83 @@
     </div>
 @endif
 
-{{-- Review Form --}}
+{{-- Review / Response Forms --}}
 <div class="row mt-2">
     <div class="col-lg-12">
+        @php $isProposalReviewer = $assignment->isProposalReviewer(); @endphp
+
+        @if($isProposalReviewer && $assignment->status === 'assigned')
+            <div class="card-modern">
+                <div class="card-modern-body">
+                    <h5 class="font-weight-bold mb-3">Respons Penugasan Reviewer</h5>
+                    <p class="text-muted small">Terima atau tolak penugasan review proposal dalam {{ config('thesis.reviewer_response_days', 5) }} hari sejak ditugaskan.</p>
+                    <form action="{{ route('dosen.task-assignments.respond', $assignment->id) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="action" value="respond_assignment">
+                        <div class="form-group">
+                            <label class="form-label-modern required">Keputusan</label>
+                            <select name="assignment_response" class="form-control-modern" required>
+                                <option value="">-- Pilih --</option>
+                                <option value="accepted">Terima — bersedia mereview proposal</option>
+                                <option value="rejected">Tolak penugasan</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-modern">Alasan Penolakan</label>
+                            <textarea name="rejection_reason" class="form-control-modern" rows="3" placeholder="Wajib diisi jika menolak penugasan"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Kirim Respons</button>
+                    </form>
+                </div>
+            </div>
+
+        @elseif($isProposalReviewer && $assignment->status === 'accepted')
+            <div class="card-modern">
+                <div class="card-modern-body">
+                    <h5 class="font-weight-bold mb-3">Kirim Feedback Review Proposal</h5>
+                    <p class="text-muted small">Unggah 1 dokumen umpan balik (PDF/Word) dan pilih status hasil review. Batas maksimal {{ config('thesis.reviewer_feedback_deadline_days', 14) }} hari sejak penugasan.</p>
+                    <form action="{{ route('dosen.task-assignments.respond', $assignment->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="action" value="submit_feedback">
+                        <div class="form-group">
+                            <label class="form-label-modern required">Hasil Review</label>
+                            <select name="feedback_result" class="form-control-modern" required>
+                                <option value="">-- Pilih --</option>
+                                @foreach(\App\Models\ApplicationAssignment::FEEDBACK_RESULT_SELECT as $key => $label)
+                                    <option value="{{ $key }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-modern required">Catatan / Umpan Balik</label>
+                            <textarea name="feedback_note" class="form-control-modern" rows="5" required minlength="10" placeholder="Tulis umpan balik untuk mahasiswa..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-modern required">Dokumen Umpan Balik (PDF / Word)</label>
+                            <input type="file" name="feedback_document" class="form-control-file" accept=".pdf,.doc,.docx" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane"></i> Kirim Feedback
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        @elseif($isProposalReviewer && $assignment->status === 'feedback_submitted')
+            <div class="alert alert-success">
+                <h5 class="alert-heading">Feedback telah dikirim</h5>
+                <p class="mb-1"><strong>Hasil:</strong> {{ \App\Models\ApplicationAssignment::FEEDBACK_RESULT_SELECT[$assignment->feedback_result] ?? $assignment->feedback_result }}</p>
+                @if($assignment->feedback_note)
+                    <p class="mb-1"><strong>Catatan:</strong> {{ $assignment->feedback_note }}</p>
+                @endif
+                @if($assignment->feedback_document)
+                    <a href="{{ $assignment->feedback_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                        <i class="fas fa-download"></i> Unduh Dokumen Feedback
+                    </a>
+                @endif
+            </div>
+
+        @elseif(!$isProposalReviewer)
         <div class="card-modern">
             <div class="card-modern-body">
                 <h5 class="font-weight-bold mb-4">Form Keputusan & Feedback</h5>
@@ -328,6 +435,7 @@
                 </form>
             </div>
         </div>
+        @endif
     </div>
 </div>
 

@@ -161,6 +161,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::post('skripsi-seminars/ckmedia', 'SkripsiSeminarController@storeCKEditorImages')->name('skripsi-seminars.storeCKEditorImages');
     Route::post('skripsi-seminars/{id}/approve', 'SkripsiSeminarController@approve')->name('skripsi-seminars.approve');
     Route::post('skripsi-seminars/{id}/reject', 'SkripsiSeminarController@reject')->name('skripsi-seminars.reject');
+    Route::post('skripsi-seminars/reviewer-assignments/{assignment}/reassign', 'SkripsiSeminarController@reassignReviewer')->name('skripsi-seminars.reassign-reviewer');
     Route::resource('skripsi-seminars', 'SkripsiSeminarController');
 
     // Mbkm Registration
@@ -240,6 +241,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::post('ruangs/parse-csv-import', 'RuangController@parseCsvImport')->name('ruangs.parseCsvImport');
     Route::post('ruangs/process-csv-import', 'RuangController@processCsvImport')->name('ruangs.processCsvImport');
     Route::resource('ruangs', 'RuangController');
+
+    // Announcement
+    Route::delete('announcements/destroy', 'AnnouncementController@massDestroy')->name('announcements.massDestroy');
+    Route::resource('announcements', 'AnnouncementController');
 
     Route::get('system-calendar', 'SystemCalendarController@index')->name('systemCalendar');
 });
@@ -437,6 +442,8 @@ Route::group(['prefix' => 'dosen', 'as' => 'dosen.', 'namespace' => 'Dosen', 'mi
     Route::get('/application-scores/{applicationScore}/edit', 'ApplicationScoreController@edit')->name('application-scores.edit');
     Route::put('/application-scores/{applicationScore}', 'ApplicationScoreController@update')->name('application-scores.update');
     Route::get('/profile', 'DashboardController@profile')->name('profile');
+    Route::get('/pengumuman', 'AnnouncementController@index')->name('pengumuman');
+    Route::get('/pengumuman/{announcement}', 'AnnouncementController@show')->name('pengumuman.show');
 });
 
 Route::group(['prefix' => 'mahasiswa', 'as' => 'mahasiswa.', 'namespace' => 'Mahasiswa', 'middleware' => ['auth']], function () {
@@ -446,4 +453,6 @@ Route::group(['prefix' => 'mahasiswa', 'as' => 'mahasiswa.', 'namespace' => 'Mah
     Route::get('/jadwal', 'DashboardController@jadwal')->name('jadwal');
     Route::get('/dokumen', 'DashboardController@dokumen')->name('dokumen');
     Route::get('/profile', 'DashboardController@profile')->name('profile');
+    Route::get('/pengumuman', 'AnnouncementController@index')->name('pengumuman');
+    Route::get('/pengumuman/{announcement}', 'AnnouncementController@show')->name('pengumuman.show');
 });
