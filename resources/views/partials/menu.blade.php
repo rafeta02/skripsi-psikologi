@@ -393,7 +393,7 @@
                             <li class="nav-item">
                                 <a href="{{ route("admin.application-result-seminars.index") }}" class="nav-link {{ request()->is("admin/application-result-seminars") || request()->is("admin/application-result-seminars/*") ? "active" : "" }}">
                                     <i class="fa-fw nav-icon fas fa-clipboard-check"></i>
-                                    <p>Hasil Review Kelayakan</p>
+                                    <p>Hasil Review Kelayakan (MBKM)</p>
                                 </a>
                             </li>
                         @endcan
@@ -402,7 +402,7 @@
                             <li class="nav-item">
                                 <a href="{{ route("admin.application-result-reviews.index") }}" class="nav-link {{ request()->is("admin/application-result-reviews") || request()->is("admin/application-result-reviews/*") ? "active" : "" }}">
                                     <i class="fa-fw nav-icon fas fa-clipboard-list"></i>
-                                    <p>Hasil Review Proposal</p>
+                                    <p>Hasil Review Proposal (Reguler)</p>
                                 </a>
                             </li>
                         @endcan
