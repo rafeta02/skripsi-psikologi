@@ -174,6 +174,7 @@ class DashboardController extends Controller
         $assignments = ApplicationAssignment::withoutGroupMirrors()
             ->with([
                 'application.mahasiswa.prodi',
+                'application.mahasiswa.jenjang',
                 'application.mbkmRegistration.groupMembers.mahasiswa',
             ])
             ->where('lecturer_id', $dosen->id)
