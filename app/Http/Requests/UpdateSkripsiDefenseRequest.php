@@ -6,6 +6,7 @@ use App\Models\SkripsiDefense;
 use Gate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 
 class UpdateSkripsiDefenseRequest extends FormRequest
 {
@@ -28,6 +29,10 @@ class UpdateSkripsiDefenseRequest extends FormRequest
             'abstract' => [
                 'required',
                 'string',
+            ],
+            'eap_grade' => [
+                'required',
+                Rule::in(SkripsiDefense::allowedEapGrades()),
             ],
             'ethics_statement' => [
                 'array',
@@ -62,6 +67,8 @@ class UpdateSkripsiDefenseRequest extends FormRequest
             'application_id.required' => 'Aplikasi harus dipilih',
             'title.required' => 'Judul skripsi harus diisi',
             'abstract.required' => 'Abstrak harus diisi',
+            'eap_grade.required' => 'Nilai EAP harus dipilih',
+            'eap_grade.in' => 'Nilai EAP tidak valid',
         ];
     }
 }

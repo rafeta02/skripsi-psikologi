@@ -127,6 +127,13 @@
                 <span class="help-block">{{ trans('cruds.dosen.fields.riset_grup_helper') }}</span>
             </div>
             <div class="form-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="mbkm_availability" id="mbkm_availability" value="1" {{ old('mbkm_availability', 0) == 1 ? 'checked' : '' }}>
+                    <label class="form-check-label" for="mbkm_availability">{{ trans('cruds.dosen.fields.mbkm_availability') }}</label>
+                </div>
+                <span class="help-block">{{ trans('cruds.dosen.fields.mbkm_availability_helper') }}</span>
+            </div>
+            <div class="form-group">
                 <button class="btn btn-danger" type="submit">
                     {{ trans('global.save') }}
                 </button>

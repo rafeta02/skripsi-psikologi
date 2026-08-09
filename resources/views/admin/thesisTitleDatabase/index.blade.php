@@ -168,14 +168,16 @@
                             <thead class="thead-dark">
                                 <tr>
                                     <th>#</th>
-                                    <th>Mahasiswa</th>
+                                    <th>Nama</th>
                                     <th>NIM</th>
-                                    <th>Prodi</th>
-                                    <th>Jalur</th>
+                                    <th>Angkatan</th>
+                                    <th>Pembimbing</th>
+                                    <th style="min-width: 260px;">Judul Skripsi ID</th>
+                                    <th style="min-width: 220px;">Judul Skripsi EN</th>
+                                    <th>Penguji 1</th>
+                                    <th>Penguji 2</th>
+                                    <th>Tanggal Sidang</th>
                                     <th>Sumber</th>
-                                    <th style="min-width: 260px;">Judul (Indonesia)</th>
-                                    <th style="min-width: 220px;">Judul (English)</th>
-                                    <th>Tahun</th>
                                     <th>Status</th>
                                     <th></th>
                                 </tr>
@@ -184,15 +186,10 @@
                                 @foreach($entries as $i => $entry)
                                     <tr class="{{ $entry['is_duplicate'] ? 'table-warning' : '' }}">
                                         <td>{{ $i + 1 }}</td>
-                                        <td>{{ $entry['mahasiswa'] }}</td>
+                                        <td>{{ $entry['nama'] }}</td>
                                         <td>{{ $entry['nim'] }}</td>
-                                        <td>{{ $entry['prodi'] }}</td>
-                                        <td><span class="badge badge-primary">{{ $entry['type'] }}</span></td>
-                                        <td>
-                                            <span class="badge badge-{{ $entry['is_manual'] ? 'secondary' : 'success' }}">
-                                                {{ $entry['source'] }}
-                                            </span>
-                                        </td>
+                                        <td>{{ $entry['angkatan'] }}</td>
+                                        <td>{{ $entry['pembimbing'] }}</td>
                                         <td>{!! $query ? highlight_keywords($entry['title'], $query) : e($entry['title']) !!}</td>
                                         <td>
                                             @if($entry['title_en'])
@@ -201,7 +198,14 @@
                                                 <span class="text-muted font-italic">-</span>
                                             @endif
                                         </td>
-                                        <td>{{ $entry['year'] }}</td>
+                                        <td>{{ $entry['penguji_1'] }}</td>
+                                        <td>{{ $entry['penguji_2'] }}</td>
+                                        <td>{{ $entry['tanggal_sidang'] }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ $entry['is_manual'] ? 'secondary' : 'success' }}">
+                                                {{ $entry['source'] }}
+                                            </span>
+                                        </td>
                                         <td>
                                             @if($entry['is_duplicate'])
                                                 <span class="badge badge-warning" title="{{ $entry['duplicate_reason'] ?? '' }}">
@@ -245,18 +249,18 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Judul (Indonesia) <span class="text-danger">*</span></label>
+                        <label>Judul Skripsi ID <span class="text-danger">*</span></label>
                         <textarea name="title" class="form-control" rows="3" required maxlength="500" placeholder="Judul skripsi dalam Bahasa Indonesia"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Judul (English)</label>
+                        <label>Judul Skripsi EN</label>
                         <textarea name="title_en" class="form-control" rows="3" maxlength="500" placeholder="Thesis title in English (opsional)"></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Nama Mahasiswa</label>
-                                <input type="text" name="mahasiswa_nama" class="form-control" maxlength="255">
+                                <label>Nama</label>
+                                <input type="text" name="nama" class="form-control" maxlength="255">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -269,30 +273,34 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Prodi</label>
-                                <input type="text" name="prodi" class="form-control" maxlength="255">
+                                <label>Angkatan</label>
+                                <input type="text" name="angkatan" class="form-control" maxlength="10" placeholder="2020">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-8">
                             <div class="form-group">
-                                <label>Jalur</label>
-                                <select name="type" class="form-control">
-                                    <option value="">-</option>
-                                    <option value="skripsi">Skripsi Reguler</option>
-                                    <option value="mbkm">MBKM</option>
-                                </select>
+                                <label>Pembimbing</label>
+                                <input type="text" name="pembimbing" class="form-control" maxlength="255">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label>Tahun</label>
-                                <input type="text" name="year" class="form-control" maxlength="4" placeholder="2024">
+                                <label>Penguji 1</label>
+                                <input type="text" name="penguji_1" class="form-control" maxlength="255">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Penguji 2</label>
+                                <input type="text" name="penguji_2" class="form-control" maxlength="255">
                             </div>
                         </div>
                     </div>
                     <div class="form-group mb-0">
-                        <label>Catatan</label>
-                        <textarea name="note" class="form-control" rows="2" maxlength="2000" placeholder="Opsional, mis. sumber arsip"></textarea>
+                        <label>Tanggal Sidang</label>
+                        <input type="date" name="tanggal_sidang" class="form-control">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -316,8 +324,8 @@
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-info small">
-                        <strong>Format kolom:</strong> judul, judul_en, mahasiswa, nim, prodi, jalur, tahun, catatan<br>
-                        Baris pertama = header. Kolom <code>judul</code> wajib diisi.<br>
+                        <strong>Format kolom:</strong> nama, nim, angkatan, pembimbing, judul_skripsi_id, judul_skripsi_en, penguji_1, penguji_2, tanggal_sidang<br>
+                        Baris pertama = header. Kolom <code>judul_skripsi_id</code> wajib diisi.<br>
                         <a href="{{ route('admin.thesis-title-database.template') }}">Unduh template CSV</a>
                     </div>
                     <div class="form-group mb-0">
@@ -342,7 +350,7 @@
 $(function () {
     if ($.fn.DataTable && $('#titleDatabaseTable').length) {
         $('#titleDatabaseTable').DataTable({
-            order: [[8, 'desc']],
+            order: [[9, 'desc']],
             pageLength: 50,
             scrollX: true,
             language: { url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Indonesian.json' }

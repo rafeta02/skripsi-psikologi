@@ -41,12 +41,13 @@ class ThesisTitleDatabaseController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:500',
             'title_en' => 'nullable|string|max:500',
-            'mahasiswa_nama' => 'nullable|string|max:255',
+            'nama' => 'nullable|string|max:255',
             'nim' => 'nullable|string|max:30',
-            'prodi' => 'nullable|string|max:255',
-            'type' => 'nullable|in:skripsi,mbkm',
-            'year' => 'nullable|string|max:4',
-            'note' => 'nullable|string|max:2000',
+            'angkatan' => 'nullable|string|max:10',
+            'pembimbing' => 'nullable|string|max:255',
+            'penguji_1' => 'nullable|string|max:255',
+            'penguji_2' => 'nullable|string|max:255',
+            'tanggal_sidang' => 'nullable|date',
         ]);
 
         $this->titleService->createManualEntry($validated, (int) auth()->id());

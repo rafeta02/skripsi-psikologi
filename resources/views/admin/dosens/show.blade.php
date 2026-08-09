@@ -105,6 +105,14 @@
                             {{ $dosen->riset_grup->name ?? '' }}
                         </td>
                     </tr>
+                    <tr>
+                        <th>
+                            {{ trans('cruds.dosen.fields.mbkm_availability') }}
+                        </th>
+                        <td>
+                            <input type="checkbox" disabled="disabled" {{ $dosen->mbkm_availability ? 'checked' : '' }}>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
             <div class="form-group">

@@ -339,6 +339,8 @@ return [
             'keilmuan_helper'      => ' ',
             'riset_grup'           => 'Riset Grup',
             'riset_grup_helper'    => ' ',
+            'mbkm_availability'    => 'Tersedia MBKM',
+            'mbkm_availability_helper' => 'Centang jika dosen dapat dipilih sebagai pembimbing pada pendaftaran MBKM',
         ],
     ],
     'keilmuan' => [
@@ -427,6 +429,8 @@ return [
             'title_helper'                        => ' ',
             'abstract'                            => 'Abstract',
             'abstract_helper'                     => ' ',
+            'eap_grade'                           => 'Nilai EAP',
+            'eap_grade_helper'                    => 'Nilai huruf EAP sesuai sertifikat (A, A-, B+, dst.)',
             'defence_document'                    => 'Dokumen Sidang (Defence Document)',
             'defence_document_helper'             => 'File akan tersimpan sebagai: {application_id}_defence_document_{unique_id}.pdf',
             'plagiarism_report'                   => 'Laporan Plagiarisme (Plagiarism Report)',

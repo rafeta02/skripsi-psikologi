@@ -80,6 +80,7 @@ class SkripsiDefenseController extends Controller
             'application_id' => $defenseApplication->id,
             'title' => $request->input('title'),
             'abstract' => $request->input('abstract'),
+            'eap_grade' => $request->input('eap_grade'),
             'status' => 'pending',
             'created_by_id' => auth()->id(),
         ]);

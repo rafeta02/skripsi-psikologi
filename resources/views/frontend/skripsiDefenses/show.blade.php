@@ -54,6 +54,15 @@
                         </div>
                     @endif
 
+                    @if($skripsiDefense->eap_grade)
+                        <div class="mb-4">
+                            <label class="text-muted mb-1">Nilai EAP</label>
+                            <p class="font-weight-semibold mb-0">
+                                <span class="badge badge-primary badge-lg px-3 py-2">{{ $skripsiDefense->eapGradeLabel() }}</span>
+                            </p>
+                        </div>
+                    @endif
+
                     @if($skripsiDefense->notes)
                         <div class="mb-4">
                             <label class="text-muted mb-1">Catatan</label>
@@ -178,6 +187,9 @@
                                     <div class="card-body text-center">
                                         <i class="fas fa-certificate fa-3x text-success mb-3"></i>
                                         <h6 class="mb-2">Sertifikat EAP yang sudah dilegalisir</h6>
+                                        @if($skripsiDefense->eap_grade)
+                                            <p class="mb-2"><span class="badge badge-primary">Nilai EAP: {{ $skripsiDefense->eapGradeLabel() }}</span></p>
+                                        @endif
                                         <a href="{{ $skripsiDefense->eap_certificate->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
                                             <i class="fas fa-download"></i> Download
                                         </a>

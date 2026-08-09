@@ -19,6 +19,18 @@ class SkripsiDefense extends Model implements HasMedia
 
     public $table = 'skripsi_defenses';
 
+    public const EAP_GRADE_SELECT = [
+        'A'  => 'A',
+        'A-' => 'A-',
+        'B+' => 'B+',
+        'B'  => 'B',
+        'B-' => 'B-',
+        'C+' => 'C+',
+        'C'  => 'C',
+        'D'  => 'D',
+        'E'  => 'E',
+    ];
+
     protected $dates = [
         'created_at',
         'updated_at',
@@ -30,6 +42,7 @@ class SkripsiDefense extends Model implements HasMedia
         'title',
         'title_en',
         'abstract',
+        'eap_grade',
         'status',
         'admin_note',
         'created_at',
@@ -233,5 +246,20 @@ class SkripsiDefense extends Model implements HasMedia
             $this->application->update(['status' => $status]);
             $this->application->refresh();
         }
+    }
+
+    public function eapGradeLabel(): string
+    {
+        if (! $this->eap_grade) {
+            return '-';
+        }
+
+        return self::EAP_GRADE_SELECT[$this->eap_grade] ?? $this->eap_grade;
+    }
+
+    /** @return array<int, string> */
+    public static function allowedEapGrades(): array
+    {
+        return array_keys(self::EAP_GRADE_SELECT);
     }
 }

@@ -107,7 +107,10 @@ class DosenController extends Controller
 
     public function store(StoreDosenRequest $request)
     {
-        $dosen = Dosen::create($request->all());
+        $data = $request->all();
+        $data['mbkm_availability'] = $request->boolean('mbkm_availability');
+
+        $dosen = Dosen::create($data);
         $dosen->keilmuans()->sync($request->input('keilmuans', []));
 
         return redirect()->route('admin.dosens.index');
@@ -134,7 +137,10 @@ class DosenController extends Controller
 
     public function update(UpdateDosenRequest $request, Dosen $dosen)
     {
-        $dosen->update($request->all());
+        $data = $request->all();
+        $data['mbkm_availability'] = $request->boolean('mbkm_availability');
+
+        $dosen->update($data);
         $dosen->keilmuans()->sync($request->input('keilmuans', []));
 
         return redirect()->route('admin.dosens.index');

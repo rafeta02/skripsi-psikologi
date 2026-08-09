@@ -115,6 +115,8 @@
                             'required' => true,
                         ])
 
+                        @include('frontend.skripsiDefenses.partials.eap-grade-select')
+
                         @include('frontend.skripsiDefenses.partials.file-input', [
                             'name' => 'eap_certificate',
                             'label' => 'Sertifikat EAP yang sudah dilegalisir',

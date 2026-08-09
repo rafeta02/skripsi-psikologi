@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\SkripsiDefense;
 use Gate;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSkripsiDefenseRequest extends FormRequest
 {
@@ -27,6 +29,7 @@ class StoreSkripsiDefenseRequest extends FormRequest
             'application_id' => ['required', 'exists:applications,id'],
             'title' => ['required', 'string'],
             'abstract' => ['required', 'string'],
+            'eap_grade' => ['required', Rule::in(SkripsiDefense::allowedEapGrades())],
             // Single file (PDF)
             'defence_document' => ['required', 'file', 'mimes:pdf', 'max:20480'],
             'plagiarism_report' => ['required', 'file', 'mimes:pdf', 'max:10240'],
@@ -71,6 +74,7 @@ class StoreSkripsiDefenseRequest extends FormRequest
             'application_id' => ['required', 'exists:applications,id'],
             'title' => ['required', 'string'],
             'abstract' => ['required', 'string'],
+            'eap_grade' => ['required', Rule::in(SkripsiDefense::allowedEapGrades())],
             'defence_document' => ['required'],
             'plagiarism_report' => ['required'],
             'publication_statement' => ['required'],
@@ -98,6 +102,8 @@ class StoreSkripsiDefenseRequest extends FormRequest
             'application_id.required' => 'Aplikasi skripsi harus dipilih',
             'title.required' => 'Judul skripsi harus diisi',
             'abstract.required' => 'Abstrak skripsi harus diisi',
+            'eap_grade.required' => 'Nilai EAP harus dipilih',
+            'eap_grade.in' => 'Nilai EAP tidak valid',
             'defence_document.required' => 'Dokumen sidang harus diupload',
             'plagiarism_report.required' => 'Laporan plagiarisme harus diupload',
             'ethics_statement.required' => 'Pernyataan etika penelitian harus diupload minimal 1 file',

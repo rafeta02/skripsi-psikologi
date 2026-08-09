@@ -43,6 +43,9 @@ class StoreDosenRequest extends FormRequest
             'keilmuans' => [
                 'array',
             ],
+            'mbkm_availability' => [
+                'boolean',
+            ],
         ];
     }
 }

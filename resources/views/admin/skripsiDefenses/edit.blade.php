@@ -39,6 +39,19 @@
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.abstract_helper') }}</span>
             </div>
             <div class="form-group">
+                <label for="eap_grade">{{ trans('cruds.skripsiDefense.fields.eap_grade') }}</label>
+                <select class="form-control {{ $errors->has('eap_grade') ? 'is-invalid' : '' }}" name="eap_grade" id="eap_grade" required>
+                    <option value="">{{ trans('global.pleaseSelect') }}</option>
+                    @foreach(\App\Models\SkripsiDefense::EAP_GRADE_SELECT as $value => $label)
+                        <option value="{{ $value }}" {{ old('eap_grade', $skripsiDefense->eap_grade) == $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+                @if($errors->has('eap_grade'))
+                    <span class="text-danger">{{ $errors->first('eap_grade') }}</span>
+                @endif
+                <span class="help-block">{{ trans('cruds.skripsiDefense.fields.eap_grade_helper') }}</span>
+            </div>
+            <div class="form-group">
                 <label for="defence_document">{{ trans('cruds.skripsiDefense.fields.defence_document') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('defence_document') ? 'is-invalid' : '' }}" id="defence_document-dropzone">
                 </div>

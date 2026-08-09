@@ -38,9 +38,14 @@ class Dosen extends Model
         'jenjang_id',
         'fakultas_id',
         'riset_grup_id',
+        'mbkm_availability',
         'created_at',
         'updated_at',
         'deleted_at',
+    ];
+
+    protected $casts = [
+        'mbkm_availability' => 'boolean',
     ];
 
     protected function serializeDate(DateTimeInterface $date)
@@ -86,5 +91,44 @@ class Dosen extends Model
     public function user()
     {
         return $this->hasOne(User::class, 'dosen_id');
+    }
+
+    public function scopeAvailableForMbkm($query)
+    {
+        return $query->where('mbkm_availability', true);
+    }
+
+    public function isAvailableForMbkm(): bool
+    {
+        return (bool) $this->mbkm_availability;
+    }
+
+    public static function groupedByResearchGroupForMbkm(?int $includeDosenId = null): array
+    {
+        $dosens = static::query()
+            ->availableForMbkm()
+            ->whereNotNull('riset_grup_id')
+            ->orderBy('nama')
+            ->get(['id', 'nama', 'riset_grup_id']);
+
+        if ($includeDosenId && !$dosens->contains('id', $includeDosenId)) {
+            $extra = static::query()
+                ->where('id', $includeDosenId)
+                ->whereNotNull('riset_grup_id')
+                ->first(['id', 'nama', 'riset_grup_id']);
+
+            if ($extra) {
+                $dosens->push($extra);
+            }
+        }
+
+        return $dosens
+            ->sortBy('nama')
+            ->groupBy('riset_grup_id')
+            ->map(fn ($items) => $items->map(fn ($d) => [
+                'id' => $d->id,
+                'nama' => $d->nama,
+            ])->values())
+            ->toArray();
     }
 }

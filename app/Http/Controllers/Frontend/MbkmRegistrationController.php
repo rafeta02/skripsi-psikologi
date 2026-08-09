@@ -75,16 +75,7 @@ class MbkmRegistrationController extends Controller
         // Get data for dropdowns
         $keilmuans = Keilmuan::orderBy('name')->pluck('name', 'id');
         $researchGroups = ResearchGroup::orderBy('name')->pluck('name', 'id');
-        $dosensByGroup = Dosen::query()
-            ->whereNotNull('riset_grup_id')
-            ->orderBy('nama')
-            ->get(['id', 'nama', 'riset_grup_id'])
-            ->groupBy('riset_grup_id')
-            ->map(fn ($items) => $items->map(fn ($d) => [
-                'id' => $d->id,
-                'nama' => $d->nama,
-            ])->values())
-            ->toArray();
+        $dosensByGroup = Dosen::groupedByResearchGroupForMbkm();
 
         return view('frontend.mbkm.create', compact(
             'application',
@@ -115,11 +106,12 @@ class MbkmRegistrationController extends Controller
                 'required',
                 'exists:dosens,id',
                 function ($attribute, $value, $fail) use ($request) {
-                    $belongs = Dosen::where('id', $value)
+                    $belongs = Dosen::availableForMbkm()
+                        ->where('id', $value)
                         ->where('riset_grup_id', $request->input('research_group_id'))
                         ->exists();
                     if (!$belongs) {
-                        $fail('Dosen pembimbing harus berasal dari research group yang dipilih.');
+                        $fail('Dosen pembimbing harus berasal dari research group yang dipilih dan tersedia untuk MBKM.');
                     }
                 },
             ],
@@ -459,16 +451,7 @@ class MbkmRegistrationController extends Controller
         
         $keilmuans = Keilmuan::orderBy('name')->pluck('name', 'id');
         $researchGroups = ResearchGroup::orderBy('name')->pluck('name', 'id');
-        $dosensByGroup = Dosen::query()
-            ->whereNotNull('riset_grup_id')
-            ->orderBy('nama')
-            ->get(['id', 'nama', 'riset_grup_id'])
-            ->groupBy('riset_grup_id')
-            ->map(fn ($items) => $items->map(fn ($d) => [
-                'id' => $d->id,
-                'nama' => $d->nama,
-            ])->values())
-            ->toArray();
+        $dosensByGroup = Dosen::groupedByResearchGroupForMbkm($registration->preference_supervision_id);
 
         $ketuaMember = $registration->groupMembers->firstWhere('mahasiswa_id', (int) $user->mahasiswa_id);
         
@@ -522,12 +505,17 @@ class MbkmRegistrationController extends Controller
             'preference_supervision_id' => [
                 'required',
                 'exists:dosens,id',
-                function ($attribute, $value, $fail) use ($request) {
-                    $belongs = Dosen::where('id', $value)
-                        ->where('riset_grup_id', $request->input('research_group_id'))
-                        ->exists();
-                    if (!$belongs) {
-                        $fail('Dosen pembimbing harus berasal dari research group yang dipilih.');
+                function ($attribute, $value, $fail) use ($request, $registration) {
+                    $query = Dosen::query()
+                        ->where('id', $value)
+                        ->where('riset_grup_id', $request->input('research_group_id'));
+
+                    if ((int) $registration->preference_supervision_id !== (int) $value) {
+                        $query->availableForMbkm();
+                    }
+
+                    if (!$query->exists()) {
+                        $fail('Dosen pembimbing harus berasal dari research group yang dipilih dan tersedia untuk MBKM.');
                     }
                 },
             ],
