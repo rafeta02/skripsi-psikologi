@@ -333,7 +333,7 @@ class DashboardController extends Controller
             $maxKb = (int) config('thesis.reviewer_feedback_max_kb', 10240);
 
             $validated = $request->validate([
-                'feedback_result' => 'required|in:passed,revision,failed',
+                'feedback_result' => 'required|in:' . implode(',', array_keys(ApplicationAssignment::FEEDBACK_RESULT_SELECT)),
                 'feedback_note' => 'required|string|min:10',
                 'feedback_document' => "required|file|mimes:{$mimes}|max:{$maxKb}",
             ]);

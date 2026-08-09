@@ -42,9 +42,9 @@ class ApplicationAssignment extends Model implements HasMedia
     ];
 
     public const FEEDBACK_RESULT_SELECT = [
-        'passed'   => 'Lulus (Passed)',
-        'revision' => 'Revisi (Revision)',
-        'failed'   => 'Tidak Lulus (Failed)',
+        'approved_no_revision'    => 'Disetujui tanpa perbaikan',
+        'approved_minor_revision' => 'Disetujui dengan perbaikan minor',
+        'approved_major_revision' => 'Disetujui dengan perbaikan mayor',
     ];
 
     public const ROLE_SELECT = [
