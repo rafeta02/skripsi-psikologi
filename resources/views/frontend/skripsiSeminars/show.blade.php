@@ -87,9 +87,20 @@
                                     <div class="card-body text-center">
                                         <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
                                         <h6 class="mb-2">Dokumen Proposal</h6>
-                                        <a href="{{ $skripsiSeminar->proposal_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
+                                        <small class="text-muted d-block mb-3">{{ $skripsiSeminar->proposal_document->file_name }}</small>
+                                        <div class="btn-group btn-group-sm flex-wrap justify-content-center">
+                                            <a href="{{ $skripsiSeminar->proposal_document->getUrl() }}" target="_blank" class="btn btn-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <button type="button" class="btn btn-info preview-doc"
+                                                    data-url="{{ $skripsiSeminar->proposal_document->getUrl() }}"
+                                                    data-type="pdf">
+                                                <i class="fas fa-expand"></i> Preview
+                                            </button>
+                                            <a href="{{ $skripsiSeminar->proposal_document->getUrl() }}" download class="btn btn-success">
+                                                <i class="fas fa-download"></i> Download
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -101,9 +112,20 @@
                                     <div class="card-body text-center">
                                         <i class="fas fa-file-pdf fa-3x text-success mb-3"></i>
                                         <h6 class="mb-2">Persetujuan Pembimbing</h6>
-                                        <a href="{{ $skripsiSeminar->approval_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
+                                        <small class="text-muted d-block mb-3">{{ $skripsiSeminar->approval_document->file_name }}</small>
+                                        <div class="btn-group btn-group-sm flex-wrap justify-content-center">
+                                            <a href="{{ $skripsiSeminar->approval_document->getUrl() }}" target="_blank" class="btn btn-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <button type="button" class="btn btn-info preview-doc"
+                                                    data-url="{{ $skripsiSeminar->approval_document->getUrl() }}"
+                                                    data-type="pdf">
+                                                <i class="fas fa-expand"></i> Preview
+                                            </button>
+                                            <a href="{{ $skripsiSeminar->approval_document->getUrl() }}" download class="btn btn-success">
+                                                <i class="fas fa-download"></i> Download
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -115,9 +137,20 @@
                                     <div class="card-body text-center">
                                         <i class="fas fa-file-pdf fa-3x text-info mb-3"></i>
                                         <h6 class="mb-2">Plagiarism Check</h6>
-                                        <a href="{{ $skripsiSeminar->plagiarism_document->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-info">
-                                            <i class="fas fa-download"></i> Download
-                                        </a>
+                                        <small class="text-muted d-block mb-3">{{ $skripsiSeminar->plagiarism_document->file_name }}</small>
+                                        <div class="btn-group btn-group-sm flex-wrap justify-content-center">
+                                            <a href="{{ $skripsiSeminar->plagiarism_document->getUrl() }}" target="_blank" class="btn btn-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <button type="button" class="btn btn-info preview-doc"
+                                                    data-url="{{ $skripsiSeminar->plagiarism_document->getUrl() }}"
+                                                    data-type="pdf">
+                                                <i class="fas fa-expand"></i> Preview
+                                            </button>
+                                            <a href="{{ $skripsiSeminar->plagiarism_document->getUrl() }}" download class="btn btn-success">
+                                                <i class="fas fa-download"></i> Download
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -220,4 +253,40 @@
         </div>
     </div>
 </div>
+
+<!-- Document Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-pdf mr-2"></i>
+                    Preview Dokumen
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="height: 80vh;">
+                <iframe id="pdfViewer" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('.preview-doc').on('click', function() {
+        const url = $(this).data('url');
+        $('#pdfViewer').attr('src', url);
+        $('#previewModal').modal('show');
+    });
+
+    $('#previewModal').on('hidden.bs.modal', function() {
+        $('#pdfViewer').attr('src', '');
+    });
+});
+</script>
+@endpush
