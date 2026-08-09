@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\DosenPortalService;
 use App\Services\FormAccessService;
 use App\Services\MahasiswaPortalService;
+use App\Services\ReviewerAssignmentService;
 use App\Models\Application;
 use App\Observers\ApplicationObserver;
 use Illuminate\Support\Facades\Auth;
@@ -134,6 +135,21 @@ class AppServiceProvider extends ServiceProvider
                 'activityTimeline' => $dosenId ? $portal->getActivityTimeline($dosenId) : [],
                 'portalStats' => $dosenId ? $portal->getSummaryStats($dosenId) : [],
             ]);
+        });
+
+        View::composer(['layouts.admin', 'partials.menu'], function ($view) {
+            $skripsiSeminarOverdueCount = 0;
+
+            try {
+                if (Auth::check()) {
+                    $skripsiSeminarOverdueCount = app(ReviewerAssignmentService::class)
+                        ->countOverdueRegulerReviewers();
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
+            $view->with('skripsiSeminarOverdueCount', $skripsiSeminarOverdueCount);
         });
     }
 }

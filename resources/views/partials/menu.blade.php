@@ -311,9 +311,15 @@
                         
                         @can('skripsi_seminar_access')
                             <li class="nav-item">
-                                <a href="{{ route("admin.skripsi-seminars.index") }}" class="nav-link {{ request()->is("admin/skripsi-seminars") || request()->is("admin/skripsi-seminars/*") ? "active" : "" }}">
+                                <a href="{{ route("admin.skripsi-seminars.index") }}" class="nav-link {{ request()->is("admin/skripsi-seminars") || request()->is("admin/skripsi-seminars/*") ? "active" : "" }}"
+                                   @if(($skripsiSeminarOverdueCount ?? 0) > 0) title="{{ $skripsiSeminarOverdueCount }} reviewer terlambat respons atau feedback" @endif>
                                     <i class="fa-fw nav-icon fas fa-chalkboard-teacher"></i>
-                                    <p>Review Kelayakan Proposal (Reguler)</p>
+                                    <p>
+                                        Review Kelayakan Proposal (Reguler)
+                                        @if(($skripsiSeminarOverdueCount ?? 0) > 0)
+                                            <span class="badge badge-danger right">{{ $skripsiSeminarOverdueCount }}</span>
+                                        @endif
+                                    </p>
                                 </a>
                             </li>
                         @endcan

@@ -204,6 +204,35 @@ class ReviewerAssignmentService
     }
 
     /**
+     * Jumlah reviewer Reguler yang terlambat respons atau feedback (real-time, untuk badge menu admin).
+     */
+    public function countOverdueRegulerReviewers(): int
+    {
+        $lateResponse = ApplicationAssignment::query()
+            ->where('role', 'reviewer')
+            ->whereNotNull('skripsi_seminar_id')
+            ->whereNotIn('status', ['replaced'])
+            ->where(function ($query) {
+                $query->where(function ($inner) {
+                    $inner->where('status', 'assigned')
+                        ->whereNotNull('response_deadline')
+                        ->where('response_deadline', '<', now());
+                })->orWhere('status', 'expired');
+            })
+            ->count();
+
+        $lateFeedback = ApplicationAssignment::query()
+            ->where('role', 'reviewer')
+            ->whereNotNull('skripsi_seminar_id')
+            ->where('status', 'accepted')
+            ->whereNull('feedback_submitted_at')
+            ->where('assigned_at', '<=', now()->subDays($this->feedbackWarningDays()))
+            ->count();
+
+        return $lateResponse + $lateFeedback;
+    }
+
+    /**
      * Daily job: expire assignments without response, warn overdue feedback.
      */
     public function processDeadlines(): array
