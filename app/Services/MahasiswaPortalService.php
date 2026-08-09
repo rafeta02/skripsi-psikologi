@@ -57,10 +57,10 @@ class MahasiswaPortalService
             $actions[] = $this->action('Daftar Skripsi', 'frontend.skripsi-registrations.index', 'fa-book', 'primary');
         }
         if ($allowedForms['mbkm_seminar']['allowed'] ?? false) {
-            $actions[] = $this->action('Review Kelayakan Proposal (MBKM)', 'frontend.mbkm-seminars.index', 'fa-chalkboard', 'info');
+            $actions[] = $this->action('Review Kelayakan Proposal (MBKM)', 'frontend.mbkm-seminars.index', 'fa-clipboard-check', 'info');
         }
         if ($allowedForms['skripsi_seminar']['allowed'] ?? false) {
-            $actions[] = $this->action('Review Kelayakan Proposal (Reguler)', 'frontend.skripsi-seminars.index', 'fa-users', 'info');
+            $actions[] = $this->action('Review Kelayakan Proposal (Reguler)', 'frontend.skripsi-seminars.index', 'fa-clipboard-check', 'info');
         }
         if ($allowedForms['application_schedule']['allowed'] ?? false) {
             $actions[] = $this->action('Ajukan Jadwal', 'frontend.application-schedules.create', 'fa-calendar-plus', 'warning');
