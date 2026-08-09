@@ -13,6 +13,10 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * Laporan hasil Review Kelayakan Proposal — jalur Skripsi Reguler.
+ * Terpisah dari ApplicationResultSeminar (MBKM).
+ */
 class ApplicationResultReview extends Model implements HasMedia
 {
     use SoftDeletes, InteractsWithMedia, Auditable, HasFactory, FileNamingTrait;
@@ -27,12 +31,24 @@ class ApplicationResultReview extends Model implements HasMedia
     ];
 
     public const RESULT_SELECT = [
-        'passed'   => 'Passed',
-        'revision' => 'Revision',
-        'failed'   => 'Failed',
+        'approved_no_revision'    => 'Disetujui tanpa perbaikan',
+        'approved_minor_revision' => 'Disetujui dengan perbaikan minor',
+        'approved_major_revision' => 'Disetujui dengan perbaikan mayor',
+    ];
+
+    /** Nilai lama sebelum alur Reguler diperbarui */
+    public const RESULT_SELECT_LEGACY = [
+        'passed'   => 'Lulus',
+        'revision' => 'Revisi',
+        'failed'   => 'Tidak Lulus',
     ];
 
     protected $appends = [
+        'reviewer_feedback_forms',
+        'application_letter',
+        'minutes_document',
+        'proposal_manuscript',
+        'research_ethics_form',
         'form_document',
         'latest_script',
     ];
@@ -52,6 +68,26 @@ class ApplicationResultReview extends Model implements HasMedia
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
+    }
+
+    public static function allResultLabels(): array
+    {
+        return self::RESULT_SELECT + self::RESULT_SELECT_LEGACY;
+    }
+
+    public function resultLabel(): string
+    {
+        return self::allResultLabels()[$this->result] ?? ($this->result ?? '-');
+    }
+
+    public function isEligibleOutcome(): bool
+    {
+        return in_array($this->result, [
+            'approved_no_revision',
+            'approved_minor_revision',
+            'approved_major_revision',
+            'passed',
+        ], true);
     }
 
     public function registerMediaConversions(Media $media = null): void
@@ -91,7 +127,7 @@ class ApplicationResultReview extends Model implements HasMedia
 
     public function syncApplicationStatus(): void
     {
-        if (!$this->application) {
+        if (! $this->application) {
             return;
         }
 
@@ -99,7 +135,8 @@ class ApplicationResultReview extends Model implements HasMedia
             $status = 'rejected';
         } else {
             $status = match ($this->result) {
-                'passed' => $this->isValidatedByAdmin() ? 'approved' : 'submitted',
+                'approved_no_revision', 'approved_minor_revision', 'approved_major_revision', 'passed'
+                    => $this->isValidatedByAdmin() ? 'approved' : 'submitted',
                 'revision' => 'revision',
                 'failed' => 'rejected',
                 default => $this->application->status,
@@ -112,9 +149,30 @@ class ApplicationResultReview extends Model implements HasMedia
         }
     }
 
+    public function adminValidationStatusHtml(): string
+    {
+        if ($this->isRejectedByAdmin()) {
+            return '<span class="badge badge-danger badge-lg">Ditolak Admin</span>';
+        }
+
+        if (! $this->isEligibleOutcome()) {
+            return match ($this->result) {
+                'revision' => '<span class="badge badge-warning badge-lg">Revisi</span>',
+                'failed' => '<span class="badge badge-danger badge-lg">Tidak Lulus</span>',
+                default => '<span class="badge badge-secondary badge-lg">'.e($this->resultLabel()).'</span>',
+            };
+        }
+
+        if ($this->isValidatedByAdmin()) {
+            return '<span class="badge badge-success badge-lg">Divalidasi Admin</span>';
+        }
+
+        return '<span class="badge badge-warning badge-lg">Menunggu Validasi Admin</span>';
+    }
+
     public function getRevisionDeadlineAttribute($value)
     {
-        if (!$value) {
+        if (! $value) {
             return null;
         }
 
@@ -132,13 +190,15 @@ class ApplicationResultReview extends Model implements HasMedia
 
     public function setRevisionDeadlineAttribute($value)
     {
-        if (!$value) {
+        if (! $value) {
             $this->attributes['revision_deadline'] = null;
+
             return;
         }
 
         if ($value instanceof \DateTimeInterface) {
             $this->attributes['revision_deadline'] = Carbon::instance($value)->format('Y-m-d');
+
             return;
         }
 
@@ -152,14 +212,46 @@ class ApplicationResultReview extends Model implements HasMedia
         }
     }
 
-    public function getFormDocumentAttribute()
+    public function getReviewerFeedbackFormsAttribute()
     {
+        $current = $this->getMedia('reviewer_feedback_forms');
+        if ($current->isNotEmpty()) {
+            return $current;
+        }
+
         return $this->getMedia('form_document');
     }
 
+    public function getApplicationLetterAttribute()
+    {
+        return $this->getMedia('application_letter')->last();
+    }
+
+    public function getMinutesDocumentAttribute()
+    {
+        return $this->getMedia('minutes_document')->last();
+    }
+
+    public function getProposalManuscriptAttribute()
+    {
+        return $this->getMedia('proposal_manuscript')->last()
+            ?: $this->getMedia('latest_script')->last();
+    }
+
+    public function getResearchEthicsFormAttribute()
+    {
+        return $this->getMedia('research_ethics_form')->last();
+    }
+
+    /** @deprecated Legacy accessor */
+    public function getFormDocumentAttribute()
+    {
+        return $this->reviewer_feedback_forms;
+    }
+
+    /** @deprecated Legacy accessor */
     public function getLatestScriptAttribute()
     {
-        return $this->getMedia('latest_script')->last();
+        return $this->proposal_manuscript;
     }
 }
-

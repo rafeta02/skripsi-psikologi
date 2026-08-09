@@ -10,7 +10,7 @@
                         <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Review Proposal
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Skripsi Reguler — laporkan hasil penilaian reviewer proposal
+                        Skripsi Reguler — laporkan hasil review kelayakan proposal
                     </p>
                 </div>
             </div>
@@ -43,41 +43,61 @@
                                 <label class="form-label-modern required">Hasil Review</label>
                                 <select name="result" class="form-control-modern @error('result') is-invalid @enderror" required>
                                     <option value="">-- Pilih Hasil Review --</option>
-                                    <option value="passed" {{ old('result') == 'passed' ? 'selected' : '' }}>Lulus (Passed)</option>
-                                    <option value="revision" {{ old('result') == 'revision' ? 'selected' : '' }}>Revisi (Revision)</option>
-                                    <option value="failed" {{ old('result') == 'failed' ? 'selected' : '' }}>Tidak Lulus (Failed)</option>
+                                    @foreach(\App\Models\ApplicationResultReview::RESULT_SELECT as $value => $label)
+                                        <option value="{{ $value }}" {{ old('result') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
                                 </select>
                                 @error('result')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
-                            <div class="form-group" id="revisionDeadlineField" style="display: none;">
-                                <label class="form-label-modern">Tenggat Waktu Revisi</label>
-                                <input type="date" name="revision_deadline" class="form-control-modern @error('revision_deadline') is-invalid @enderror" value="{{ old('revision_deadline') }}" min="{{ date('Y-m-d') }}">
-                                @error('revision_deadline')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                            <hr class="my-4">
+                            <h5 class="font-weight-bold mb-3">Dokumen Wajib</h5>
 
                             <div class="form-group">
-                                <label class="form-label-modern">Catatan dari Reviewer</label>
-                                <textarea name="note" class="form-control-modern @error('note') is-invalid @enderror" rows="4">{{ old('note') }}</textarea>
-                                @error('note')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label-modern">Form Penilaian Reviewer (PDF)</label>
+                                <label class="form-label-modern required">Form Umpan Balik Dari 2 Reviewer (PDF)</label>
                                 <div class="custom-file">
-                                    <input type="file" name="form_document[]" class="custom-file-input @error('form_document') is-invalid @enderror" id="formDocument" accept=".pdf" multiple>
-                                    <label class="custom-file-label" for="formDocument">Pilih file...</label>
+                                    <input type="file" name="reviewer_feedback_forms[]" class="custom-file-input @error('reviewer_feedback_forms') is-invalid @enderror @error('reviewer_feedback_forms.*') is-invalid @enderror" id="reviewerFeedbackForms" accept=".pdf,application/pdf" multiple required>
+                                    <label class="custom-file-label" for="reviewerFeedbackForms">Pilih file...</label>
                                 </div>
-                                @error('form_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                <small class="form-text text-muted">Unggah form umpan balik dari kedua reviewer (Max: 10MB per file, minimal 1 file)</small>
+                                @error('reviewer_feedback_forms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                @error('reviewer_feedback_forms.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label-modern">Naskah Proposal Terbaru (PDF)</label>
+                                <label class="form-label-modern required">Surat Permohonan Review Proposal (PDF)</label>
                                 <div class="custom-file">
-                                    <input type="file" name="latest_script" class="custom-file-input @error('latest_script') is-invalid @enderror" id="latestScript" accept=".pdf">
-                                    <label class="custom-file-label" for="latestScript">Pilih file...</label>
+                                    <input type="file" name="application_letter" class="custom-file-input @error('application_letter') is-invalid @enderror" id="applicationLetter" accept=".pdf,application/pdf" required>
+                                    <label class="custom-file-label" for="applicationLetter">Pilih file...</label>
                                 </div>
-                                @error('latest_script')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                @error('application_letter')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">Berita Acara Review Proposal (PDF)</label>
+                                <div class="custom-file">
+                                    <input type="file" name="minutes_document" class="custom-file-input @error('minutes_document') is-invalid @enderror" id="minutesDocument" accept=".pdf,application/pdf" required>
+                                    <label class="custom-file-label" for="minutesDocument">Pilih file...</label>
+                                </div>
+                                @error('minutes_document')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">Naskah Proposal (PDF)</label>
+                                <div class="custom-file">
+                                    <input type="file" name="proposal_manuscript" class="custom-file-input @error('proposal_manuscript') is-invalid @enderror" id="proposalManuscript" accept=".pdf,application/pdf" required>
+                                    <label class="custom-file-label" for="proposalManuscript">Pilih file...</label>
+                                </div>
+                                @error('proposal_manuscript')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label-modern required">Lembar Etika Penelitian (PDF)</label>
+                                <div class="custom-file">
+                                    <input type="file" name="research_ethics_form" class="custom-file-input @error('research_ethics_form') is-invalid @enderror" id="researchEthicsForm" accept=".pdf,application/pdf" required>
+                                    <label class="custom-file-label" for="researchEthicsForm">Pilih file...</label>
+                                </div>
+                                @error('research_ethics_form')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
 
                             <div class="d-flex justify-content-between mt-4">
@@ -101,17 +121,9 @@
 $(document).ready(function() {
     $('.custom-file-input').on('change', function() {
         let fileCount = $(this)[0].files.length;
-        let fileName = fileCount > 1 ? fileCount + ' file(s) dipilih' : $(this).val().split('\\').pop();
+        let fileName = fileCount > 1 ? fileCount + ' file dipilih' : $(this).val().split('\\').pop();
         $(this).next('.custom-file-label').html(fileName || 'Pilih file...');
     });
-
-    $('select[name="result"]').on('change', function() {
-        if ($(this).val() === 'revision') {
-            $('#revisionDeadlineField').show().find('input').prop('required', true);
-        } else {
-            $('#revisionDeadlineField').hide().find('input').prop('required', false);
-        }
-    }).trigger('change');
 });
 </script>
 @endpush

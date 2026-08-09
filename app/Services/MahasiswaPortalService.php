@@ -150,7 +150,7 @@ class MahasiswaPortalService
             if ($app->stage === 'seminar' && $app->type === 'skripsi' && empty($app->is_group_mirror)) {
                 $result = ApplicationResultReview::where('application_id', $app->id)->first();
                 if ($result) {
-                    $steps[] = $this->resultStep('Laporan Review Proposal', $result->result, $result->created_at, 'frontend.application-result-reviews.show', $result->id);
+                    $steps[] = $this->resultStep('Laporan Review Proposal', $result->result, $result->created_at, 'frontend.application-result-reviews.show', $result->id, $result->resultLabel());
                 }
             }
 
@@ -261,23 +261,26 @@ class MahasiswaPortalService
         ];
     }
 
-    private function resultStep(string $label, string $result, $date, string $route, int $id): array
+    private function resultStep(string $label, string $result, $date, string $route, int $id, ?string $resultLabel = null): array
     {
         $badge = match ($result) {
-            'passed' => 'success',
-            'revision' => 'warning',
+            'approved_no_revision', 'passed' => 'success',
+            'approved_minor_revision' => 'info',
+            'approved_major_revision', 'revision' => 'warning',
             'failed' => 'danger',
             default => 'secondary',
         };
 
+        $sublabel = $resultLabel ?? match ($result) {
+            'passed' => 'Lulus',
+            'revision' => 'Revisi',
+            'failed' => 'Tidak Lulus',
+            default => ucfirst(str_replace('_', ' ', $result)),
+        };
+
         return [
             'label' => $label,
-            'sublabel' => match ($result) {
-                'passed' => 'Lulus',
-                'revision' => 'Revisi',
-                'failed' => 'Tidak Lulus',
-                default => ucfirst($result),
-            },
+            'sublabel' => $sublabel,
             'status' => $result === 'failed' ? 'failed' : 'done',
             'badge' => $badge,
             'date' => $date?->format('d M Y') ?? '-',

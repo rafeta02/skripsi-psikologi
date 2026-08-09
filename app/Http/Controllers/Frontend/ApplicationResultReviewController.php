@@ -75,12 +75,20 @@ class ApplicationResultReviewController extends Controller
 
         $validated = $request->validate([
             'application_id' => 'required|exists:applications,id',
-            'result' => 'required|in:passed,revision,failed',
-            'note' => 'nullable|string',
-            'revision_deadline' => 'nullable|date',
-            'form_document' => 'nullable|array',
-            'form_document.*' => 'file|mimes:pdf|max:10240',
-            'latest_script' => 'nullable|file|mimes:pdf|max:10240',
+            'result' => 'required|in:approved_no_revision,approved_minor_revision,approved_major_revision',
+            'reviewer_feedback_forms' => 'required|array|min:1',
+            'reviewer_feedback_forms.*' => 'file|mimes:pdf|max:10240',
+            'application_letter' => 'required|file|mimes:pdf|max:10240',
+            'minutes_document' => 'required|file|mimes:pdf|max:10240',
+            'proposal_manuscript' => 'required|file|mimes:pdf|max:10240',
+            'research_ethics_form' => 'required|file|mimes:pdf|max:10240',
+        ], [
+            'reviewer_feedback_forms.required' => 'Form umpan balik reviewer wajib diunggah.',
+            'reviewer_feedback_forms.min' => 'Unggah minimal 1 form umpan balik reviewer.',
+            'application_letter.required' => 'Surat permohonan review proposal wajib diunggah.',
+            'minutes_document.required' => 'Berita acara review proposal wajib diunggah.',
+            'proposal_manuscript.required' => 'Naskah proposal wajib diunggah.',
+            'research_ethics_form.required' => 'Lembar etika penelitian wajib diunggah.',
         ]);
 
         if ((int) $validated['application_id'] !== (int) $access['application']->id) {
@@ -106,29 +114,28 @@ class ApplicationResultReviewController extends Controller
             'reviewer_1_assignment_id' => $assignments->get(0)?->id,
             'reviewer_2_assignment_id' => $assignments->get(1)?->id,
             'result' => $validated['result'],
-            'note' => $validated['note'] ?? null,
-            'revision_deadline' => $validated['revision_deadline'] ?? null,
         ]);
 
-        if ($request->hasFile('form_document')) {
-            foreach ($request->file('form_document') as $file) {
-                $applicationResultReview->addMedia($file)->toMediaCollection('form_document');
-            }
+        foreach ($request->file('reviewer_feedback_forms', []) as $file) {
+            $applicationResultReview->addMedia($file)->toMediaCollection('reviewer_feedback_forms');
         }
 
-        if ($request->hasFile('latest_script')) {
-            $applicationResultReview->addMedia($request->file('latest_script'))
-                ->toMediaCollection('latest_script');
-        }
+        $applicationResultReview->addMedia($request->file('application_letter'))
+            ->toMediaCollection('application_letter');
+
+        $applicationResultReview->addMedia($request->file('minutes_document'))
+            ->toMediaCollection('minutes_document');
+
+        $applicationResultReview->addMedia($request->file('proposal_manuscript'))
+            ->toMediaCollection('proposal_manuscript');
+
+        $applicationResultReview->addMedia($request->file('research_ethics_form'))
+            ->toMediaCollection('research_ethics_form');
 
         $applicationResultReview->syncApplicationStatus();
 
-        $message = $validated['result'] === 'passed'
-            ? 'Laporan hasil lulus berhasil dikirim. Menunggu validasi admin sebelum Anda dapat mendaftar sidang skripsi.'
-            : 'Laporan hasil review proposal berhasil dikirim!';
-
         return redirect()->route('frontend.application-result-reviews.index')
-            ->with('success', $message);
+            ->with('success', 'Laporan hasil review proposal berhasil dikirim. Menunggu validasi admin.');
     }
 
     public function show(ApplicationResultReview $applicationResultReview)

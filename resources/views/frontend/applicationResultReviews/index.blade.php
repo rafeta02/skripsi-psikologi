@@ -63,24 +63,23 @@
                                     </p>
                                     @php
                                         $resultBadge = match($result->result) {
-                                            'passed' => ['success', 'Lulus'],
-                                            'revision' => ['warning', 'Revisi'],
-                                            'failed' => ['danger', 'Tidak Lulus'],
-                                            default => ['secondary', ucfirst($result->result ?? '-')],
+                                            'approved_no_revision', 'passed' => ['success', $result->resultLabel()],
+                                            'approved_minor_revision' => ['info', $result->resultLabel()],
+                                            'approved_major_revision' => ['warning', $result->resultLabel()],
+                                            'revision' => ['warning', $result->resultLabel()],
+                                            'failed' => ['danger', $result->resultLabel()],
+                                            default => ['secondary', $result->resultLabel()],
                                         };
                                     @endphp
                                     <span class="badge badge-{{ $resultBadge[0] }} badge-lg px-3 py-2">
                                         {{ $resultBadge[1] }}
                                     </span>
-                                    @if($result->result === 'passed')
+                                    @if($result->isEligibleOutcome())
                                         @if($result->isValidatedByAdmin())
                                             <span class="badge badge-success ml-1">Divalidasi Admin</span>
                                         @else
                                             <span class="badge badge-warning ml-1">Menunggu Validasi Admin</span>
                                         @endif
-                                    @endif
-                                    @if($result->note)
-                                        <p class="mt-3 mb-0 text-muted">{{ Str::limit($result->note, 200) }}</p>
                                     @endif
                                 </div>
                                 <div class="col-md-4 text-right">

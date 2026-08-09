@@ -26,7 +26,7 @@
                 <label>{{ trans('cruds.applicationResultReview.fields.result') }}</label>
                 <select class="form-control {{ $errors->has('result') ? 'is-invalid' : '' }}" name="result" id="result">
                     <option value disabled {{ old('result', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
-                    @foreach(App\Models\ApplicationResultReview::RESULT_SELECT as $key => $label)
+                    @foreach(App\Models\ApplicationResultReview::allResultLabels() as $key => $label)
                         <option value="{{ $key }}" {{ old('result', $applicationResultReview->result) === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>

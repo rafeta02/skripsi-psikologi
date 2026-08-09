@@ -24,6 +24,7 @@ class UpdateApplicationResultReviewRequest extends FormRequest
             'result' => [
                 'required',
                 'string',
+                'in:approved_no_revision,approved_minor_revision,approved_major_revision,passed,revision,failed',
             ],
             'revision_deadline' => [
                 'date_format:' . config('panel.date_format'),

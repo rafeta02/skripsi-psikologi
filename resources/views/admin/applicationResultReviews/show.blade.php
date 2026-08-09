@@ -65,24 +65,22 @@
                                 <p class="form-control-plaintext">
                                     @if($applicationResultReview->result)
                                         @php
-                                            $resultLabels = [
-                                                'passed' => '<span class="badge badge-success badge-lg">Lulus</span>',
-                                                'revision' => '<span class="badge badge-warning badge-lg">Revisi</span>',
-                                                'failed' => '<span class="badge badge-danger badge-lg">Tidak Lulus</span>',
-                                            ];
+                                            $resultClass = match($applicationResultReview->result) {
+                                                'approved_no_revision', 'passed' => 'success',
+                                                'approved_minor_revision' => 'info',
+                                                'approved_major_revision' => 'warning',
+                                                'revision' => 'warning',
+                                                'failed' => 'danger',
+                                                default => 'secondary',
+                                            };
                                         @endphp
-                                        {!! $resultLabels[$applicationResultReview->result] ?? $applicationResultReview->result !!}
+                                        <span class="badge badge-{{ $resultClass }} badge-lg">{{ $applicationResultReview->resultLabel() }}</span>
+                                        @if($applicationResultReview->isEligibleOutcome())
+                                            {!! ' ' . $applicationResultReview->adminValidationStatusHtml() !!}
+                                        @endif
                                     @else
                                         -
                                     @endif
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-        <div class="form-group">
-                                <label class="font-weight-bold">Batas Waktu Revisi:</label>
-                                <p class="form-control-plaintext">
-                                    {{ $applicationResultReview->revision_deadline ?? 'Tidak ada' }}
                                 </p>
                             </div>
                         </div>
@@ -93,40 +91,45 @@
             <!-- Documents Card -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="fas fa-file-pdf mr-2"></i>Dokumen</h5>
+                    <h5 class="mb-0"><i class="fas fa-file-pdf mr-2"></i>Dokumen Laporan</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Form Documents -->
                     <div class="form-group">
-                        <label class="font-weight-bold">Form Penilaian:</label>
+                        <label class="font-weight-bold">Form Umpan Balik Reviewer:</label>
                         <div class="mt-2">
-                            @if($applicationResultReview->form_document && count($applicationResultReview->form_document) > 0)
-                                @foreach($applicationResultReview->form_document as $index => $media)
+                            @if($applicationResultReview->reviewer_feedback_forms && count($applicationResultReview->reviewer_feedback_forms) > 0)
+                                @foreach($applicationResultReview->reviewer_feedback_forms as $index => $media)
                                     <div class="mb-2">
                                         <a href="{{ $media->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-file-pdf mr-1"></i> Form Penilaian {{ $index + 1 }}
+                                            <i class="fas fa-file-pdf mr-1"></i> Form Umpan Balik {{ $index + 1 }}
                                         </a>
                                     </div>
-                            @endforeach
+                                @endforeach
                             @else
                                 <p class="text-muted">Tidak ada dokumen</p>
                             @endif
                         </div>
                     </div>
 
-                    <!-- Latest Script -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">Naskah Proposal Terbaru:</label>
-                        <div class="mt-2">
-                            @if($applicationResultReview->latest_script)
-                                <a href="{{ $applicationResultReview->latest_script->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-file-pdf mr-1"></i> Lihat Naskah
-                                </a>
-                            @else
-                                <p class="text-muted">Tidak ada dokumen</p>
-                            @endif
+                    @foreach([
+                        'application_letter' => 'Surat Permohonan Review Proposal',
+                        'minutes_document' => 'Berita Acara Review Proposal',
+                        'proposal_manuscript' => 'Naskah Proposal',
+                        'research_ethics_form' => 'Lembar Etika Penelitian',
+                    ] as $field => $label)
+                        <div class="form-group">
+                            <label class="font-weight-bold">{{ $label }}:</label>
+                            <div class="mt-2">
+                                @if($applicationResultReview->{$field})
+                                    <a href="{{ $applicationResultReview->{$field}->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-file-pdf mr-1"></i> Lihat Dokumen
+                                    </a>
+                                @else
+                                    <p class="text-muted">Tidak ada dokumen</p>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
 
@@ -202,7 +205,7 @@
             </div>
 
             <!-- Actions Card -->
-            @if($applicationResultReview->application && $applicationResultReview->application->status !== 'approved' && $applicationResultReview->application->status !== 'rejected')
+            @if($applicationResultReview->application && $applicationResultReview->isEligibleOutcome() && ! $applicationResultReview->isValidatedByAdmin() && ! $applicationResultReview->isRejectedByAdmin())
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white">
                         <h5 class="mb-0"><i class="fas fa-tasks mr-2"></i>Aksi</h5>

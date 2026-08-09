@@ -22,63 +22,59 @@
                     <h4 class="font-weight-bold mb-3">Hasil Review</h4>
                     @php
                         $badge = match($applicationResultReview->result) {
-                            'passed' => ['success', 'Lulus'],
-                            'revision' => ['warning', 'Revisi'],
-                            'failed' => ['danger', 'Tidak Lulus'],
-                            default => ['secondary', $applicationResultReview->result],
+                            'approved_no_revision', 'passed' => ['success', $applicationResultReview->resultLabel()],
+                            'approved_minor_revision' => ['info', $applicationResultReview->resultLabel()],
+                            'approved_major_revision' => ['warning', $applicationResultReview->resultLabel()],
+                            'revision' => ['warning', $applicationResultReview->resultLabel()],
+                            'failed' => ['danger', $applicationResultReview->resultLabel()],
+                            default => ['secondary', $applicationResultReview->resultLabel()],
                         };
                     @endphp
                     <span class="badge badge-{{ $badge[0] }} badge-lg">{{ $badge[1] }}</span>
-                    @if($applicationResultReview->result === 'passed')
-                        @if($applicationResultReview->isValidatedByAdmin())
-                            <span class="badge badge-success ml-1">Divalidasi Admin</span>
-                        @else
-                            <span class="badge badge-warning ml-1">Menunggu Validasi Admin</span>
-                        @endif
-                    @endif
-
-                    @if($applicationResultReview->revision_deadline)
-                        <p class="mt-3 mb-0"><strong>Tenggat Revisi:</strong> {{ $applicationResultReview->revision_deadline }}</p>
-                    @endif
-                    @if($applicationResultReview->note)
-                        <p class="mt-3 mb-0 text-muted">{{ $applicationResultReview->note }}</p>
+                    @if($applicationResultReview->isEligibleOutcome())
+                        {!! ' ' . $applicationResultReview->adminValidationStatusHtml() !!}
                     @endif
                 </div>
             </div>
 
-            @if($applicationResultReview->form_document && count($applicationResultReview->form_document) > 0)
-                <div class="card-modern mb-4">
-                    <div class="card-modern-body">
-                        <h4 class="font-weight-bold mb-3">Form Penilaian Reviewer</h4>
-                        @foreach($applicationResultReview->form_document as $document)
+            <div class="card-modern mb-4">
+                <div class="card-modern-body">
+                    <h4 class="font-weight-bold mb-3">Dokumen Laporan</h4>
+
+                    @if($applicationResultReview->reviewer_feedback_forms && count($applicationResultReview->reviewer_feedback_forms) > 0)
+                        <h6 class="font-weight-semibold">Form Umpan Balik Reviewer</h6>
+                        @foreach($applicationResultReview->reviewer_feedback_forms as $document)
                             <a href="{{ $document->getUrl() }}" target="_blank" class="btn btn-outline-primary btn-sm mr-2 mb-2">
                                 <i class="fas fa-file-pdf"></i> {{ $document->file_name }}
                             </a>
                         @endforeach
-                    </div>
-                </div>
-            @endif
+                    @endif
 
-            @if($applicationResultReview->latest_script)
-                <div class="card-modern mb-4">
-                    <div class="card-modern-body">
-                        <h4 class="font-weight-bold mb-3">Naskah Proposal Terbaru</h4>
-                        <a href="{{ $applicationResultReview->latest_script->getUrl() }}" target="_blank" class="btn btn-outline-primary">
-                            <i class="fas fa-file-pdf"></i> {{ $applicationResultReview->latest_script->file_name }}
-                        </a>
-                    </div>
+                    @foreach([
+                        'application_letter' => 'Surat Permohonan Review Proposal',
+                        'minutes_document' => 'Berita Acara Review Proposal',
+                        'proposal_manuscript' => 'Naskah Proposal',
+                        'research_ethics_form' => 'Lembar Etika Penelitian',
+                    ] as $field => $label)
+                        @if($applicationResultReview->{$field})
+                            <h6 class="font-weight-semibold mt-3">{{ $label }}</h6>
+                            <a href="{{ $applicationResultReview->{$field}->getUrl() }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-file-pdf"></i> {{ $applicationResultReview->{$field}->file_name }}
+                            </a>
+                        @endif
+                    @endforeach
                 </div>
-            @endif
+            </div>
         </div>
 
         <div class="col-lg-4">
             <div class="card-modern">
                 <div class="card-modern-body">
                     <h5 class="font-weight-bold mb-3">Aksi</h5>
-                    @if($applicationResultReview->result === 'passed')
+                    @if($applicationResultReview->isEligibleOutcome())
                         @if($canAccessDefense['allowed'] ?? false)
                             <div class="alert alert-success">
-                                Laporan hasil lulus sudah divalidasi admin. Anda dapat mendaftar sidang skripsi.
+                                Laporan hasil review sudah divalidasi admin. Anda dapat mendaftar sidang skripsi.
                             </div>
                             @can('skripsi_defense_create')
                                 <a href="{{ route('frontend.skripsi-defenses.create') }}" class="btn btn-success btn-block">

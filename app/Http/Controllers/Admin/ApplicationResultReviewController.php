@@ -56,7 +56,7 @@ class ApplicationResultReviewController extends Controller
             });
 
             $table->editColumn('result', function ($row) {
-                return $row->result ? ApplicationResultReview::RESULT_SELECT[$row->result] : '';
+                return $row->result ? $row->resultLabel() : '';
             });
 
             $table->addColumn('application_status', function ($row) {
@@ -164,10 +164,10 @@ class ApplicationResultReviewController extends Controller
     {
         $resultReview = ApplicationResultReview::with('application')->findOrFail($id);
 
-        if ($resultReview->result !== 'passed') {
+        if (! $resultReview->isEligibleOutcome()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi admin hanya untuk laporan dengan hasil lulus (passed).',
+                'message' => 'Validasi admin hanya untuk laporan dengan hasil disetujui.',
             ], 422);
         }
 
