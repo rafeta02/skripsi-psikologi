@@ -128,6 +128,70 @@
                 </div>
             </div>
 
+            @if($skripsiSeminar->admin_validated_at && isset($reviewerAssignments) && $reviewerAssignments->isNotEmpty())
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3 class="card-title mb-0"><i class="fas fa-users mr-2"></i> Status Penugasan Reviewer</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Slot</th>
+                                    <th>Dosen</th>
+                                    <th>Status</th>
+                                    <th>Deadline Respons</th>
+                                    <th>Deadline Feedback</th>
+                                    <th class="text-center" style="min-width: 140px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($reviewerAssignments as $ra)
+                                    <tr>
+                                        <td>{{ str_replace('_', ' ', ucfirst($ra->reviewer_slot ?? '-')) }}</td>
+                                        <td>
+                                            {{ $ra->lecturer->nama ?? '-' }}
+                                            @if($ra->lecturer?->user?->displayPhoneNumber())
+                                                <br><small class="text-muted">{{ $ra->lecturer->user->displayPhoneNumber() }}</small>
+                                            @endif
+                                        </td>
+                                        <td>{!! $ra->statusBadgeHtml() !!}</td>
+                                        <td>{{ $ra->getRawOriginal('response_deadline') ? \Carbon\Carbon::parse($ra->getRawOriginal('response_deadline'))->format('d M Y H:i') : '-' }}</td>
+                                        <td>{{ $ra->getRawOriginal('feedback_deadline') ? \Carbon\Carbon::parse($ra->getRawOriginal('feedback_deadline'))->format('d M Y H:i') : '-' }}</td>
+                                        <td class="text-center text-nowrap">
+                                            @if($ra->needsReviewerAcceptanceReminder() || $ra->needsFeedbackReminder())
+                                                @php $waUrl = $ra->whatsappReminderUrl($skripsiSeminar); @endphp
+                                                @if($waUrl)
+                                                    <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer"
+                                                       class="btn btn-sm btn-success mb-1"
+                                                       title="{{ $ra->needsReviewerAcceptanceReminder() ? 'Ingatkan persetujuan reviewer via WhatsApp' : 'Ingatkan pengiriman feedback via WhatsApp' }}">
+                                                        <i class="fab fa-whatsapp"></i> WA
+                                                    </a>
+                                                @else
+                                                    <button type="button" class="btn btn-sm btn-secondary mb-1" disabled
+                                                            title="No. WhatsApp/HP dosen tidak tersedia di profil user">
+                                                        <i class="fab fa-whatsapp"></i> WA
+                                                    </button>
+                                                @endif
+                                            @endif
+                                            @if(in_array($ra->status, ['expired', 'rejected'], true))
+                                                <button type="button" class="btn btn-sm btn-warning reassign-reviewer-btn"
+                                                        data-assignment-id="{{ $ra->id }}"
+                                                        data-slot="{{ $ra->reviewer_slot }}">
+                                                    Ganti Reviewer
+                                                </button>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Documents Card -->
             <div class="card">
                 <div class="card-header bg-secondary text-white">
@@ -324,48 +388,6 @@
                     @endif
                 </div>
             </div>
-
-            @if($skripsiSeminar->admin_validated_at && isset($reviewerAssignments) && $reviewerAssignments->isNotEmpty())
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h3 class="card-title mb-0"><i class="fas fa-users mr-2"></i> Status Penugasan Reviewer</h3>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Slot</th>
-                                <th>Dosen</th>
-                                <th>Status</th>
-                                <th>Deadline Respons</th>
-                                <th>Deadline Feedback</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($reviewerAssignments as $ra)
-                                <tr>
-                                    <td>{{ str_replace('_', ' ', ucfirst($ra->reviewer_slot ?? '-')) }}</td>
-                                    <td>{{ $ra->lecturer->nama ?? '-' }}</td>
-                                    <td>{!! $ra->statusBadgeHtml() !!}</td>
-                                    <td>{{ $ra->getRawOriginal('response_deadline') ? \Carbon\Carbon::parse($ra->getRawOriginal('response_deadline'))->format('d M Y H:i') : '-' }}</td>
-                                    <td>{{ $ra->getRawOriginal('feedback_deadline') ? \Carbon\Carbon::parse($ra->getRawOriginal('feedback_deadline'))->format('d M Y H:i') : '-' }}</td>
-                                    <td>
-                                        @if(in_array($ra->status, ['expired', 'rejected'], true))
-                                            <button type="button" class="btn btn-xs btn-warning reassign-reviewer-btn"
-                                                    data-assignment-id="{{ $ra->id }}"
-                                                    data-slot="{{ $ra->reviewer_slot }}">
-                                                Ganti Reviewer
-                                            </button>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            @endif
 
             <!-- Action Buttons Card -->
             @if($skripsiSeminar->application && $skripsiSeminar->application->status === 'submitted' && !$skripsiSeminar->admin_validated_at)

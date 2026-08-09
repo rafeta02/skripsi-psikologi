@@ -297,4 +297,43 @@ class ApplicationAssignment extends Model implements HasMedia
             $this->attributes['responded_at'] = Carbon::parse($value)->format('Y-m-d H:i:s');
         }
     }
+
+    public function needsReviewerAcceptanceReminder(): bool
+    {
+        return $this->role === 'reviewer' && $this->status === 'assigned';
+    }
+
+    public function needsFeedbackReminder(): bool
+    {
+        return $this->role === 'reviewer'
+            && $this->status === 'accepted'
+            && ! $this->getRawOriginal('feedback_submitted_at');
+    }
+
+    public function whatsappReminderUrl(SkripsiSeminar $seminar): ?string
+    {
+        if (! $this->needsReviewerAcceptanceReminder() && ! $this->needsFeedbackReminder()) {
+            return null;
+        }
+
+        $phone = $this->lecturer?->user?->whatsappNumberForLink();
+        if (! $phone) {
+            return null;
+        }
+
+        $mahasiswa = $seminar->application?->mahasiswa;
+        $mahasiswaNama = $mahasiswa->nama ?? '-';
+        $nim = $mahasiswa->nim ?? '-';
+        $judul = $seminar->title ?? '-';
+        $dosenNama = $this->lecturer->nama ?? 'Bapak/Ibu';
+        $slot = str_replace('_', ' ', ucfirst($this->reviewer_slot ?? 'reviewer'));
+
+        if ($this->needsReviewerAcceptanceReminder()) {
+            $message = "Yth. {$dosenNama},\n\nMohon untuk segera menyetujui penugasan sebagai dosen {$slot} pada Review Kelayakan Proposal (Reguler) mahasiswa:\n- Nama: {$mahasiswaNama}\n- NIM: {$nim}\n- Judul: {$judul}\n\nSilakan login ke SIMSKRIPSI untuk merespons penugasan.\n\nTerima kasih.";
+        } else {
+            $message = "Yth. {$dosenNama},\n\nMohon untuk segera mengirim dokumen umpan balik sebagai dosen {$slot} pada Review Kelayakan Proposal (Reguler) mahasiswa:\n- Nama: {$mahasiswaNama}\n- NIM: {$nim}\n- Judul: {$judul}\n\nSilakan login ke SIMSKRIPSI untuk mengunggah feedback review proposal.\n\nTerima kasih.";
+        }
+
+        return 'https://wa.me/'.$phone.'?text='.rawurlencode($message);
+    }
 }

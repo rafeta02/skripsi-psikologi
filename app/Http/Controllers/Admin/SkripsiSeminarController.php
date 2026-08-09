@@ -194,11 +194,11 @@ class SkripsiSeminarController extends Controller
             'created_by',
             'reviewer1',
             'reviewer2',
-            'reviewerAssignments.lecturer'
+            'reviewerAssignments.lecturer.user'
         );
 
         $reviewerAssignments = $skripsiSeminar->reviewerAssignments()
-            ->with('lecturer')
+            ->with('lecturer.user')
             ->orderBy('reviewer_slot')
             ->get();
 

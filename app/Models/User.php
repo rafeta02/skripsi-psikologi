@@ -127,4 +127,37 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->belongsTo(Dosen::class, 'dosen_id');
     }
+
+    public function whatsappNumberForLink(): ?string
+    {
+        return static::formatPhoneForWhatsapp($this->whatshapp)
+            ?: static::formatPhoneForWhatsapp($this->no_hp);
+    }
+
+    public function displayPhoneNumber(): ?string
+    {
+        $phone = trim((string) ($this->whatshapp ?: $this->no_hp));
+
+        return $phone !== '' ? $phone : null;
+    }
+
+    public static function formatPhoneForWhatsapp(?string $phone): ?string
+    {
+        if (! $phone) {
+            return null;
+        }
+
+        $phone = preg_replace('/\D+/', '', $phone);
+        if ($phone === '') {
+            return null;
+        }
+
+        if (str_starts_with($phone, '0')) {
+            $phone = '62'.substr($phone, 1);
+        } elseif (in_array(substr($phone, 0, 2), ['81', '82', '83', '85', '88', '89'], true)) {
+            $phone = '62'.$phone;
+        }
+
+        return $phone;
+    }
 }

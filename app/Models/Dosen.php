@@ -82,4 +82,9 @@ class Dosen extends Model
     {
         return $this->belongsTo(ResearchGroup::class, 'riset_grup_id');
     }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'dosen_id');
+    }
 }
