@@ -42,7 +42,7 @@ class ReviewerAssignmentService
         $responseDeadline = $now->copy()->addDays($this->responseDays());
         $feedbackDeadline = $now->copy()->addDays($this->feedbackDeadlineDays());
 
-        DB::transaction(function () use ($seminar, $reviewer1Id, $reviewer2Id, $notes, $now, $responseDeadline, $feedbackDeadline) {
+        DB::transaction(function () use ($seminar, $reviewer1Id, $reviewer2Id, $notes, $now, $responseDeadline, $feedbackDeadline, $supervisorId) {
             $seminar->update([
                 'reviewer_1_id' => $reviewer1Id,
                 'reviewer_2_id' => $reviewer2Id,
@@ -72,6 +72,25 @@ class ReviewerAssignmentService
                 ]);
             }
 
+            if ($supervisorId) {
+                ApplicationAssignment::query()
+                    ->where('application_id', $seminar->application_id)
+                    ->where('skripsi_seminar_id', $seminar->id)
+                    ->where('role', 'supervisor_informant')
+                    ->where('lecturer_id', $supervisorId)
+                    ->delete();
+
+                ApplicationAssignment::create([
+                    'application_id' => $seminar->application_id,
+                    'skripsi_seminar_id' => $seminar->id,
+                    'lecturer_id' => $supervisorId,
+                    'role' => 'supervisor_informant',
+                    'status' => 'informed',
+                    'assigned_at' => $now,
+                    'note' => $notes ?? 'Informasi Review Kelayakan Proposal (Reguler) mahasiswa bimbingan Anda.',
+                ]);
+            }
+
             ApplicationAction::create([
                 'application_id' => $seminar->application_id,
                 'action_type' => 'seminar_approved',
@@ -81,6 +100,7 @@ class ReviewerAssignmentService
                     'reviewer_1_id' => $reviewer1Id,
                     'reviewer_2_id' => $reviewer2Id,
                     'skripsi_seminar_id' => $seminar->id,
+                    'supervisor_informed_id' => $supervisorId,
                 ],
             ]);
         });

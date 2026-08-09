@@ -38,6 +38,7 @@ class ApplicationAssignment extends Model implements HasMedia
         'expired'            => 'Expired',
         'feedback_submitted' => 'Feedback Submitted',
         'replaced'           => 'Replaced',
+        'informed'           => 'Informed',
     ];
 
     public const FEEDBACK_RESULT_SELECT = [
@@ -47,9 +48,10 @@ class ApplicationAssignment extends Model implements HasMedia
     ];
 
     public const ROLE_SELECT = [
-        'supervisor' => 'Supervisor',
-        'reviewer'   => 'Reviewer',
-        'examiner'   => 'Examiner',
+        'supervisor'           => 'Supervisor',
+        'supervisor_informant' => 'Supervisor Informant',
+        'reviewer'             => 'Reviewer',
+        'examiner'             => 'Examiner',
     ];
 
     protected $appends = [
@@ -150,6 +152,19 @@ class ApplicationAssignment extends Model implements HasMedia
         return $this->role === 'supervisor';
     }
 
+    public function isSupervisorInformant(): bool
+    {
+        return $this->role === 'supervisor_informant'
+            && $this->skripsi_seminar_id
+            && $this->application?->type === 'skripsi'
+            && $this->application?->stage === 'seminar';
+    }
+
+    public function showsProposalReviewDocuments(): bool
+    {
+        return $this->isProposalReviewer() || $this->isSupervisorInformant();
+    }
+
     public function requiresFeedback(): bool
     {
         return $this->isProposalReviewer();
@@ -157,6 +172,10 @@ class ApplicationAssignment extends Model implements HasMedia
 
     public function isPendingAction(): bool
     {
+        if ($this->isSupervisorInformant()) {
+            return false;
+        }
+
         if ($this->status === 'assigned') {
             return true;
         }
@@ -167,6 +186,7 @@ class ApplicationAssignment extends Model implements HasMedia
     public function displayStatusLabel(): array
     {
         return match (true) {
+            $this->isSupervisorInformant() && $this->status === 'informed' => ['Informasi', 'secondary'],
             $this->status === 'assigned' => ['Menunggu Respons', 'warning'],
             $this->status === 'accepted' && $this->requiresFeedback() => ['Menunggu Feedback', 'info'],
             $this->status === 'accepted' => ['Diterima', 'success'],
@@ -174,6 +194,7 @@ class ApplicationAssignment extends Model implements HasMedia
             $this->status === 'rejected' => ['Ditolak', 'danger'],
             $this->status === 'expired' => ['Kedaluwarsa', 'dark'],
             $this->status === 'replaced' => ['Diganti', 'secondary'],
+            $this->status === 'informed' => ['Informasi', 'secondary'],
             default => [ucfirst($this->status ?? '-'), 'secondary'],
         };
     }

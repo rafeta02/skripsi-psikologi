@@ -4,6 +4,7 @@
 @php
     $app = $assignment->application;
     $reviewSubtitle = match (true) {
+        $assignment->isSupervisorInformant() => 'Informasi Review Kelayakan Proposal (Reguler) mahasiswa bimbingan Anda — tidak perlu respons',
         $assignment->isSupervisorAssignment() => 'Persetujuan pembimbing — terima atau tolak permintaan bimbingan',
         ($app->type ?? null) === 'mbkm' && ($app->stage ?? null) === 'seminar' => 'Review Kelayakan Proposal (MBKM) — berikan keputusan dan feedback',
         ($app->type ?? null) === 'mbkm' => 'Pendaftaran Skripsi MBKM — berikan keputusan',
@@ -11,6 +12,7 @@
         default => 'Pendaftaran Skripsi Reguler — persetujuan pembimbing',
     };
     $reviewTitle = match (true) {
+        $assignment->isSupervisorInformant() => 'Informasi Review Kelayakan Proposal (Reguler)',
         ($app->stage ?? null) === 'seminar' && ($assignment->role ?? null) === 'reviewer'
             => 'Tinjau Review Kelayakan Proposal (' . (($app->type ?? null) === 'mbkm' ? 'MBKM' : 'Reguler') . ')',
         $assignment->isSupervisorAssignment() => 'Persetujuan Pembimbing',
@@ -227,7 +229,13 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">Peran Anda</label>
-                            <p class="font-weight-semibold mb-0 text-capitalize">{{ $assignment->role ?? '-' }}</p>
+                            <p class="font-weight-semibold mb-0">
+                                @if($assignment->isSupervisorInformant())
+                                    Pembimbing (Informasi)
+                                @else
+                                    <span class="text-capitalize">{{ $assignment->role ?? '-' }}</span>
+                                @endif
+                            </p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">Tanggal Penugasan</label>
@@ -243,9 +251,11 @@
                         $seminar = $assignment->skripsiSeminar ?? $app?->skripsiSeminar;
                         $registration = $app?->skripsiRegistration;
                         $isProposalReviewer = $assignment->isProposalReviewer();
+                        $isSupervisorInformant = $assignment->isSupervisorInformant();
+                        $showsProposalReview = $assignment->showsProposalReviewDocuments();
                     @endphp
 
-                    @if($isProposalReviewer && $seminar)
+                    @if($showsProposalReview && $seminar)
                         <h6 class="font-weight-bold text-primary mb-3">
                             <i class="fas fa-presentation mr-1"></i> Review Kelayakan Proposal (Reguler)
                         </h6>
@@ -253,11 +263,18 @@
                             <label class="text-muted mb-1">Judul Proposal</label>
                             <h6 class="font-weight-semibold mb-0">{{ $seminar->title ?? '-' }}</h6>
                         </div>
+                        @if($isProposalReviewer)
                         <div class="mb-3">
                             <label class="text-muted mb-1">Slot Reviewer</label>
                             <p class="mb-0"><span class="badge badge-info">{{ str_replace('_', ' ', ucfirst($assignment->reviewer_slot ?? 'reviewer')) }}</span></p>
                         </div>
-                        @if($assignment->getRawOriginal('response_deadline'))
+                        @elseif($isSupervisorInformant)
+                        <div class="alert alert-info py-2 small mb-3">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Anda menerima informasi ini sebagai <strong>dosen pembimbing</strong>. Review proposal dilakukan oleh reviewer yang ditugaskan admin.
+                        </div>
+                        @endif
+                        @if($isProposalReviewer && $assignment->getRawOriginal('response_deadline'))
                             <div class="alert alert-light border small">
                                 Batas respons penugasan:
                                 <strong>{{ \Carbon\Carbon::parse($assignment->getRawOriginal('response_deadline'))->format('d M Y H:i') }}</strong>
@@ -328,7 +345,13 @@
     <div class="col-lg-12">
         @php $isProposalReviewer = $assignment->isProposalReviewer(); @endphp
 
-        @if($isProposalReviewer && $assignment->status === 'assigned')
+        @if($assignment->isSupervisorInformant())
+            <div class="alert alert-secondary mb-0">
+                <h5 class="alert-heading mb-2">Penugasan informasi</h5>
+                <p class="mb-0">Tidak ada tindakan yang perlu Anda lakukan. Halaman ini hanya untuk melihat dokumen Review Kelayakan Proposal mahasiswa bimbingan Anda.</p>
+            </div>
+
+        @elseif($isProposalReviewer && $assignment->status === 'assigned')
             <div class="card-modern">
                 <div class="card-modern-body">
                     <h5 class="font-weight-bold mb-3">Respons Penugasan Reviewer</h5>

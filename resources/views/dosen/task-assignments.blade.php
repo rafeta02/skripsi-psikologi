@@ -55,6 +55,8 @@
                                         <td>
                                             @if($assignment->role == 'supervisor')
                                                 <span class="badge badge-success">Pembimbing</span>
+                                            @elseif($assignment->role == 'supervisor_informant')
+                                                <span class="badge badge-success">Pembimbing (Info)</span>
                                             @elseif($assignment->role == 'reviewer')
                                                 <span class="badge badge-info">Reviewer</span>
                                             @else
@@ -70,6 +72,10 @@
                                             @if($assignment->isPendingAction())
                                                 <a href="{{ route('dosen.review-proposal', $assignment->id) }}" class="btn btn-sm btn-outline-primary">
                                                     {{ $assignment->status === 'assigned' ? 'Tinjau' : 'Kirim Feedback' }}
+                                                </a>
+                                            @elseif($assignment->isSupervisorInformant())
+                                                <a href="{{ route('dosen.review-proposal', $assignment->id) }}" class="btn btn-sm btn-outline-secondary">
+                                                    Lihat Informasi
                                                 </a>
                                             @else
                                                 <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#detailModal{{ $assignment->id }}">
