@@ -27,7 +27,7 @@ class DosenController extends Controller
         abort_if(Gate::denies('dosen_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = Dosen::with(['prodi', 'jenjang', 'fakultas', 'keilmuans', 'riset_grup'])->select(sprintf('%s.*', (new Dosen)->table));
+            $query = Dosen::with(['prodi', 'jenjang', 'fakultas', 'riset_grup'])->select(sprintf('%s.*', (new Dosen)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -39,7 +39,7 @@ class DosenController extends Controller
                 $deleteGate    = 'dosen_delete';
                 $crudRoutePart = 'dosens';
 
-                return view('partials.datatablesActions', compact(
+                return view('admin.dosens.partials.datatablesActions', compact(
                     'viewGate',
                     'editGate',
                     'deleteGate',
@@ -68,19 +68,25 @@ class DosenController extends Controller
                 return $row->prodi ? $row->prodi->name : '';
             });
 
-            $table->editColumn('keilmuan', function ($row) {
-                $labels = [];
-                foreach ($row->keilmuans as $keilmuan) {
-                    $labels[] = sprintf('<span class="label label-info label-many">%s</span>', $keilmuan->name);
+            $table->editColumn('mbkm_availability', function ($row) {
+                if (Gate::denies('dosen_edit')) {
+                    return $row->mbkm_availability
+                        ? '<span class="badge badge-success">Ya</span>'
+                        : '<span class="badge badge-secondary">Tidak</span>';
                 }
 
-                return implode(' ', $labels);
+                return sprintf(
+                    '<input type="checkbox" class="toggle-mbkm-availability" data-url="%s" %s>',
+                    route('admin.dosens.toggleMbkmAvailability', $row->id),
+                    $row->mbkm_availability ? 'checked' : ''
+                );
             });
+
             $table->addColumn('riset_grup_name', function ($row) {
                 return $row->riset_grup ? $row->riset_grup->name : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'prodi', 'keilmuan', 'riset_grup']);
+            $table->rawColumns(['actions', 'placeholder', 'prodi', 'mbkm_availability', 'riset_grup']);
 
             return $table->make(true);
         }
@@ -144,6 +150,23 @@ class DosenController extends Controller
         $dosen->keilmuans()->sync($request->input('keilmuans', []));
 
         return redirect()->route('admin.dosens.index');
+    }
+
+    public function toggleMbkmAvailability(Dosen $dosen)
+    {
+        abort_if(Gate::denies('dosen_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $dosen->update([
+            'mbkm_availability' => ! $dosen->mbkm_availability,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'mbkm_availability' => $dosen->mbkm_availability,
+            'message' => $dosen->mbkm_availability
+                ? 'Dosen tersedia untuk MBKM.'
+                : 'Dosen tidak tersedia untuk MBKM.',
+        ]);
     }
 
     public function show(Dosen $dosen)

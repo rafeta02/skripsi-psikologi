@@ -20,6 +20,26 @@
 }
 
 /** Sidebar menu badge (long labels) **/
+.sidebar .nav-link {
+  position: relative;
+}
+
+.sidebar .nav-link p {
+  position: relative;
+  display: block;
+  padding-right: 1.5rem;
+}
+
+.sidebar .nav-link p .right {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  float: none;
+  width: auto;
+  margin: 0;
+}
+
 .sidebar .nav-link.nav-link-wrap p {
   white-space: normal;
   line-height: 1.25;
@@ -28,6 +48,18 @@
 
 .sidebar .nav-icon-with-badge {
   position: relative;
+  display: inline-block;
+  flex: 0 0 1.6rem;
+  width: 1.6rem;
+  margin-right: .2rem;
+  text-align: center;
+  line-height: 1;
+}
+
+.sidebar .nav-icon-with-badge > .nav-icon {
+  margin-right: 0;
+  width: auto;
+  float: none;
 }
 
 .sidebar .sidebar-menu-badge {

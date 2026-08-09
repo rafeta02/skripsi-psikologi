@@ -47,7 +47,7 @@
                         {{ trans('cruds.dosen.fields.prodi') }}
                     </th>
                     <th>
-                        {{ trans('cruds.dosen.fields.keilmuan') }}
+                        {{ trans('cruds.dosen.fields.mbkm_availability') }}
                     </th>
                     <th>
                         {{ trans('cruds.dosen.fields.riset_grup') }}
@@ -115,7 +115,7 @@
 { data: 'tanggal_lahir', name: 'tanggal_lahir' },
 { data: 'gender', name: 'gender' },
 { data: 'prodi_name', name: 'prodi.name' },
-{ data: 'keilmuan', name: 'keilmuans.name' },
+{ data: 'mbkm_availability', name: 'mbkm_availability', orderable: false, searchable: false },
 { data: 'riset_grup_name', name: 'riset_grup.name' },
 { data: 'actions', name: '{{ trans('global.actions') }}' }
     ],
@@ -124,6 +124,61 @@
     pageLength: 50,
   };
   let table = $('.datatable-Dosen').DataTable(dtOverrideGlobals);
+
+  function syncMbkmToggleButton($btn, enabled) {
+    $btn
+      .data('enabled', enabled ? '1' : '0')
+      .toggleClass('btn-success', !enabled)
+      .toggleClass('btn-warning', enabled)
+      .text(enabled ? 'MBKM Off' : 'MBKM On')
+      .attr('title', enabled ? 'Nonaktifkan MBKM' : 'Aktifkan MBKM');
+  }
+
+  function toggleMbkmAvailability(url, $checkbox, $button) {
+    $.ajax({
+      headers: {'x-csrf-token': _token},
+      method: 'POST',
+      url: url,
+    }).done(function (response) {
+      const enabled = !!response.mbkm_availability;
+
+      if ($checkbox && $checkbox.length) {
+        $checkbox.prop('checked', enabled);
+      }
+
+      if ($button && $button.length) {
+        syncMbkmToggleButton($button, enabled);
+      }
+
+      $('.datatable-Dosen').find('.toggle-mbkm-availability[data-url="' + url + '"]').prop('checked', enabled);
+      $('.datatable-Dosen').find('.toggle-mbkm-availability-btn[data-url="' + url + '"]').each(function () {
+        syncMbkmToggleButton($(this), enabled);
+      });
+    }).fail(function () {
+      if ($checkbox && $checkbox.length) {
+        $checkbox.prop('checked', !$checkbox.prop('checked'));
+      }
+
+      alert('Gagal memperbarui status MBKM.');
+    });
+  }
+
+  $('.datatable-Dosen').on('change', '.toggle-mbkm-availability', function () {
+    const $checkbox = $(this);
+    const $row = $checkbox.closest('tr');
+    const $button = $row.find('.toggle-mbkm-availability-btn');
+
+    toggleMbkmAvailability($checkbox.data('url'), $checkbox, $button);
+  });
+
+  $('.datatable-Dosen').on('click', '.toggle-mbkm-availability-btn', function () {
+    const $button = $(this);
+    const $row = $button.closest('tr');
+    const $checkbox = $row.find('.toggle-mbkm-availability');
+
+    toggleMbkmAvailability($button.data('url'), $checkbox, $button);
+  });
+
   $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){
       $($.fn.dataTable.tables(true)).DataTable()
           .columns.adjust();

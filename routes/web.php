@@ -112,6 +112,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::delete('dosens/destroy', 'DosenController@massDestroy')->name('dosens.massDestroy');
     Route::post('dosens/parse-csv-import', 'DosenController@parseCsvImport')->name('dosens.parseCsvImport');
     Route::post('dosens/process-csv-import', 'DosenController@processCsvImport')->name('dosens.processCsvImport');
+    Route::post('dosens/{dosen}/toggle-mbkm-availability', 'DosenController@toggleMbkmAvailability')->name('dosens.toggleMbkmAvailability');
     Route::resource('dosens', 'DosenController');
 
     // Keilmuan

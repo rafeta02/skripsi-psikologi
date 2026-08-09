@@ -28,7 +28,7 @@
                             </i>
                             <p>
                                 {{ trans('cruds.userManagement.title') }}
-                                <i class="right fa fa-fw fa-angle-left nav-icon"></i>
+                                <i class="right fas fa-angle-left"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
@@ -91,7 +91,7 @@
                             </i>
                             <p>
                                 {{ trans('cruds.blogMaster.title') }}
-                                <i class="right fa fa-fw fa-angle-left nav-icon"></i>
+                                <i class="right fas fa-angle-left"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
@@ -152,7 +152,7 @@
                             </i>
                             <p>
                                 {{ trans('cruds.master.title') }}
-                                <i class="right fa fa-fw fa-angle-left nav-icon"></i>
+                                <i class="right fas fa-angle-left"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
@@ -239,7 +239,7 @@
                             </i>
                             <p>
                                 {{ trans('cruds.civitum.title') }}
-                                <i class="right fa fa-fw fa-angle-left nav-icon"></i>
+                                <i class="right fas fa-angle-left"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
@@ -276,7 +276,7 @@
                         <i class="fa-fw nav-icon fas fa-graduation-cap"></i>
                         <p>
                             Skripsi Management
-                            <i class="right fa fa-fw fa-angle-left nav-icon"></i>
+                            <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
@@ -313,11 +313,12 @@
                             <li class="nav-item">
                                 <a href="{{ route("admin.skripsi-seminars.index") }}" class="nav-link nav-link-wrap {{ request()->is("admin/skripsi-seminars") || request()->is("admin/skripsi-seminars/*") ? "active" : "" }}"
                                    @if(($skripsiSeminarOverdueCount ?? 0) > 0) title="{{ $skripsiSeminarOverdueCount }} reviewer terlambat respons atau feedback" @endif>
-                                    <i class="fa-fw nav-icon fas fa-chalkboard-teacher nav-icon-with-badge">
+                                    <span class="nav-icon-with-badge">
+                                        <i class="fa-fw nav-icon fas fa-chalkboard-teacher"></i>
                                         @if(($skripsiSeminarOverdueCount ?? 0) > 0)
                                             <span class="sidebar-menu-badge">{{ $skripsiSeminarOverdueCount }}</span>
                                         @endif
-                                    </i>
+                                    </span>
                                     <p>Review Kelayakan Proposal (Reguler)</p>
                                 </a>
                             </li>
@@ -338,7 +339,7 @@
                         @can('mbkm_seminar_access')
                             <li class="nav-item">
                                 <a href="{{ route("admin.mbkm-seminars.index") }}" class="nav-link {{ request()->is("admin/mbkm-seminars") || request()->is("admin/mbkm-seminars/*") ? "active" : "" }}">
-                                    <i class="fa-fw nav-icon fas fa-users-class"></i>
+                                    <i class="fa-fw nav-icon fas fa-clipboard-check"></i>
                                     <p>Review Kelayakan Proposal (MBKM)</p>
                                 </a>
                             </li>
