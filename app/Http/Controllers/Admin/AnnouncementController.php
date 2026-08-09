@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateAnnouncementRequest;
 use App\Models\Announcement;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
@@ -45,8 +46,8 @@ class AnnouncementController extends Controller
             $table->editColumn('audience', fn ($row) => $row->audienceLabel());
             $table->editColumn('status', fn ($row) => $row->statusLabel());
             $table->editColumn('is_pinned', fn ($row) => $row->is_pinned ? 'Ya' : 'Tidak');
-            $table->editColumn('published_at', fn ($row) => $row->published_at?->format('d M Y H:i') ?? '-');
-            $table->editColumn('expires_at', fn ($row) => $row->expires_at?->format('d M Y H:i') ?? '-');
+            $table->editColumn('published_at', fn ($row) => self::formatTableDate($row->published_at));
+            $table->editColumn('expires_at', fn ($row) => self::formatTableDate($row->expires_at));
 
             $table->rawColumns(['actions', 'placeholder']);
 
@@ -125,5 +126,14 @@ class AnnouncementController extends Controller
         }
 
         return $data;
+    }
+
+    private static function formatTableDate(mixed $value): string
+    {
+        if (blank($value)) {
+            return '-';
+        }
+
+        return Carbon::parse($value)->format('d M Y H:i');
     }
 }
