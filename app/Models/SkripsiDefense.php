@@ -31,6 +31,10 @@ class SkripsiDefense extends Model implements HasMedia
         'E'  => 'E',
     ];
 
+    protected $casts = [
+        'eap_score' => 'integer',
+    ];
+
     protected $dates = [
         'created_at',
         'updated_at',
@@ -43,6 +47,7 @@ class SkripsiDefense extends Model implements HasMedia
         'title_en',
         'abstract',
         'eap_grade',
+        'eap_score',
         'status',
         'admin_note',
         'created_at',

@@ -431,6 +431,8 @@ return [
             'abstract_helper'                     => ' ',
             'eap_grade'                           => 'Nilai EAP',
             'eap_grade_helper'                    => 'Nilai huruf EAP sesuai sertifikat (A, A-, B+, dst.)',
+            'eap_score'                           => 'Skor EAP',
+            'eap_score_helper'                    => 'Skor numerik EAP (1–100)',
             'defence_document'                    => 'Dokumen Sidang (Defence Document)',
             'defence_document_helper'             => 'File akan tersimpan sebagai: {application_id}_defence_document_{unique_id}.pdf',
             'plagiarism_report'                   => 'Laporan Plagiarisme Maksimal 20%',

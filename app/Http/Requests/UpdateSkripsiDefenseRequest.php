@@ -34,6 +34,12 @@ class UpdateSkripsiDefenseRequest extends FormRequest
                 'required',
                 Rule::in(SkripsiDefense::allowedEapGrades()),
             ],
+            'eap_score' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:100',
+            ],
             'ethics_statement' => [
                 'array',
             ],
@@ -69,6 +75,10 @@ class UpdateSkripsiDefenseRequest extends FormRequest
             'abstract.required' => 'Abstrak harus diisi',
             'eap_grade.required' => 'Nilai EAP harus dipilih',
             'eap_grade.in' => 'Nilai EAP tidak valid',
+            'eap_score.required' => 'Skor EAP harus diisi',
+            'eap_score.integer' => 'Skor EAP harus berupa angka',
+            'eap_score.min' => 'Skor EAP minimal 1',
+            'eap_score.max' => 'Skor EAP maksimal 100',
         ];
     }
 }

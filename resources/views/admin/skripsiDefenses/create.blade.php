@@ -51,6 +51,14 @@
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.eap_grade_helper') }}</span>
             </div>
             <div class="form-group">
+                <label for="eap_score">{{ trans('cruds.skripsiDefense.fields.eap_score') }}</label>
+                <input class="form-control {{ $errors->has('eap_score') ? 'is-invalid' : '' }}" type="number" name="eap_score" id="eap_score" min="1" max="100" step="1" value="{{ old('eap_score') }}" required>
+                @if($errors->has('eap_score'))
+                    <span class="text-danger">{{ $errors->first('eap_score') }}</span>
+                @endif
+                <span class="help-block">{{ trans('cruds.skripsiDefense.fields.eap_score_helper') }}</span>
+            </div>
+            <div class="form-group">
                 <label for="defence_document">{{ trans('cruds.skripsiDefense.fields.defence_document') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('defence_document') ? 'is-invalid' : '' }}" id="defence_document-dropzone">
                 </div>
