@@ -59,7 +59,7 @@
                                         <option value="mbkm_seminar" selected>Review Kelayakan Proposal</option>
                                     @endif
                                     @if($activeApplication->type === 'skripsi' && $activeApplication->stage === 'seminar')
-                                        <option value="skripsi_seminar" selected>Seminar Proposal Skripsi</option>
+                                        <option value="skripsi_seminar" selected>Review Kelayakan Proposal Skripsi</option>
                                     @endif
                                     @if($activeApplication->stage === 'defense')
                                         <option value="skripsi_defense" selected>Sidang Skripsi</option>

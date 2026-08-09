@@ -252,7 +252,7 @@ class DosenWorkloadService
             ->each(function (SkripsiSeminar $seminar) use ($dosenId, $items) {
                 $role = (int) $seminar->reviewer_1_id === $dosenId ? 'Reviewer 1' : 'Reviewer 2';
                 $items->push($this->formatPengujiItem(
-                    'Seminar Reguler',
+                    'Review Kelayakan Proposal',
                     $role,
                     $seminar->application,
                     $seminar->title

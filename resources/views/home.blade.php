@@ -142,9 +142,9 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="callout callout-info">
-                                    <h5>Seminar</h5>
+                                    <h5>Review Kelayakan Proposal</h5>
                                     <p class="mb-0">
-                                        <strong>{{ $pendingSeminars }}</strong> seminar menunggu verifikasi
+                                        <strong>{{ $pendingSeminars }}</strong> pengajuan menunggu verifikasi
                                     </p>
                                     <a href="{{ route('admin.skripsi-seminars.index') }}" class="btn btn-sm btn-info mt-2">
                                         <i class="fas fa-eye"></i> Lihat

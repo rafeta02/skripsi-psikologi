@@ -61,12 +61,12 @@
                 </div>
     </div>
 
-            <!-- Seminar Proposal Information Card -->
+            <!-- Review Kelayakan Proposal Information Card -->
             <div class="card">
                 <div class="card-header bg-info text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-presentation mr-2"></i>
-                        Informasi Seminar Proposal
+                        Informasi Review Kelayakan Proposal
                     </h3>
                 </div>
     <div class="card-body">
@@ -133,7 +133,7 @@
                 <div class="card-header bg-secondary text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-file-pdf mr-2"></i>
-                        Dokumen Seminar
+                        Dokumen Review Kelayakan Proposal
                     </h3>
                 </div>
                 <div class="card-body">
@@ -274,7 +274,7 @@
                 <div class="card-header bg-dark text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Status Seminar
+                        Status Review Kelayakan Proposal
                     </h3>
                 </div>
                 <div class="card-body">
@@ -293,6 +293,10 @@
                             <i class="fas fa-{{ $config['icon'] }} mr-2"></i>
                             {{ $config['text'] }}
                         </span>
+                    </div>
+
+                    <div class="alert alert-primary py-2 mb-3">
+                        <strong>Jalur Reguler — Review Kelayakan Proposal</strong>
                     </div>
 
                     <table class="table table-sm table-borderless">
@@ -334,12 +338,12 @@
                     <div class="d-grid gap-2">
                         <button type="button" class="btn btn-success btn-lg btn-block mb-2" 
                                 onclick="showApproveModal({{ $skripsiSeminar->id }})">
-                            <i class="fas fa-check-circle mr-2"></i> Setujui Seminar
+                            <i class="fas fa-check-circle mr-2"></i> Setujui & Tugaskan Reviewer
                         </button>
                         
                         <button type="button" class="btn btn-danger btn-lg btn-block" 
                                 onclick="showRejectModal({{ $skripsiSeminar->id }})">
-                            <i class="fas fa-times-circle mr-2"></i> Tolak Seminar
+                            <i class="fas fa-times-circle mr-2"></i> Tolak Review Kelayakan Proposal
                         </button>
                     </div>
                 </div>
@@ -354,7 +358,7 @@
                     </a>
                     @can('skripsi_seminar_edit')
                         <a class="btn btn-info btn-block" href="{{ route('admin.skripsi-seminars.edit', $skripsiSeminar->id) }}">
-                            <i class="fas fa-edit mr-2"></i> Edit Seminar
+                            <i class="fas fa-edit mr-2"></i> Edit
                         </a>
                     @endcan
                 </div>
@@ -390,7 +394,7 @@
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-check-circle mr-2"></i>
-                    Setujui Seminar Proposal
+                    Setujui Review Kelayakan Proposal
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
@@ -400,7 +404,7 @@
                 <div class="modal-body">
                     <div class="alert alert-success">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Seminar proposal akan disetujui dan mahasiswa dapat melanjutkan ke tahap berikutnya.
+                        Review Kelayakan Proposal akan disetujui dan 2 reviewer akan ditugaskan.
                     </div>
 
                     <div class="form-group">
@@ -449,7 +453,7 @@
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-times-circle mr-2"></i>
-                    Tolak Seminar Proposal
+                    Tolak Review Kelayakan Proposal
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>

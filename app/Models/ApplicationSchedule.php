@@ -27,9 +27,9 @@ class ApplicationSchedule extends Model implements HasMedia
     ];
 
     public const SCHEDULE_TYPE_SELECT = [
-        'seminar'         => 'Seminar Proposal',
+        'seminar'         => 'Review Kelayakan Proposal',
         'defense'         => 'Sidang Skripsi',
-        'skripsi_seminar' => 'Seminar Skripsi',
+        'skripsi_seminar' => 'Review Kelayakan Proposal',
         'mbkm_seminar'    => 'Review Kelayakan Proposal',
         'skripsi_defense' => 'Sidang Skripsi',
     ];

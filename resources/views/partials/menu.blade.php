@@ -303,7 +303,7 @@
                             <li class="nav-item">
                                 <a href="{{ route("admin.skripsi-seminars.index") }}" class="nav-link {{ request()->is("admin/skripsi-seminars") || request()->is("admin/skripsi-seminars/*") ? "active" : "" }}">
                                     <i class="fa-fw nav-icon fas fa-chalkboard-teacher"></i>
-                                    <p>Seminar Reguler</p>
+                                    <p>Review Kelayakan Proposal</p>
                                 </a>
                             </li>
                         @endcan

@@ -1,11 +1,21 @@
 @extends('layouts.dosen')
 
 @section('content')
+@php
+    $app = $assignment->application;
+    $reviewSubtitle = match (true) {
+        ($app->type ?? null) === 'mbkm' && ($app->stage ?? null) === 'seminar' => 'Review Kelayakan Proposal MBKM — berikan keputusan dan feedback',
+        ($app->type ?? null) === 'mbkm' => 'Pendaftaran Skripsi MBKM — berikan keputusan dan feedback',
+        ($app->stage ?? null) === 'seminar' => 'Review Kelayakan Proposal — berikan keputusan dan feedback',
+        default => 'Pendaftaran Skripsi Reguler — berikan keputusan dan feedback',
+    };
+    $reviewTitle = (($app->stage ?? null) === 'seminar' && ($assignment->role ?? null) === 'reviewer')
+        ? 'Tinjau Review Kelayakan Proposal'
+        : 'Tinjau Proposal';
+@endphp
 @include('partials.dosen.page-header', [
-    'title' => 'Tinjau Proposal',
-    'subtitle' => $assignment->application?->type === 'mbkm'
-        ? 'Pendaftaran Skripsi MBKM — berikan keputusan dan feedback'
-        : 'Pendaftaran Skripsi Reguler — berikan keputusan dan feedback',
+    'title' => $reviewTitle,
+    'subtitle' => $reviewSubtitle,
 ])
 
 <div class="mb-3">
@@ -15,7 +25,6 @@
 </div>
 
 @php
-    $app = $assignment->application;
     $mhs = $app?->mahasiswa;
 @endphp
 

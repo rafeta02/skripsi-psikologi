@@ -261,7 +261,7 @@ $(document).ready(function() {
     new Chart(document.getElementById('stageChart'), {
         type: 'doughnut',
         data: {
-            labels: ['Pendaftaran', 'Seminar', 'Sidang'],
+            labels: ['Pendaftaran', 'Review Kelayakan Proposal', 'Sidang'],
             datasets: [{
                 data: [stageData.registration, stageData.seminar, stageData.defense],
                 backgroundColor: ['#007bff', '#ffc107', '#28a745'],

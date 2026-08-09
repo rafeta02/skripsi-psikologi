@@ -10,16 +10,16 @@
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h2 class="mb-1 text-white font-weight-bold">
-                                <i class="fas fa-presentation mr-2"></i> Pendaftaran Seminar Proposal
+                                <i class="fas fa-presentation mr-2"></i> Review Kelayakan Proposal
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                                Daftar untuk mengikuti seminar proposal skripsi
+                                Daftar untuk review kelayakan proposal skripsi
                             </p>
                         </div>
                         <div class="col-md-4 text-right">
                             @can('skripsi_seminar_create')
                                 <a href="{{ route('frontend.skripsi-seminars.create') }}" class="btn btn-light btn-lg shadow">
-                                    <i class="fas fa-plus-circle"></i> Daftar Seminar
+                                    <i class="fas fa-plus-circle"></i> Daftar Sekarang
                                 </a>
                             @endcan
                         </div>
@@ -74,7 +74,7 @@
                                             <i class="fas fa-presentation" style="font-size: 20px; color: white;"></i>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h4 class="mb-1 font-weight-bold">Seminar Proposal</h4>
+                                            <h4 class="mb-1 font-weight-bold">Review Kelayakan Proposal</h4>
                                             <p class="mb-2 text-muted">
                                                 <i class="fas fa-book mr-2"></i>{{ $seminar->title ?? 'Judul Proposal' }}
                                             </p>
@@ -180,11 +180,11 @@
                         <div style="width: 100px; height: 100px; background: var(--gray-100); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--spacing-4);">
                             <i class="fas fa-presentation fa-3x text-muted"></i>
                         </div>
-                        <h4 class="text-muted mb-3">Belum Ada Pendaftaran Seminar</h4>
-                        <p class="text-muted mb-4">Anda belum mendaftar untuk seminar proposal</p>
+                        <h4 class="text-muted mb-3">Belum Ada Review Kelayakan Proposal</h4>
+                        <p class="text-muted mb-4">Anda belum mendaftar review kelayakan proposal</p>
                         @can('skripsi_seminar_create')
                             <a href="{{ route('frontend.skripsi-seminars.create') }}" class="btn-modern btn-modern-primary btn-modern-lg">
-                                <i class="fas fa-plus-circle"></i> Daftar Seminar Sekarang
+                                <i class="fas fa-plus-circle"></i> Daftar Sekarang
                             </a>
                         @endcan
                     </div>

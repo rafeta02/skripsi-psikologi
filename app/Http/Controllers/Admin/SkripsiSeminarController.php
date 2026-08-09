@@ -226,7 +226,7 @@ class SkripsiSeminarController extends Controller
                     'application_id' => $seminar->application_id,
                     'action_type' => 'seminar_approved',
                     'action_by' => auth()->id(),
-                    'notes' => $request->notes ?? 'Seminar proposal disetujui',
+                    'notes' => $request->notes ?? 'Review Kelayakan Proposal disetujui',
                     'metadata' => [
                         'reviewer_1_id' => $request->reviewer_1_id,
                         'reviewer_2_id' => $request->reviewer_2_id,
@@ -236,7 +236,7 @@ class SkripsiSeminarController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Seminar proposal berhasil disetujui dan reviewer telah ditugaskan'
+                'message' => 'Review Kelayakan Proposal berhasil disetujui dan reviewer telah ditugaskan'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -276,7 +276,7 @@ class SkripsiSeminarController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Seminar proposal ditolak'
+                'message' => 'Review Kelayakan Proposal ditolak'
             ]);
         } catch (\Exception $e) {
             return response()->json([

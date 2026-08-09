@@ -8,10 +8,10 @@
             <div class="card-modern" style="background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%); border: none;">
                 <div class="card-modern-body" style="padding: 2rem;">
                     <h2 class="mb-1 text-white font-weight-bold">
-                        <i class="fas fa-edit mr-2"></i> Edit Pendaftaran Seminar
+                        <i class="fas fa-edit mr-2"></i> Edit Review Kelayakan Proposal
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Update informasi pendaftaran seminar proposal
+                        Perbarui data review kelayakan proposal
                     </p>
                 </div>
             </div>

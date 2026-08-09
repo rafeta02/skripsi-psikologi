@@ -506,8 +506,8 @@ return [
         ],
     ],
     'skripsiSeminar' => [
-        'title'          => 'Skripsi Seminar',
-        'title_singular' => 'Skripsi Seminar',
+        'title'          => 'Review Kelayakan Proposal',
+        'title_singular' => 'Review Kelayakan Proposal',
         'fields'         => [
             'id'                         => 'ID',
             'id_helper'                  => ' ',

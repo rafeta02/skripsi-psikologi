@@ -86,7 +86,7 @@
                                     <th>Nama Dosen</th>
                                     <th>NIDN</th>
                                     <th>Prodi</th>
-                                    <th class="text-center">Seminar Reguler</th>
+                                    <th class="text-center">Review Kelayakan Proposal</th>
                                     <th class="text-center">Review Kelayakan Proposal</th>
                                     <th class="text-center">Sidang</th>
                                     <th class="text-center bg-success text-white">Aktif</th>
