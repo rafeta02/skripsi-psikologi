@@ -10,6 +10,7 @@ use App\Models\SkripsiSeminar;
 use App\Models\MbkmSeminar;
 use App\Models\SkripsiDefense;
 use App\Models\Mahasiswa;
+use App\Models\Dosen;
 use App\Models\AdminAlert;
 use LaravelDaily\LaravelCharts\Classes\LaravelChart;
 
