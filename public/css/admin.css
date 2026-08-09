@@ -19,6 +19,41 @@
   background: #767676;
 }
 
+/** Sidebar menu badge (long labels) **/
+.sidebar .nav-link.nav-link-wrap p {
+  white-space: normal;
+  line-height: 1.25;
+  padding-right: 0.25rem;
+}
+
+.sidebar .nav-icon-with-badge {
+  position: relative;
+}
+
+.sidebar .sidebar-menu-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 9px;
+  background-color: #dc3545;
+  color: #fff;
+  box-shadow: 0 0 0 2px #343a40;
+  z-index: 1;
+}
+
+.sidebar-mini.sidebar-collapse .sidebar .nav-link.nav-link-wrap .sidebar-menu-badge {
+  top: -4px;
+  right: -6px;
+}
+
 /** Forms **/
 .form-group + .form-group {
   margin-top: 0.75rem;
