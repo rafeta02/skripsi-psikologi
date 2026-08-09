@@ -202,6 +202,10 @@ class SkripsiSeminarController extends Controller
             ->orderBy('reviewer_slot')
             ->get();
 
+        if ($skripsiSeminar->admin_validated_at) {
+            app(ReviewerAssignmentService::class)->ensureSupervisorInformant($skripsiSeminar);
+        }
+
         $supervisorId = $skripsiSeminar->application?->resolveSupervisorLecturerId();
         $supervisor = $supervisorId ? Dosen::find($supervisorId) : null;
 

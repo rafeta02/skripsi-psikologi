@@ -68,6 +68,8 @@ class DashboardController extends Controller
 
         app(\App\Services\MbkmGroupProgressService::class)->purgeMirrorAssignments();
 
+        app(ReviewerAssignmentService::class)->syncSupervisorInformantsForDosen($dosen->id);
+
         $totalMahasiswaBimbingan = ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosen->id)
             ->where('role', 'supervisor')
@@ -169,6 +171,8 @@ class DashboardController extends Controller
         $dosen = $this->resolveDosen();
 
         app(\App\Services\MbkmGroupProgressService::class)->purgeMirrorAssignments();
+
+        app(ReviewerAssignmentService::class)->syncSupervisorInformantsForDosen($dosen->id);
 
         $assignments = ApplicationAssignment::withoutGroupMirrors()
             ->with([

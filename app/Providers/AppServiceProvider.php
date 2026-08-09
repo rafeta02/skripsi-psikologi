@@ -119,5 +119,21 @@ class AppServiceProvider extends ServiceProvider
                 'portalStats' => $dosenId ? $portal->getSummaryStats($dosenId) : [],
             ]);
         });
+
+        View::composer(['dosen.*', 'partials.dosen.*'], function ($view) {
+            if (array_key_exists('portalNav', $view->getData())) {
+                return;
+            }
+
+            $portal = new DosenPortalService();
+            $dosenId = $portal->resolveDosenId();
+
+            $view->with([
+                'portalNav' => $portal->getNavigation(),
+                'quickActions' => $dosenId ? $portal->getQuickActions($dosenId) : [],
+                'activityTimeline' => $dosenId ? $portal->getActivityTimeline($dosenId) : [],
+                'portalStats' => $dosenId ? $portal->getSummaryStats($dosenId) : [],
+            ]);
+        });
     }
 }

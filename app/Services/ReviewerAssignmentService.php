@@ -73,22 +73,7 @@ class ReviewerAssignmentService
             }
 
             if ($supervisorId) {
-                ApplicationAssignment::query()
-                    ->where('application_id', $seminar->application_id)
-                    ->where('skripsi_seminar_id', $seminar->id)
-                    ->where('role', 'supervisor_informant')
-                    ->where('lecturer_id', $supervisorId)
-                    ->delete();
-
-                ApplicationAssignment::create([
-                    'application_id' => $seminar->application_id,
-                    'skripsi_seminar_id' => $seminar->id,
-                    'lecturer_id' => $supervisorId,
-                    'role' => 'supervisor_informant',
-                    'status' => 'informed',
-                    'assigned_at' => $now,
-                    'note' => $notes ?? 'Informasi Review Kelayakan Proposal (Reguler) mahasiswa bimbingan Anda.',
-                ]);
+                $this->ensureSupervisorInformant($seminar, $supervisorId, $now, $notes);
             }
 
             ApplicationAction::create([
@@ -285,6 +270,92 @@ class ReviewerAssignmentService
             });
 
         return $stats;
+    }
+
+    /**
+     * Buat / perbarui penugasan informasi untuk dosen pembimbing.
+     */
+    public function ensureSupervisorInformant(
+        SkripsiSeminar $seminar,
+        ?int $supervisorId = null,
+        ?Carbon $assignedAt = null,
+        ?string $note = null
+    ): ?ApplicationAssignment {
+        $seminar->loadMissing('application');
+
+        if (! $seminar->admin_validated_at || ! $seminar->application_id) {
+            return null;
+        }
+
+        $supervisorId ??= $seminar->application?->resolveSupervisorLecturerId();
+        if (! $supervisorId) {
+            return null;
+        }
+
+        $assignedAt ??= $seminar->admin_validated_at ?? now();
+        $note ??= 'Informasi Review Kelayakan Proposal (Reguler) mahasiswa bimbingan Anda.';
+
+        $existing = ApplicationAssignment::query()
+            ->where('application_id', $seminar->application_id)
+            ->where('skripsi_seminar_id', $seminar->id)
+            ->where('role', 'supervisor_informant')
+            ->where('lecturer_id', $supervisorId)
+            ->first();
+
+        if ($existing) {
+            if ($existing->status !== 'informed') {
+                $existing->update([
+                    'status' => 'informed',
+                    'assigned_at' => $assignedAt,
+                    'note' => $note,
+                ]);
+            }
+
+            return $existing->fresh();
+        }
+
+        return ApplicationAssignment::create([
+            'application_id' => $seminar->application_id,
+            'skripsi_seminar_id' => $seminar->id,
+            'lecturer_id' => $supervisorId,
+            'role' => 'supervisor_informant',
+            'status' => 'informed',
+            'assigned_at' => $assignedAt,
+            'note' => $note,
+        ]);
+    }
+
+    /**
+     * Backfill penugasan informasi pembimbing untuk seminar yang sudah di-approve sebelumnya.
+     */
+    public function syncSupervisorInformantsForDosen(int $dosenId): int
+    {
+        $created = 0;
+
+        SkripsiSeminar::query()
+            ->whereNotNull('admin_validated_at')
+            ->with('application')
+            ->orderBy('id')
+            ->each(function (SkripsiSeminar $seminar) use ($dosenId, &$created) {
+                if ((int) $seminar->application?->resolveSupervisorLecturerId() !== $dosenId) {
+                    return;
+                }
+
+                $before = ApplicationAssignment::query()
+                    ->where('application_id', $seminar->application_id)
+                    ->where('skripsi_seminar_id', $seminar->id)
+                    ->where('role', 'supervisor_informant')
+                    ->where('lecturer_id', $dosenId)
+                    ->exists();
+
+                $assignment = $this->ensureSupervisorInformant($seminar, $dosenId);
+
+                if ($assignment && ! $before) {
+                    $created++;
+                }
+            });
+
+        return $created;
     }
 
     private function createAlertIfMissing(string $type, ApplicationAssignment $assignment, string $severity, string $message): void
