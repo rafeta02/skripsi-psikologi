@@ -55,13 +55,23 @@
 
                             <div class="form-group">
                                 <label class="form-label-modern required">Form Umpan Balik Dari 2 Reviewer (PDF)</label>
-                                <div class="custom-file">
-                                    <input type="file" name="reviewer_feedback_forms[]" class="custom-file-input @error('reviewer_feedback_forms') is-invalid @enderror @error('reviewer_feedback_forms.*') is-invalid @enderror" id="reviewerFeedbackForms" accept=".pdf,application/pdf" multiple required>
-                                    <label class="custom-file-label" for="reviewerFeedbackForms">Pilih file...</label>
+                                <div class="mb-3">
+                                    <label class="small font-weight-semibold text-muted" for="reviewerFeedbackForm1">Reviewer 1</label>
+                                    <div class="custom-file">
+                                        <input type="file" name="reviewer_feedback_form_1" class="custom-file-input @error('reviewer_feedback_form_1') is-invalid @enderror" id="reviewerFeedbackForm1" accept=".pdf,application/pdf" required>
+                                        <label class="custom-file-label" for="reviewerFeedbackForm1">Pilih file reviewer 1...</label>
+                                    </div>
+                                    @error('reviewer_feedback_form_1')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                 </div>
-                                <small class="form-text text-muted">Unggah form umpan balik dari kedua reviewer (Max: 10MB per file, minimal 1 file)</small>
-                                @error('reviewer_feedback_forms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                @error('reviewer_feedback_forms.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                <div>
+                                    <label class="small font-weight-semibold text-muted" for="reviewerFeedbackForm2">Reviewer 2</label>
+                                    <div class="custom-file">
+                                        <input type="file" name="reviewer_feedback_form_2" class="custom-file-input @error('reviewer_feedback_form_2') is-invalid @enderror" id="reviewerFeedbackForm2" accept=".pdf,application/pdf" required>
+                                        <label class="custom-file-label" for="reviewerFeedbackForm2">Pilih file reviewer 2...</label>
+                                    </div>
+                                    @error('reviewer_feedback_form_2')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+                                <small class="form-text text-muted">Unggah form umpan balik masing-masing reviewer (Max: 10MB per file)</small>
                             </div>
 
                             <div class="form-group">

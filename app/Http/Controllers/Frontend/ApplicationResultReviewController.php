@@ -76,15 +76,15 @@ class ApplicationResultReviewController extends Controller
         $validated = $request->validate([
             'application_id' => 'required|exists:applications,id',
             'result' => 'required|in:approved_no_revision,approved_minor_revision,approved_major_revision',
-            'reviewer_feedback_forms' => 'required|array|min:1',
-            'reviewer_feedback_forms.*' => 'file|mimes:pdf|max:10240',
+            'reviewer_feedback_form_1' => 'required|file|mimes:pdf|max:10240',
+            'reviewer_feedback_form_2' => 'required|file|mimes:pdf|max:10240',
             'application_letter' => 'required|file|mimes:pdf|max:10240',
             'minutes_document' => 'required|file|mimes:pdf|max:10240',
             'proposal_manuscript' => 'required|file|mimes:pdf|max:10240',
             'research_ethics_form' => 'required|file|mimes:pdf|max:10240',
         ], [
-            'reviewer_feedback_forms.required' => 'Form umpan balik reviewer wajib diunggah.',
-            'reviewer_feedback_forms.min' => 'Unggah minimal 1 form umpan balik reviewer.',
+            'reviewer_feedback_form_1.required' => 'Form umpan balik reviewer 1 wajib diunggah.',
+            'reviewer_feedback_form_2.required' => 'Form umpan balik reviewer 2 wajib diunggah.',
             'application_letter.required' => 'Surat permohonan review proposal wajib diunggah.',
             'minutes_document.required' => 'Berita acara review proposal wajib diunggah.',
             'proposal_manuscript.required' => 'Naskah proposal wajib diunggah.',
@@ -116,7 +116,10 @@ class ApplicationResultReviewController extends Controller
             'result' => $validated['result'],
         ]);
 
-        foreach ($request->file('reviewer_feedback_forms', []) as $file) {
+        foreach ([
+            $request->file('reviewer_feedback_form_1'),
+            $request->file('reviewer_feedback_form_2'),
+        ] as $file) {
             $applicationResultReview->addMedia($file)->toMediaCollection('reviewer_feedback_forms');
         }
 
