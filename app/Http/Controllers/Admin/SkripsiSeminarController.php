@@ -25,7 +25,10 @@ class SkripsiSeminarController extends Controller
         abort_if(Gate::denies('skripsi_seminar_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = SkripsiSeminar::with(['application', 'created_by'])->select(sprintf('%s.*', (new SkripsiSeminar)->table));
+            $query = SkripsiSeminar::with([
+                'application.mahasiswa',
+                'created_by',
+            ])->select(sprintf('%s.*', (new SkripsiSeminar)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -33,7 +36,7 @@ class SkripsiSeminarController extends Controller
 
             $table->editColumn('actions', function ($row) {
                 $viewGate      = 'skripsi_seminar_show';
-                $editGate      = 'skripsi_seminar_edit';
+                $editGate      = 'skripsi_seminar_admin_edit_disabled';
                 $deleteGate    = 'skripsi_seminar_delete';
                 $crudRoutePart = 'skripsi-seminars';
 
@@ -46,24 +49,48 @@ class SkripsiSeminarController extends Controller
                 ));
             });
 
-            $table->addColumn('application_status', function ($row) {
-                return $row->application ? $row->application->status : '';
+            $table->addColumn('mahasiswa_name', function ($row) {
+                return $row->application && $row->application->mahasiswa
+                    ? e($row->application->mahasiswa->nama)
+                    : '<span class="text-muted">-</span>';
+            });
+
+            $table->addColumn('status_badge', function ($row) {
+                return $row->adminStatusBadgeHtml();
             });
 
             $table->editColumn('title', function ($row) {
-                return $row->title ? $row->title : '';
-            });
-            $table->editColumn('proposal_document', function ($row) {
-                return $row->proposal_document ? '<a href="' . $row->proposal_document->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
-            });
-            $table->editColumn('approval_document', function ($row) {
-                return $row->approval_document ? '<a href="' . $row->approval_document->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
-            });
-            $table->editColumn('plagiarism_document', function ($row) {
-                return $row->plagiarism_document ? '<a href="' . $row->plagiarism_document->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
+                return $row->title ? e($row->title) : '<span class="text-muted">-</span>';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'proposal_document', 'approval_document', 'plagiarism_document']);
+            $table->editColumn('proposal_document', function ($row) {
+                return $row->proposal_document
+                    ? '<a href="' . $row->proposal_document->getUrl() . '" target="_blank" class="btn btn-xs btn-outline-primary"><i class="fas fa-download"></i> Proposal</a>'
+                    : '<span class="text-muted">-</span>';
+            });
+
+            $table->editColumn('approval_document', function ($row) {
+                return $row->approval_document
+                    ? '<a href="' . $row->approval_document->getUrl() . '" target="_blank" class="btn btn-xs btn-outline-primary"><i class="fas fa-download"></i> Persetujuan</a>'
+                    : '<span class="text-muted">-</span>';
+            });
+
+            $table->editColumn('plagiarism_document', function ($row) {
+                return $row->plagiarism_document
+                    ? '<a href="' . $row->plagiarism_document->getUrl() . '" target="_blank" class="btn btn-xs btn-outline-primary"><i class="fas fa-download"></i> Plagiarisme</a>'
+                    : '<span class="text-muted">-</span>';
+            });
+
+            $table->rawColumns([
+                'actions',
+                'placeholder',
+                'mahasiswa_name',
+                'status_badge',
+                'title',
+                'proposal_document',
+                'approval_document',
+                'plagiarism_document',
+            ]);
 
             return $table->make(true);
         }

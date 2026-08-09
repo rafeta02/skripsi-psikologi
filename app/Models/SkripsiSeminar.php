@@ -88,4 +88,28 @@ class SkripsiSeminar extends Model implements HasMedia
     {
         return $this->belongsTo(Dosen::class, 'reviewer_2_id');
     }
+
+    public function adminStatusBadgeHtml(): string
+    {
+        $application = $this->application;
+        if (! $application) {
+            return '<span class="badge badge-secondary">-</span>';
+        }
+
+        $status = $application->status;
+
+        if ($status === 'approved' && $this->reviewer_1_id && $this->reviewer_2_id) {
+            return '<span class="badge badge-success">Reviewer Ditugaskan</span>';
+        }
+
+        return match ($status) {
+            'submitted' => '<span class="badge badge-info">Menunggu Review</span>',
+            'approved' => '<span class="badge badge-success">Disetujui</span>',
+            'rejected' => '<span class="badge badge-danger">Ditolak</span>',
+            'revision' => '<span class="badge badge-warning">Perlu Revisi</span>',
+            'scheduled' => '<span class="badge badge-primary">Terjadwal</span>',
+            'done' => '<span class="badge badge-secondary">Selesai</span>',
+            default => '<span class="badge badge-secondary">' . e(ucfirst($status)) . '</span>',
+        };
+    }
 }

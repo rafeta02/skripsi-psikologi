@@ -15,37 +15,30 @@
     </div>
 
     <div class="card-body">
-        <table class=" table table-bordered table-striped table-hover ajaxTable datatable datatable-SkripsiSeminar">
+        <table class="table table-bordered table-striped table-hover ajaxTable datatable datatable-SkripsiSeminar text-center">
             <thead>
                 <tr>
-                    <th width="10">
-
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiSeminar.fields.application') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiSeminar.fields.title') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiSeminar.fields.proposal_document') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiSeminar.fields.approval_document') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.skripsiSeminar.fields.plagiarism_document') }}
-                    </th>
-                    <th>
-                        &nbsp;
-                    </th>
+                    <th width="10" class="text-center"></th>
+                    <th class="text-center">Mahasiswa</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">{{ trans('cruds.skripsiSeminar.fields.title') }}</th>
+                    <th class="text-center">{{ trans('cruds.skripsiSeminar.fields.proposal_document') }}</th>
+                    <th class="text-center">{{ trans('cruds.skripsiSeminar.fields.approval_document') }}</th>
+                    <th class="text-center">{{ trans('cruds.skripsiSeminar.fields.plagiarism_document') }}</th>
+                    <th class="text-center">&nbsp;</th>
                 </tr>
             </thead>
         </table>
     </div>
 </div>
 
-
+<style>
+    .datatable-SkripsiSeminar th,
+    .datatable-SkripsiSeminar td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+</style>
 
 @endsection
 @section('scripts')
@@ -91,17 +84,21 @@
     aaSorting: [],
     ajax: "{{ route('admin.skripsi-seminars.index') }}",
     columns: [
-      { data: 'placeholder', name: 'placeholder' },
-{ data: 'application_status', name: 'application.status' },
-{ data: 'title', name: 'title' },
-{ data: 'proposal_document', name: 'proposal_document', sortable: false, searchable: false },
-{ data: 'approval_document', name: 'approval_document', sortable: false, searchable: false },
-{ data: 'plagiarism_document', name: 'plagiarism_document', sortable: false, searchable: false },
-{ data: 'actions', name: '{{ trans('global.actions') }}' }
+      { data: 'placeholder', name: 'placeholder', className: 'text-center' },
+      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama', className: 'text-center' },
+      { data: 'status_badge', name: 'application.status', className: 'text-center', orderable: true, searchable: true },
+      { data: 'title', name: 'title', className: 'text-center' },
+      { data: 'proposal_document', name: 'proposal_document', sortable: false, searchable: false, className: 'text-center' },
+      { data: 'approval_document', name: 'approval_document', sortable: false, searchable: false, className: 'text-center' },
+      { data: 'plagiarism_document', name: 'plagiarism_document', sortable: false, searchable: false, className: 'text-center' },
+      { data: 'actions', name: '{{ trans('global.actions') }}', className: 'text-center' }
     ],
     orderCellsTop: true,
-    order: [[ 2, 'desc' ]],
+    order: [[ 1, 'desc' ]],
     pageLength: 50,
+    columnDefs: [
+      { className: 'text-center', targets: '_all' }
+    ],
   };
   let table = $('.datatable-SkripsiSeminar').DataTable(dtOverrideGlobals);
   $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){
