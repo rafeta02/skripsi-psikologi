@@ -61,12 +61,12 @@
                 </div>
     </div>
 
-            <!-- Review Kelayakan Proposal Information Card -->
+            <!-- Review Kelayakan Proposal (Reguler) Information Card -->
             <div class="card">
                 <div class="card-header bg-info text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-presentation mr-2"></i>
-                        Informasi Review Kelayakan Proposal
+                        Informasi Review Kelayakan Proposal (Reguler)
                     </h3>
                 </div>
     <div class="card-body">
@@ -133,7 +133,7 @@
                 <div class="card-header bg-secondary text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-file-pdf mr-2"></i>
-                        Dokumen Review Kelayakan Proposal
+                        Dokumen Review Kelayakan Proposal (Reguler)
                     </h3>
                 </div>
                 <div class="card-body">
@@ -274,7 +274,7 @@
                 <div class="card-header bg-dark text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Status Review Kelayakan Proposal
+                        Status Review Kelayakan Proposal (Reguler)
                     </h3>
                 </div>
                 <div class="card-body">
@@ -296,7 +296,7 @@
                     </div>
 
                     <div class="alert alert-primary py-2 mb-3">
-                        <strong>Jalur Reguler — Review Kelayakan Proposal</strong>
+                        <strong>Jalur Reguler — Review Kelayakan Proposal (Reguler)</strong>
                     </div>
 
                     <table class="table table-sm table-borderless">
@@ -343,7 +343,7 @@
                         
                         <button type="button" class="btn btn-danger btn-lg btn-block" 
                                 onclick="showRejectModal({{ $skripsiSeminar->id }})">
-                            <i class="fas fa-times-circle mr-2"></i> Tolak Review Kelayakan Proposal
+                            <i class="fas fa-times-circle mr-2"></i> Tolak Review Kelayakan Proposal (Reguler)
                         </button>
                     </div>
                 </div>
@@ -394,7 +394,7 @@
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-check-circle mr-2"></i>
-                    Setujui Review Kelayakan Proposal
+                    Setujui Review Kelayakan Proposal (Reguler)
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
@@ -404,7 +404,7 @@
                 <div class="modal-body">
                     <div class="alert alert-success">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Review Kelayakan Proposal akan disetujui dan 2 reviewer akan ditugaskan.
+                        Review Kelayakan Proposal (Reguler) akan disetujui dan 2 reviewer akan ditugaskan.
                     </div>
 
                     <div class="form-group">
@@ -453,7 +453,7 @@
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-times-circle mr-2"></i>
-                    Tolak Review Kelayakan Proposal
+                    Tolak Review Kelayakan Proposal (Reguler)
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>

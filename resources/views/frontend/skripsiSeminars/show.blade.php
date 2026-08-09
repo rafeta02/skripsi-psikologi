@@ -10,7 +10,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2 class="mb-1 text-white font-weight-bold">
-                                <i class="fas fa-presentation mr-2"></i> Detail Review Kelayakan Proposal
+                                <i class="fas fa-presentation mr-2"></i> Detail Review Kelayakan Proposal (Reguler)
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
                                 Informasi lengkap review kelayakan proposal

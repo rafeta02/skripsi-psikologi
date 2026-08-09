@@ -252,7 +252,7 @@ class DosenWorkloadService
             ->each(function (SkripsiSeminar $seminar) use ($dosenId, $items) {
                 $role = (int) $seminar->reviewer_1_id === $dosenId ? 'Reviewer 1' : 'Reviewer 2';
                 $items->push($this->formatPengujiItem(
-                    'Review Kelayakan Proposal',
+                    'Review Kelayakan Proposal (Reguler)',
                     $role,
                     $seminar->application,
                     $seminar->title
@@ -275,7 +275,7 @@ class DosenWorkloadService
 
                 if ($students->isEmpty()) {
                     $items->push($this->formatPengujiItem(
-                        'Review Kelayakan Proposal',
+                        'Review Kelayakan Proposal (MBKM)',
                         $role,
                         $seminar->application,
                         $seminar->title ?? null
@@ -286,7 +286,7 @@ class DosenWorkloadService
 
                 foreach ($students as $student) {
                     $items->push([
-                        'jenis' => 'Review Kelayakan Proposal',
+                        'jenis' => 'Review Kelayakan Proposal (MBKM)',
                         'peran' => $role . ($student['role'] ? ' (' . $student['role'] . ')' : ''),
                         'mahasiswa' => $student['nama'],
                         'nim' => $student['nim'],

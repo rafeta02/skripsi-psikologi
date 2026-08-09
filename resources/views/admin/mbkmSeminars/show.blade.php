@@ -71,7 +71,7 @@
                 <div class="card-header bg-info text-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-presentation mr-2"></i>
-                        Informasi Review Kelayakan Proposal
+                        Informasi Review Kelayakan Proposal (MBKM)
                     </h3>
                 </div>
                 <div class="card-body">
@@ -553,7 +553,7 @@
 
                     <div class="alert alert-primary">
                         <i class="fas fa-briefcase mr-2"></i>
-                        <strong>Jalur MBKM - Seminar Proposal</strong>
+                        <strong>Jalur MBKM — Review Kelayakan Proposal (MBKM)</strong>
                     </div>
 
                     <table class="table table-sm table-borderless">
@@ -691,7 +691,7 @@
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-check-circle mr-2"></i>
-                    Setujui Review Kelayakan Proposal
+                    Setujui Review Kelayakan Proposal (MBKM)
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
@@ -701,7 +701,7 @@
                 <div class="modal-body">
                     <div class="alert alert-success">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Review Kelayakan Proposal akan disetujui dan 2 reviewer akan ditugaskan.
+                        Review Kelayakan Proposal (MBKM) akan disetujui dan 2 reviewer akan ditugaskan.
                     </div>
 
                     <div class="form-group">
@@ -750,7 +750,7 @@
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-times-circle mr-2"></i>
-                    Tolak Review Kelayakan Proposal
+                    Tolak Review Kelayakan Proposal (MBKM)
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
@@ -847,7 +847,7 @@ $('#approveForm').on('submit', function(e) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: response.message || 'Review Kelayakan Proposal berhasil disetujui',
+                    text: response.message || 'Review Kelayakan Proposal (MBKM) berhasil disetujui',
                     confirmButtonText: 'OK'
                 }).then(() => {
                     location.reload();
@@ -890,7 +890,7 @@ $('#rejectForm').on('submit', function(e) {
             Swal.fire({
                 icon: 'success',
                 title: 'Seminar Ditolak',
-                text: response.message || 'Review Kelayakan Proposal berhasil ditolak',
+                text: response.message || 'Review Kelayakan Proposal (MBKM) berhasil ditolak',
                 timer: 2000
             }).then(() => {
                 location.reload();

@@ -20,14 +20,14 @@
         'skripsi' => [
             ['key' => 'registration', 'label' => 'Pendaftaran', 'icon' => 'file-alt'],
             ['key' => 'supervisor_assignment', 'label' => 'Persetujuan Pembimbing', 'icon' => 'user-tie'],
-            ['key' => 'seminar', 'label' => 'Review Kelayakan Proposal', 'icon' => 'chalkboard-teacher'],
+            ['key' => 'seminar', 'label' => 'Review Kelayakan Proposal (Reguler)', 'icon' => 'chalkboard-teacher'],
             ['key' => 'defense', 'label' => 'Sidang Skripsi', 'icon' => 'graduation-cap'],
             ['key' => 'scoring', 'label' => 'Penilaian Akhir', 'icon' => 'star'],
         ],
         'mbkm' => [
             ['key' => 'registration', 'label' => 'Pendaftaran MBKM', 'icon' => 'file-alt'],
             ['key' => 'supervisor_assignment', 'label' => 'Persetujuan Pembimbing', 'icon' => 'user-tie'],
-            ['key' => 'seminar', 'label' => 'Review Kelayakan Proposal', 'icon' => 'chalkboard-teacher'],
+            ['key' => 'seminar', 'label' => 'Review Kelayakan Proposal (MBKM)', 'icon' => 'chalkboard-teacher'],
             ['key' => 'defense', 'label' => 'Sidang Skripsi', 'icon' => 'graduation-cap'],
             ['key' => 'scoring', 'label' => 'Penilaian Akhir', 'icon' => 'star'],
         ],

@@ -56,10 +56,10 @@
                                 <select name="schedule_type" class="form-control-modern @error('schedule_type') is-invalid @enderror" required>
                                     <option value="">-- Pilih Jenis Acara --</option>
                                     @if($activeApplication->type === 'mbkm' && $activeApplication->stage === 'seminar')
-                                        <option value="mbkm_seminar" selected>Review Kelayakan Proposal</option>
+                                        <option value="mbkm_seminar" selected>Review Kelayakan Proposal (MBKM)</option>
                                     @endif
                                     @if($activeApplication->type === 'skripsi' && $activeApplication->stage === 'seminar')
-                                        <option value="skripsi_seminar" selected>Review Kelayakan Proposal Skripsi</option>
+                                        <option value="skripsi_seminar" selected>Review Kelayakan Proposal (Reguler)</option>
                                     @endif
                                     @if($activeApplication->stage === 'defense')
                                         <option value="skripsi_defense" selected>Sidang Skripsi</option>

@@ -4,13 +4,13 @@
 @php
     $app = $assignment->application;
     $reviewSubtitle = match (true) {
-        ($app->type ?? null) === 'mbkm' && ($app->stage ?? null) === 'seminar' => 'Review Kelayakan Proposal MBKM — berikan keputusan dan feedback',
+        ($app->type ?? null) === 'mbkm' && ($app->stage ?? null) === 'seminar' => 'Review Kelayakan Proposal (MBKM) — berikan keputusan dan feedback',
         ($app->type ?? null) === 'mbkm' => 'Pendaftaran Skripsi MBKM — berikan keputusan dan feedback',
-        ($app->stage ?? null) === 'seminar' => 'Review Kelayakan Proposal — berikan keputusan dan feedback',
+        ($app->stage ?? null) === 'seminar' => 'Review Kelayakan Proposal (Reguler) — berikan keputusan dan feedback',
         default => 'Pendaftaran Skripsi Reguler — berikan keputusan dan feedback',
     };
     $reviewTitle = (($app->stage ?? null) === 'seminar' && ($assignment->role ?? null) === 'reviewer')
-        ? 'Tinjau Review Kelayakan Proposal'
+        ? 'Tinjau Review Kelayakan Proposal (' . (($app->type ?? null) === 'mbkm' ? 'MBKM' : 'Reguler') . ')'
         : 'Tinjau Proposal';
 @endphp
 @include('partials.dosen.page-header', [

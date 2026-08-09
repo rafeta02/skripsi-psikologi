@@ -8,10 +8,10 @@
             <div class="card-modern" style="background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%); border: none;">
                 <div class="card-modern-body" style="padding: 2rem;">
                     <h2 class="mb-1 text-white font-weight-bold">
-                        <i class="fas fa-edit mr-2"></i> Edit Pendaftaran Review Kelayakan Proposal
+                        <i class="fas fa-edit mr-2"></i> Edit Pendaftaran Review Kelayakan Proposal (MBKM)
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.9);">
-                        Update informasi pendaftaran Review Kelayakan Proposal
+                        Update informasi pendaftaran Review Kelayakan Proposal (MBKM)
                     </p>
                 </div>
             </div>

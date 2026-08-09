@@ -506,8 +506,8 @@ return [
         ],
     ],
     'skripsiSeminar' => [
-        'title'          => 'Review Kelayakan Proposal',
-        'title_singular' => 'Review Kelayakan Proposal',
+        'title'          => 'Review Kelayakan Proposal (Reguler)',
+        'title_singular' => 'Review Kelayakan Proposal (Reguler)',
         'fields'         => [
             'id'                         => 'ID',
             'id_helper'                  => ' ',
@@ -608,8 +608,8 @@ return [
         ],
     ],
     'mbkmSeminar' => [
-        'title'          => 'Review Kelayakan Proposal',
-        'title_singular' => 'Review Kelayakan Proposal',
+        'title'          => 'Review Kelayakan Proposal (MBKM)',
+        'title_singular' => 'Review Kelayakan Proposal (MBKM)',
         'fields'         => [
             'id'                         => 'ID',
             'id_helper'                  => ' ',

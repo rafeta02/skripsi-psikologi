@@ -49,7 +49,9 @@
                                         <div class="flex-grow-1">
                                             <h4 class="mb-1 font-weight-bold">
                                                 @if($schedule->schedule_type === 'mbkm_seminar')
-                                                    Review Kelayakan Proposal
+                                                    Review Kelayakan Proposal (MBKM)
+                                                @elseif($schedule->schedule_type === 'skripsi_seminar')
+                                                    Review Kelayakan Proposal (Reguler)
                                                 @elseif($schedule->schedule_type === 'skripsi_defense')
                                                     Sidang Skripsi
                                                 @else

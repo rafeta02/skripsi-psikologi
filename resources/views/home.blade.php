@@ -142,7 +142,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="callout callout-info">
-                                    <h5>Review Kelayakan Proposal</h5>
+                                    <h5>Review Kelayakan Proposal (Reguler)</h5>
                                     <p class="mb-0">
                                         <strong>{{ $pendingSeminars }}</strong> pengajuan menunggu verifikasi
                                     </p>

@@ -9,7 +9,7 @@
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h2 class="mb-1 text-white font-weight-bold">
-                                <i class="fas fa-chalkboard-teacher mr-2"></i> Review Kelayakan Proposal
+                                <i class="fas fa-chalkboard-teacher mr-2"></i> Review Kelayakan Proposal (MBKM)
                             </h2>
                             <p class="mb-0" style="color: rgba(255,255,255,0.9);">
                                 Lanjutan dari pendaftaran MBKM kelompok — 1 form per kelompok (diisi ketua)
@@ -44,7 +44,7 @@
     @if(!empty($isGroupFollower))
         <div class="alert alert-info">
             <i class="fas fa-users mr-1"></i>
-            Anda anggota kelompok. Form Review Kelayakan Proposal diisi oleh <strong>ketua</strong>.
+            Anda anggota kelompok. Form Review Kelayakan Proposal (MBKM) diisi oleh <strong>ketua</strong>.
             Status progress Anda mengikuti pengajuan kelompok (lanjutan dari MbkmRegistration).
             @if($registrationApp)
                 <div class="mt-2">
@@ -104,7 +104,7 @@
                                             <i class="fas fa-chalkboard-teacher" style="font-size: 20px; color: white;"></i>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h4 class="mb-1 font-weight-bold">Review Kelayakan Proposal</h4>
+                                            <h4 class="mb-1 font-weight-bold">Review Kelayakan Proposal (MBKM)</h4>
                                             <p class="mb-2 text-muted">
                                                 <i class="fas fa-book mr-2"></i>{{ $seminar->title ?? 'Judul MBKM' }}
                                             </p>
@@ -198,9 +198,9 @@
                         </div>
                         @if(!empty($isGroupFollower))
                             <h4 class="text-muted mb-3">Belum Ada Pengajuan dari Ketua</h4>
-                            <p class="text-muted mb-4">Menunggu ketua kelompok mendaftarkan Review Kelayakan Proposal. Progress Anda akan ikut otomatis.</p>
+                            <p class="text-muted mb-4">Menunggu ketua kelompok mendaftarkan Review Kelayakan Proposal (MBKM). Progress Anda akan ikut otomatis.</p>
                         @else
-                            <h4 class="text-muted mb-3">Belum Ada Pendaftaran Review Kelayakan Proposal</h4>
+                            <h4 class="text-muted mb-3">Belum Ada Pendaftaran Review Kelayakan Proposal (MBKM)</h4>
                             <p class="text-muted mb-4">Satu form untuk seluruh kelompok. Pastikan pendaftaran MBKM sudah disetujui dosen pembimbing.</p>
                             @if(!empty($canCreate))
                                 <a href="{{ route('frontend.mbkm-seminars.create') }}" class="btn-modern btn-modern-primary btn-modern-lg">

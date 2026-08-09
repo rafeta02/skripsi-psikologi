@@ -303,7 +303,7 @@
                             <li class="nav-item">
                                 <a href="{{ route("admin.skripsi-seminars.index") }}" class="nav-link {{ request()->is("admin/skripsi-seminars") || request()->is("admin/skripsi-seminars/*") ? "active" : "" }}">
                                     <i class="fa-fw nav-icon fas fa-chalkboard-teacher"></i>
-                                    <p>Review Kelayakan Proposal</p>
+                                    <p>Review Kelayakan Proposal (Reguler)</p>
                                 </a>
                             </li>
                         @endcan
@@ -324,7 +324,7 @@
                             <li class="nav-item">
                                 <a href="{{ route("admin.mbkm-seminars.index") }}" class="nav-link {{ request()->is("admin/mbkm-seminars") || request()->is("admin/mbkm-seminars/*") ? "active" : "" }}">
                                     <i class="fa-fw nav-icon fas fa-users-class"></i>
-                                    <p>Review Kelayakan Proposal</p>
+                                    <p>Review Kelayakan Proposal (MBKM)</p>
                                 </a>
                             </li>
                         @endcan

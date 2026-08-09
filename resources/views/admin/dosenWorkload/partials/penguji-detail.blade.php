@@ -21,8 +21,8 @@
                         <td>
                             @php
                                 $jenisBadge = match($item['jenis']) {
-                                    'Review Kelayakan Proposal' => 'info',
-                                    'Review Kelayakan Proposal' => 'primary',
+                                    'Review Kelayakan Proposal (Reguler)' => 'info',
+                                    'Review Kelayakan Proposal (MBKM)' => 'primary',
                                     'Sidang Skripsi' => 'success',
                                     default => 'secondary',
                                 };
