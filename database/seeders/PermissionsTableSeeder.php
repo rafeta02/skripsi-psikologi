@@ -622,6 +622,26 @@ class PermissionsTableSeeder extends Seeder
                 'id'    => 153,
                 'title' => 'thesis_title_database_access',
             ],
+            [
+                'id'    => 154,
+                'title' => 'announcement_create',
+            ],
+            [
+                'id'    => 155,
+                'title' => 'announcement_edit',
+            ],
+            [
+                'id'    => 156,
+                'title' => 'announcement_show',
+            ],
+            [
+                'id'    => 157,
+                'title' => 'announcement_delete',
+            ],
+            [
+                'id'    => 158,
+                'title' => 'announcement_access',
+            ],
         ];
 
         Permission::insert($permissions);
