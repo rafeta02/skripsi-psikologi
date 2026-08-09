@@ -12,6 +12,7 @@ use App\Models\SkripsiDefense;
 use App\Models\Mahasiswa;
 use App\Models\Dosen;
 use App\Models\AdminAlert;
+use App\Services\ReviewerAssignmentService;
 use LaravelDaily\LaravelCharts\Classes\LaravelChart;
 
 class HomeController
@@ -62,6 +63,8 @@ class HomeController
             + MbkmSeminar::whereHas('application', function ($q) {
                 $q->where('status', 'submitted');
             })->count();
+
+        app(ReviewerAssignmentService::class)->resolveStaleAlerts();
 
         $adminAlerts = AdminAlert::unresolved()
             ->with(['dosen', 'application.mahasiswa'])

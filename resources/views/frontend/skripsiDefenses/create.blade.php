@@ -137,13 +137,13 @@
 
                             @include('frontend.skripsiDefenses.partials.file-input', [
                                 'name' => 'mbkm_recommendation_letter',
-                                'label' => 'Surat Rekomendasi MBKM',
+                                'label' => trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter'),
                                 'required' => false,
                             ])
 
                             @include('frontend.skripsiDefenses.partials.file-input', [
                                 'name' => 'mbkm_report',
-                                'label' => 'Laporan MBKM',
+                                'label' => trans('cruds.skripsiDefense.fields.mbkm_report'),
                                 'required' => false,
                                 'multiple' => true,
                             ])

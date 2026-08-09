@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\ApplicationAssignment;
 use App\Models\ApplicationScore;
+use App\Models\AdminAlert;
 use App\Models\Announcement;
 use App\Models\Dosen;
 use App\Services\ReviewerAssignmentService;
@@ -352,6 +353,7 @@ class DashboardController extends Controller
             $assignment->addMedia($request->file('feedback_document'))
                 ->toMediaCollection('feedback_document');
 
+            app(ReviewerAssignmentService::class)->resolveAssignmentAlerts($assignment);
             app(ReviewerAssignmentService::class)->syncApplicationReviewStatus($assignment->application);
 
             return redirect()->route('dosen.task-assignments')
@@ -380,6 +382,9 @@ class DashboardController extends Controller
             ]);
         }
 
+        app(ReviewerAssignmentService::class)->resolveAssignmentAlerts($assignment, [
+            AdminAlert::TYPE_REVIEWER_NO_RESPONSE,
+        ]);
         app(ReviewerAssignmentService::class)->syncApplicationReviewStatus($assignment->application);
 
         $message = $validated['assignment_response'] === 'accepted'

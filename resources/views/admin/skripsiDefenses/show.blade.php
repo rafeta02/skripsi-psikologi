@@ -165,6 +165,12 @@
                     </div>
 
                     @can('skripsi_defense_edit')
+                        @if($skripsiDefense->isRejected())
+                            <div class="alert alert-secondary mb-0">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Penetapan penguji tidak tersedia karena pendaftaran sidang telah ditolak.
+                            </div>
+                        @else
                         <form method="POST" action="{{ route('admin.skripsi-defenses.assign-examiners', $skripsiDefense->id) }}">
                             @csrf
                             <div class="row">
@@ -209,6 +215,7 @@
                             </button>
                             <small class="text-muted d-block mt-2">Catatan: Penguji 1 dan Penguji 2 tidak boleh sama.</small>
                         </form>
+                        @endif
                     @endcan
                 </div>
             </div>
@@ -546,53 +553,57 @@
             </div>
 
             <!-- Dokumen MBKM (Opsional) -->
-            @if($skripsiDefense->mbkm_recommendation_letter || count($skripsiDefense->mbkm_report) > 0)
+            @if(($skripsiDefense->application->type ?? null) === 'mbkm' || $skripsiDefense->mbkm_recommendation_letter || count($skripsiDefense->mbkm_report) > 0)
             <div class="card mt-3">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0"><i class="fas fa-graduation-cap mr-2"></i>Dokumen MBKM (Opsional)</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        @if($skripsiDefense->mbkm_recommendation_letter)
                         <div class="col-md-6">
-                            <div class="document-item mb-3 p-3 border rounded border-success bg-light">
+                            <div class="document-item mb-3 p-3 border rounded {{ $skripsiDefense->mbkm_recommendation_letter ? 'border-success bg-light' : 'border-secondary' }}">
                                 <strong><i class="fas fa-file-alt mr-2"></i>{{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter') }}</strong>
-                                <div class="mt-2">
-                                    <button type="button" class="btn btn-sm btn-primary preview-doc" 
-                                            data-url="{{ $skripsiDefense->mbkm_recommendation_letter->getUrl() }}">
-                                        <i class="fas fa-eye mr-1"></i> Lihat Dokumen
-                                    </button>
-                                    <a href="{{ $skripsiDefense->mbkm_recommendation_letter->getUrl() }}" download class="btn btn-sm btn-success">
-                                        <i class="fas fa-download mr-1"></i> Download
-                                    </a>
-                                    <small class="d-block mt-2 text-muted">
-                                        Size: {{ number_format($skripsiDefense->mbkm_recommendation_letter->size / 1024, 2) }} KB
-                                    </small>
-                                </div>
+                                @if($skripsiDefense->mbkm_recommendation_letter)
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-sm btn-primary preview-doc"
+                                                data-url="{{ $skripsiDefense->mbkm_recommendation_letter->getUrl() }}">
+                                            <i class="fas fa-eye mr-1"></i> Lihat Dokumen
+                                        </button>
+                                        <a href="{{ $skripsiDefense->mbkm_recommendation_letter->getUrl() }}" download class="btn btn-sm btn-success">
+                                            <i class="fas fa-download mr-1"></i> Download
+                                        </a>
+                                        <small class="d-block mt-2 text-muted">
+                                            Size: {{ number_format($skripsiDefense->mbkm_recommendation_letter->size / 1024, 2) }} KB
+                                        </small>
+                                    </div>
+                                @else
+                                    <span class="badge badge-secondary ml-2">Belum diupload (opsional)</span>
+                                @endif
                             </div>
                         </div>
-                        @endif
-                        @if(count($skripsiDefense->mbkm_report) > 0)
                         <div class="col-md-6">
-                            <div class="document-item mb-3 p-3 border rounded border-success bg-light">
+                            <div class="document-item mb-3 p-3 border rounded {{ count($skripsiDefense->mbkm_report) > 0 ? 'border-success bg-light' : 'border-secondary' }}">
                                 <strong><i class="fas fa-file-alt mr-2"></i>{{ trans('cruds.skripsiDefense.fields.mbkm_report') }}</strong>
-                                <div class="mt-2">
-                                    @foreach($skripsiDefense->mbkm_report as $index => $media)
-                                        <div class="mb-2">
-                                            <button type="button" class="btn btn-sm btn-primary preview-doc" 
-                                                    data-url="{{ $media->getUrl() }}">
-                                                <i class="fas fa-eye mr-1"></i> File {{ $index + 1 }}
-                                            </button>
-                                            <a href="{{ $media->getUrl() }}" download class="btn btn-sm btn-success">
-                                                <i class="fas fa-download mr-1"></i> Download
-                                            </a>
-                                            <small class="text-muted ml-2">{{ number_format($media->size / 1024, 2) }} KB</small>
-                                        </div>
-                            @endforeach
-                                </div>
+                                @if(count($skripsiDefense->mbkm_report) > 0)
+                                    <div class="mt-2">
+                                        @foreach($skripsiDefense->mbkm_report as $index => $media)
+                                            <div class="mb-2">
+                                                <button type="button" class="btn btn-sm btn-primary preview-doc"
+                                                        data-url="{{ $media->getUrl() }}">
+                                                    <i class="fas fa-eye mr-1"></i> File {{ $index + 1 }}
+                                                </button>
+                                                <a href="{{ $media->getUrl() }}" download class="btn btn-sm btn-success">
+                                                    <i class="fas fa-download mr-1"></i> Download
+                                                </a>
+                                                <small class="text-muted ml-2">{{ number_format($media->size / 1024, 2) }} KB</small>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="badge badge-secondary ml-2">Belum diupload (opsional)</span>
+                                @endif
                             </div>
                         </div>
-                        @endif
                     </div>
                 </div>
             </div>

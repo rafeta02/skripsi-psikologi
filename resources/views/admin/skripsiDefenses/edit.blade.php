@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 @section('content')
 
+@php
+    $isMbkmApplication = ($skripsiDefense->application->type ?? '') === 'mbkm';
+@endphp
+
 <div class="card">
     <div class="card-header">
         {{ trans('global.edit') }} {{ trans('cruds.skripsiDefense.title_singular') }}
@@ -105,6 +109,7 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.research_module_helper') }}</span>
             </div>
+            @if($isMbkmApplication)
             <div class="form-group">
                 <label for="mbkm_recommendation_letter">{{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('mbkm_recommendation_letter') ? 'is-invalid' : '' }}" id="mbkm_recommendation_letter-dropzone">
@@ -114,6 +119,7 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter_helper') }}</span>
             </div>
+            @endif
             <div class="form-group">
                 <label for="signed_scientific_publication_statement">{{ trans('cruds.skripsiDefense.fields.signed_scientific_publication_statement') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('signed_scientific_publication_statement') ? 'is-invalid' : '' }}" id="signed_scientific_publication_statement-dropzone">
@@ -168,6 +174,7 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.transcript_helper') }}</span>
             </div>
+            @if($isMbkmApplication)
             <div class="form-group">
                 <label for="mbkm_report">{{ trans('cruds.skripsiDefense.fields.mbkm_report') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('mbkm_report') ? 'is-invalid' : '' }}" id="mbkm_report-dropzone">
@@ -177,6 +184,7 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.mbkm_report_helper') }}</span>
             </div>
+            @endif
             <div class="form-group">
                 <label for="research_poster">{{ trans('cruds.skripsiDefense.fields.research_poster') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('research_poster') ? 'is-invalid' : '' }}" id="research_poster-dropzone">

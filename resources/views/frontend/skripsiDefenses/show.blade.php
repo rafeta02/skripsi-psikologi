@@ -229,21 +229,23 @@
                             ])
                         @endif
 
-                        @if($skripsiDefense->mbkm_recommendation_letter)
-                            @include('frontend.skripsiDefenses.partials.document-card', [
-                                'media' => $skripsiDefense->mbkm_recommendation_letter,
-                                'label' => trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter'),
-                                'icon' => 'fa-file-pdf',
-                                'iconColor' => 'text-primary',
+                        @if(($skripsiDefense->application->type ?? null) === 'mbkm')
+                            @if($skripsiDefense->mbkm_recommendation_letter)
+                                @include('frontend.skripsiDefenses.partials.document-card', [
+                                    'media' => $skripsiDefense->mbkm_recommendation_letter,
+                                    'label' => trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter'),
+                                    'icon' => 'fa-file-pdf',
+                                    'iconColor' => 'text-primary',
+                                ])
+                            @endif
+
+                            @include('frontend.skripsiDefenses.partials.document-collection-card', [
+                                'items' => $skripsiDefense->mbkm_report,
+                                'label' => trans('cruds.skripsiDefense.fields.mbkm_report'),
+                                'icon' => 'fa-globe',
+                                'iconColor' => 'text-info',
                             ])
                         @endif
-
-                        @include('frontend.skripsiDefenses.partials.document-collection-card', [
-                            'items' => $skripsiDefense->mbkm_report,
-                            'label' => trans('cruds.skripsiDefense.fields.mbkm_report'),
-                            'icon' => 'fa-globe',
-                            'iconColor' => 'text-info',
-                        ])
 
                         @php
                             $hasAnyDocument = $skripsiDefense->defence_document

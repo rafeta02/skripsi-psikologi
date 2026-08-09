@@ -104,7 +104,7 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.research_module_helper') }}</span>
             </div>
-            <div class="form-group">
+            <div class="form-group mbkm-only-field d-none">
                 <label for="mbkm_recommendation_letter">{{ trans('cruds.skripsiDefense.fields.mbkm_recommendation_letter') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('mbkm_recommendation_letter') ? 'is-invalid' : '' }}" id="mbkm_recommendation_letter-dropzone">
                 </div>
@@ -167,7 +167,7 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.transcript_helper') }}</span>
             </div>
-            <div class="form-group">
+            <div class="form-group mbkm-only-field d-none">
                 <label for="mbkm_report">{{ trans('cruds.skripsiDefense.fields.mbkm_report') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('mbkm_report') ? 'is-invalid' : '' }}" id="mbkm_report-dropzone">
                 </div>
@@ -1114,5 +1114,16 @@ Dropzone.options.supervisionLogbookDropzone = {
          return _results
      }
 }
+
+    var applicationTypes = @json($applicationTypes ?? []);
+
+    function toggleMbkmFields() {
+        var applicationId = $('#application_id').val();
+        var isMbkm = applicationTypes[applicationId] === 'mbkm';
+        $('.mbkm-only-field').toggleClass('d-none', !isMbkm);
+    }
+
+    $('#application_id').on('change', toggleMbkmFields);
+    toggleMbkmFields();
 </script>
 @endsection

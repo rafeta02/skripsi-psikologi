@@ -387,6 +387,53 @@ class ReviewerAssignmentService
         return $created;
     }
 
+    public function resolveAssignmentAlerts(ApplicationAssignment $assignment, ?array $types = null): void
+    {
+        $query = AdminAlert::where('assignment_id', $assignment->id)->unresolved();
+
+        if ($types !== null) {
+            $query->whereIn('alert_type', $types);
+        }
+
+        $query->get()->each->resolve();
+    }
+
+    public function resolveStaleAlerts(): int
+    {
+        $resolved = 0;
+
+        AdminAlert::unresolved()
+            ->with('assignment')
+            ->get()
+            ->each(function (AdminAlert $alert) use (&$resolved) {
+                $assignment = $alert->assignment;
+
+                if (! $assignment || $this->shouldResolveAlert($alert, $assignment)) {
+                    $alert->resolve();
+                    $resolved++;
+                }
+            });
+
+        return $resolved;
+    }
+
+    private function shouldResolveAlert(AdminAlert $alert, ApplicationAssignment $assignment): bool
+    {
+        if (in_array($alert->alert_type, [
+            AdminAlert::TYPE_REVIEWER_FEEDBACK_WARNING,
+            AdminAlert::TYPE_REVIEWER_FEEDBACK_OVERDUE,
+        ], true)) {
+            return $assignment->getRawOriginal('feedback_submitted_at') !== null
+                || $assignment->status === 'feedback_submitted';
+        }
+
+        if ($alert->alert_type === AdminAlert::TYPE_REVIEWER_NO_RESPONSE) {
+            return ! in_array($assignment->status, ['assigned', 'expired'], true);
+        }
+
+        return false;
+    }
+
     private function createAlertIfMissing(string $type, ApplicationAssignment $assignment, string $severity, string $message): void
     {
         $exists = AdminAlert::where('assignment_id', $assignment->id)

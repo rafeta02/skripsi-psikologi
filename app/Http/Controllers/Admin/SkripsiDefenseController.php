@@ -229,8 +229,9 @@ class SkripsiDefenseController extends Controller
         abort_if(Gate::denies('skripsi_defense_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $applicationTypes = Application::pluck('type', 'id');
 
-        return view('admin.skripsiDefenses.create', compact('applications'));
+        return view('admin.skripsiDefenses.create', compact('applications', 'applicationTypes'));
     }
 
     public function store(StoreSkripsiDefenseRequest $request)
@@ -321,10 +322,11 @@ class SkripsiDefenseController extends Controller
         abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $applications = Application::pluck('status', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $applicationTypes = Application::pluck('type', 'id');
 
         $skripsiDefense->load('application', 'created_by');
 
-        return view('admin.skripsiDefenses.edit', compact('applications', 'skripsiDefense'));
+        return view('admin.skripsiDefenses.edit', compact('applications', 'applicationTypes', 'skripsiDefense'));
     }
 
     public function update(UpdateSkripsiDefenseRequest $request, SkripsiDefense $skripsiDefense)
@@ -578,6 +580,11 @@ class SkripsiDefenseController extends Controller
     public function assignExaminers(Request $request, SkripsiDefense $skripsiDefense)
     {
         abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        if ($skripsiDefense->isRejected()) {
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('error', 'Penetapan penguji tidak dapat dilakukan karena pendaftaran sidang telah ditolak.');
+        }
 
         $validated = $request->validate([
             'examiner_1_id' => ['required', 'exists:dosens,id'],
