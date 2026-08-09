@@ -108,6 +108,44 @@ class SkripsiRegistration extends Model implements HasMedia
         })->implode(' ');
     }
 
+    public function adminStatusBadgeHtml(): string
+    {
+        $application = $this->application;
+        if (! $application) {
+            return '<span class="badge badge-secondary">-</span>';
+        }
+
+        $status = $application->status;
+
+        if ($status === 'submitted' && ! empty($this->approval_date)) {
+            $supervisorAssignment = $application->relationLoaded('assignments')
+                ? $application->assignments->where('role', 'supervisor')->first()
+                : ApplicationAssignment::where('application_id', $application->id)
+                    ->where('role', 'supervisor')
+                    ->first();
+
+            if ($supervisorAssignment?->status === 'accepted') {
+                return '<span class="badge badge-success">Diterima Dosen</span>';
+            }
+
+            if ($supervisorAssignment?->status === 'rejected') {
+                return '<span class="badge badge-danger">Ditolak Dosen</span>';
+            }
+
+            return '<span class="badge badge-success">Disetujui Admin</span>';
+        }
+
+        return match ($status) {
+            'submitted' => '<span class="badge badge-info">Menunggu Review</span>',
+            'approved' => '<span class="badge badge-success">Disetujui</span>',
+            'rejected' => '<span class="badge badge-danger">Ditolak</span>',
+            'revision' => '<span class="badge badge-warning">Perlu Revisi</span>',
+            'scheduled' => '<span class="badge badge-primary">Terjadwal</span>',
+            'done' => '<span class="badge badge-secondary">Selesai</span>',
+            default => '<span class="badge badge-secondary">' . e(ucfirst($status)) . '</span>',
+        };
+    }
+
     public function tps_lecturer()
     {
         return $this->belongsTo(Dosen::class, 'tps_lecturer_id');

@@ -20,6 +20,7 @@
                 <tr>
                     <th width="10" class="text-center"></th>
                     <th class="text-center">Mahasiswa</th>
+                    <th class="text-center">Status</th>
                     <th class="text-center">Tema Riset</th>
                     <th class="text-center">{{ trans('cruds.skripsiRegistration.fields.title') }}</th>
                     <th class="text-center">{{ trans('cruds.skripsiRegistration.fields.preference_supervision') }}</th>
@@ -86,6 +87,7 @@
     columns: [
       { data: 'placeholder', name: 'placeholder', className: 'text-center' },
       { data: 'mahasiswa_name', name: 'application.mahasiswa.nama', className: 'text-center' },
+      { data: 'status_badge', name: 'application.status', className: 'text-center', orderable: true, searchable: true },
       { data: 'theme_name', name: 'theme.name', className: 'text-center', orderable: false, searchable: false },
       { data: 'title', name: 'title', className: 'text-center' },
       { data: 'preference_supervision_nama', name: 'preference_supervision.nama', className: 'text-center' },
