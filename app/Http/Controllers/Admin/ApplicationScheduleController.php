@@ -183,7 +183,49 @@ class ApplicationScheduleController extends Controller
 
     public function update(UpdateApplicationScheduleRequest $request, ApplicationSchedule $applicationSchedule)
     {
-        $applicationSchedule->update($request->all());
+        $wasApproved = $applicationSchedule->isApprovedByAdmin();
+        $previousWaktu = $applicationSchedule->getRawOriginal('waktu');
+        $previousRuangId = $applicationSchedule->ruang_id;
+        $previousCustomPlace = $applicationSchedule->custom_place;
+
+        $payload = $request->only([
+            'application_id',
+            'schedule_type',
+            'waktu',
+            'ruang_id',
+            'custom_place',
+            'online_meeting',
+            'note',
+        ]);
+
+        if (blank($payload['ruang_id'] ?? null)) {
+            $payload['ruang_id'] = null;
+        }
+
+        $applicationSchedule->update($payload);
+
+        if ($wasApproved) {
+            ApplicationAction::create([
+                'application_id' => $applicationSchedule->application_id,
+                'action_type' => 'schedule_rescheduled',
+                'action_by' => auth()->id(),
+                'notes' => $request->input('schedule_change_note') ?? 'Jadwal diubah oleh admin',
+                'metadata' => [
+                    'schedule_id' => $applicationSchedule->id,
+                    'previous_waktu' => $previousWaktu,
+                    'new_waktu' => $applicationSchedule->getRawOriginal('waktu'),
+                    'previous_ruang_id' => $previousRuangId,
+                    'new_ruang_id' => $applicationSchedule->ruang_id,
+                    'previous_custom_place' => $previousCustomPlace,
+                    'new_custom_place' => $applicationSchedule->custom_place,
+                ],
+            ]);
+        }
+
+        if ($request->input('redirect_to') === 'show') {
+            return redirect()->route('admin.application-schedules.show', $applicationSchedule->id)
+                ->with('message', $wasApproved ? 'Jadwal berhasil diperbarui.' : 'Data jadwal berhasil diperbarui.');
+        }
 
         return redirect()->route('admin.application-schedules.index');
     }
@@ -210,7 +252,9 @@ class ApplicationScheduleController extends Controller
             }
         }
 
-        return view('admin.applicationSchedules.show', compact('applicationSchedule', 'mbkmGroupRegistration'));
+        $ruangs = Ruang::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+
+        return view('admin.applicationSchedules.show', compact('applicationSchedule', 'mbkmGroupRegistration', 'ruangs'));
     }
 
     public function destroy(ApplicationSchedule $applicationSchedule)
@@ -278,9 +322,16 @@ class ApplicationScheduleController extends Controller
                 ]);
             });
 
+            $schedule->refresh();
+
+            $message = $schedule->isDefenseSchedule()
+                ? 'Jadwal sidang skripsi berhasil disetujui'
+                : 'Jadwal seminar berhasil disetujui';
+
             return response()->json([
                 'success' => true,
-                'message' => 'Jadwal seminar berhasil disetujui'
+                'message' => $message,
+                'whatsapp_url' => $schedule->whatsappMahasiswaScheduleVerifiedUrl(),
             ]);
         } catch (\Exception $e) {
             return response()->json([

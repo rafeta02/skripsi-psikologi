@@ -257,4 +257,57 @@ class ApplicationSchedule extends Model implements HasMedia
             'detail' => 'Jadwal diajukan dan menunggu persetujuan admin.',
         ];
     }
+
+    public function isDefenseSchedule(): bool
+    {
+        return in_array($this->schedule_type, ['skripsi_defense', 'defense'], true);
+    }
+
+    public function whatsappMahasiswaScheduleVerifiedUrl(): ?string
+    {
+        if (! $this->isDefenseSchedule() || ! $this->isDefenseScheduleVerified()) {
+            return null;
+        }
+
+        $this->loadMissing(['application.mahasiswa.user']);
+
+        $phone = $this->application?->mahasiswa?->user?->whatsappNumberForLink();
+        if (! $phone) {
+            return null;
+        }
+
+        $nama = $this->application?->mahasiswa?->user?->name
+            ?? $this->application?->mahasiswa?->nama
+            ?? 'Mahasiswa';
+
+        return 'https://wa.me/'.$phone.'?text='.rawurlencode(self::buildScheduleVerifiedWhatsappMessage($nama));
+    }
+
+    public static function buildScheduleVerifiedWhatsappMessage(string $nama): string
+    {
+        return "Oke, {$nama} tanggal telah dicatat, silakan cek alur ini:\n"
+            ."Mahasiswa sudah Input MK Skripsi di SIAKAD pada Semester Dimana akan melakukan Sidang Skripsi. (sudah dilakukan)\n"
+            ."Menunjukkan bukti telah disetujui untuk Sidang Skripsi kepada Koordinator Skripsi berupa lembar Persetujuan Sidang yang sudah ditandatangani. (sudah dilakukan)\n"
+            ."Melengkapi berkas-berkas Persyaratan Sidang kepada Koordinator Skripsi. (sudah dilakukan)\n"
+            ."Menentukan tanggal Sidang Skripsi berdasarkan kesepakatan dengan Dosen Penguji dan Dosen Pembimbing serta ketersediaan ruangan serta menginformasikan kepada Koordinator Skripsi. (sudah dilakukan)\n"
+            ."Mahasiswa WAJIB melakukan Pengajuan Sidang Skripsi melalui https://siakad.uns.ac.id/ > Login menggunakan Akun SSO > KRS & KHS > Pendaftaran Ujian.\n"
+            ."Klik disini pada menu \"Konsultasi Skripsi/Thesis/Disertasi kurang dari 12. Tambahkan konsultasi Skripsi/Thesis/Disertasi terlebih dahulu\" > Pada tampilan Pembimbing pilih menu \"Konsultasi\" > Isikan Materi Bimbingan minimal 12x Pertemuan pada masing-masing Pembimbing berdasarkan Buku Bimbingan > Selanjutnya opsi \"Ajukan Ujian Skripsi\" akan muncul lalu silahkan dipilih.\n"
+            ."Selanjutnya Mahasiswa wajib menghubungi Dosen Pembimbing meminta untuk dilakukan Validasi Panel Konsultasi pada poin nomor 6 diatas.\n"
+            ."WhatsApp Pak Ryan di 08566334444 dengan menunjukkan tangkapan layar email ini untuk laporan telah melakukan Pengajuan Sidang Skripsi dengan menuliskan : Nama Pembimbing, Penguji 1 + 2, Hari, Tanggal, dan Jam Sidang dilaksanakan baru nanti akan dilakukan Verifikasi di SIAKAD serta mengirimkan File Berkas Undangan\n"
+            ."Setelah itu Pak Ryan akan menginformasikan bahwa Pengajuan telah diverifikasi.\n"
+            ."Berkas SIdang Skripsi dapat diunduh oleh Mahasiswa melalui http://linktr.ee/skripsipsikologiuns yang isinya meliputi Form Penilaian Sidang, Lembar Umpan Balik, dan Notulensi.\n"
+            ."Sidang Skripsi yang dilaksanakan secara luring, Berkas Sidang Skripsi yang telah terisi silahkan diserahkan ke Biro Skripsi.\n"
+            ."Draft Skripsi beserta Lembar Umpan Balik yang telah dicetak diserahkan kepada Dewan Penguji selambat-lambatnya H-5.\n"
+            ."Berkas skripsi (Berita Acara diserahkan ke pembimbing), Umpan Balik) dipersiapkan oleh Mahasiswa, dengan catatan sebagai berikut.\n"
+            ."Berita Acara dan Notulensi Sidang (dari http://linktr.ee/skripsipsikologiuns) dicetak 1 lembar, diserahkan kepada pembimbing pada Hari H Ujian.\n"
+            ."Umpan Balik dibuat 3 lembar sesuai dengan nama dewan penguji.\n"
+            ."Semua berkas terlebih dahulu disesuaikan dengan identitas pemohon sidang skripsi beserta dewan penguji yang terlibat diserahkan bersama dengan berkas skripsi untuk keperluan sidang.\n"
+            ."Pembimbing berperan sebagai Ketua Sidang.\n"
+            ."Penguji 1 berperan sebagai Anggota Penguji Utama.\n"
+            ."Penguji 2 berperan sebagai Anggota Penguji Pendamping.\n"
+            ."Jika Sidang Skripsi dilaksanakan secara daring, mahasiswa diwajibkan membuat WAG untuk membantu memperlancar komunikasi untuk keperluan sidang.\n"
+            ."Penilaian dapat dilakukan dengan mengirimkan form penilaian yang telah diisi oleh dewan penguji melalui email skripsi.psikologi@mail.uns.ac.id atau link penilaian khusus yang akan dibagikan oleh Pembimbing.\n"
+            ."Zoom meeting disediakan oleh pembimbing.\n\n"
+            ."Lampiran Ketentuan Pelaksanaan Sidang Skripsi: https://uns.id/ketentuansidang";
+    }
 }

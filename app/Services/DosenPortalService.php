@@ -31,6 +31,7 @@ class DosenPortalService
         $dosenId = $this->resolveDosenId();
         $pendingAssignments = $dosenId ? $this->countPendingAssignments($dosenId) : 0;
         $pendingScores = $dosenId ? $this->countPendingDefenseScores($dosenId) : 0;
+        $defenseManuscripts = $dosenId ? $this->countViewableDefenseManuscripts($dosenId) : 0;
 
         return [
             [
@@ -45,6 +46,7 @@ class DosenPortalService
                 'items' => [
                     $this->navItem('Mahasiswa Bimbingan', 'dosen.mahasiswa-bimbingan', 'fa-user-graduate', ['dosen.mahasiswa-bimbingan']),
                     $this->navItem('Penugasan', 'dosen.task-assignments', 'fa-tasks', ['dosen.task-assignments', 'dosen.review-proposal'], $pendingAssignments),
+                    $this->navItem('Naskah Sidang', 'dosen.skripsi-defenses.index', 'fa-book-open', ['dosen.skripsi-defenses.*'], $defenseManuscripts),
                 ],
             ],
             [
@@ -87,6 +89,16 @@ class DosenPortalService
                 'url' => route('dosen.scores'),
                 'icon' => 'fa-star',
                 'color' => 'success',
+            ];
+        }
+
+        $defenseManuscripts = $this->countViewableDefenseManuscripts($dosenId);
+        if ($defenseManuscripts > 0) {
+            $actions[] = [
+                'label' => "Baca Naskah Sidang ({$defenseManuscripts})",
+                'url' => route('dosen.skripsi-defenses.index'),
+                'icon' => 'fa-book-open',
+                'color' => 'info',
             ];
         }
 
@@ -206,6 +218,11 @@ class DosenPortalService
                 });
             })
             ->count();
+    }
+
+    private function countViewableDefenseManuscripts(int $dosenId): int
+    {
+        return app(DefenseScoringService::class)->countViewableDefensesForDosen($dosenId);
     }
 
     private function navItem(string $label, string $route, string $icon, array $activeRoutes, int $badge = 0): array

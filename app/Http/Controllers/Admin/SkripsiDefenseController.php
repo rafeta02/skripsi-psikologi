@@ -7,11 +7,14 @@ use App\Http\Controllers\Traits\MediaUploadingTrait;
 use App\Http\Requests\MassDestroySkripsiDefenseRequest;
 use App\Http\Requests\StoreSkripsiDefenseRequest;
 use App\Http\Requests\UpdateSkripsiDefenseRequest;
+use App\Http\Requests\UpdateSkripsiDefenseScheduleRequest;
 use App\Models\Application;
 use App\Models\ApplicationAction;
 use App\Models\Dosen;
+use App\Models\Ruang;
 use App\Models\SkripsiDefense;
 use App\Models\SkripsiDefenseExaminer;
+use App\Services\DefenseScoringService;
 use Gate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -573,8 +576,17 @@ class SkripsiDefenseController extends Controller
         $skripsiDefense->syncApplicationStatus();
 
         $dosens = Dosen::orderBy('nama')->get();
+        $ruangs = Ruang::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('admin.skripsiDefenses.show', compact('skripsiDefense', 'dosens'));
+        $defenseSchedule = $skripsiDefense->application
+            ? app(DefenseScoringService::class)->resolveDefenseSchedule($skripsiDefense->application)
+            : null;
+
+        if ($defenseSchedule) {
+            $defenseSchedule->load('ruang');
+        }
+
+        return view('admin.skripsiDefenses.show', compact('skripsiDefense', 'dosens', 'ruangs', 'defenseSchedule'));
     }
 
     public function assignExaminers(Request $request, SkripsiDefense $skripsiDefense)
@@ -612,6 +624,74 @@ class SkripsiDefenseController extends Controller
 
         return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
             ->with('message', $message);
+    }
+
+    public function updateSchedule(UpdateSkripsiDefenseScheduleRequest $request, SkripsiDefense $skripsiDefense)
+    {
+        abort_if(Gate::denies('skripsi_defense_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        if (! $skripsiDefense->isAccepted()) {
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('error', 'Jadwal sidang hanya dapat diubah setelah pendaftaran sidang diterima.');
+        }
+
+        $skripsiDefense->load('application');
+
+        $defenseSchedule = $skripsiDefense->application
+            ? app(DefenseScoringService::class)->resolveDefenseSchedule($skripsiDefense->application)
+            : null;
+
+        if (! $defenseSchedule) {
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('error', 'Mahasiswa belum mengajukan jadwal sidang.');
+        }
+
+        if (! $defenseSchedule->isDefenseScheduleVerified()) {
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('error', 'Jadwal sidang belum disetujui admin. Setujui jadwal terlebih dahulu di menu Jadwal Seminar/Sidang.');
+        }
+
+        $validated = $request->validated();
+        $previousWaktu = $defenseSchedule->getRawOriginal('waktu');
+        $previousRuangId = $defenseSchedule->ruang_id;
+        $previousCustomPlace = $defenseSchedule->custom_place;
+
+        try {
+            DB::transaction(function () use ($skripsiDefense, $defenseSchedule, $validated, $previousWaktu, $previousRuangId, $previousCustomPlace) {
+                $defenseSchedule->update([
+                    'waktu' => $validated['waktu'],
+                    'ruang_id' => $validated['ruang_id'] ?: null,
+                    'custom_place' => $validated['custom_place'] ?? null,
+                    'online_meeting' => $validated['online_meeting'] ?? null,
+                    'note' => $validated['note'] ?? $defenseSchedule->note,
+                ]);
+
+                ApplicationAction::create([
+                    'application_id' => $skripsiDefense->application_id,
+                    'action_type' => 'schedule_rescheduled',
+                    'action_by' => auth()->id(),
+                    'notes' => $validated['schedule_change_note'] ?? 'Jadwal sidang diubah oleh admin',
+                    'metadata' => [
+                        'schedule_id' => $defenseSchedule->id,
+                        'skripsi_defense_id' => $skripsiDefense->id,
+                        'previous_waktu' => $previousWaktu,
+                        'new_waktu' => $defenseSchedule->getRawOriginal('waktu'),
+                        'previous_ruang_id' => $previousRuangId,
+                        'new_ruang_id' => $defenseSchedule->ruang_id,
+                        'previous_custom_place' => $previousCustomPlace,
+                        'new_custom_place' => $defenseSchedule->custom_place,
+                    ],
+                ]);
+            });
+
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('message', 'Jadwal sidang skripsi berhasil diperbarui.')
+                ->with('prompt_whatsapp_schedule_verified', true);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
+                ->with('error', 'Terjadi kesalahan: '.$e->getMessage())
+                ->withInput();
+        }
     }
 
     public function accept(Request $request, SkripsiDefense $skripsiDefense)

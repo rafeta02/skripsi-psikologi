@@ -248,7 +248,7 @@ class Application extends Model implements HasMedia
 
         $registrationApplication = static::query()
             ->where('mahasiswa_id', $this->mahasiswa_id)
-            ->where('type', 'skripsi')
+            ->where('type', in_array($this->type, ['skripsi', 'mbkm'], true) ? $this->type : 'skripsi')
             ->where('stage', 'registration')
             ->orderByDesc('created_at')
             ->first();

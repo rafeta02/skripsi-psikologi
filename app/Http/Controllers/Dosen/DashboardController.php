@@ -9,6 +9,7 @@ use App\Models\ApplicationScore;
 use App\Models\AdminAlert;
 use App\Models\Announcement;
 use App\Models\Dosen;
+use App\Services\DefenseScoringService;
 use App\Services\ReviewerAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -150,6 +151,7 @@ class DashboardController extends Controller
     public function mahasiswaBimbingan()
     {
         $dosen = $this->resolveDosen();
+        $defenseScoringService = app(DefenseScoringService::class);
 
         $mahasiswaBimbingan = ApplicationAssignment::withoutGroupMirrors()
             ->with([
@@ -164,7 +166,20 @@ class DashboardController extends Controller
             ->orderBy('assigned_at', 'desc')
             ->get();
 
-        return view('dosen.mahasiswa-bimbingan', compact('mahasiswaBimbingan', 'dosen'));
+        $defenseManuscripts = $mahasiswaBimbingan
+            ->mapWithKeys(function (ApplicationAssignment $assignment) use ($dosen, $defenseScoringService) {
+                $mahasiswaId = $assignment->application?->mahasiswa_id;
+
+                if (! $mahasiswaId) {
+                    return [];
+                }
+
+                $defense = $defenseScoringService->findViewableDefenseForMahasiswa($mahasiswaId, $dosen->id);
+
+                return $defense ? [$mahasiswaId => $defense] : [];
+            });
+
+        return view('dosen.mahasiswa-bimbingan', compact('mahasiswaBimbingan', 'dosen', 'defenseManuscripts'));
     }
 
     public function taskAssignments()

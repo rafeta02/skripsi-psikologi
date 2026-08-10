@@ -442,7 +442,7 @@
                             <li class="nav-item">
                                 <a href="{{ route("admin.mahasiswa-watchlists.index") }}"
                                    class="nav-link nav-link-wrap {{ request()->is("admin/mahasiswa-watchlists") || request()->is("admin/mahasiswa-watchlists/*") ? "active" : "" }}"
-                                   @if(($mahasiswaWatchlistCount ?? 0) > 0) title="{{ $mahasiswaWatchlistCount }} mahasiswa belum daftar sidang" @endif>
+                                   @if(($mahasiswaWatchlistCount ?? 0) > 0) title="{{ $mahasiswaWatchlistCount }} mahasiswa perlu tindak lanjut (daftar sidang / lapor hasil sidang)" @endif>
                                     <span class="nav-link-inner">
                                         <i class="fa-fw nav-icon fas fa-user-clock"></i>
                                         @if(($mahasiswaWatchlistCount ?? 0) > 0)

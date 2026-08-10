@@ -272,6 +272,136 @@
                 </div>
             </div>
 
+            <!-- Jadwal Sidang Skripsi -->
+            @if($skripsiDefense->isAccepted())
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt mr-2"></i>Jadwal Sidang Skripsi</h5>
+                </div>
+                <div class="card-body">
+                    @if($defenseSchedule)
+                        @php $scheduleStatus = $defenseSchedule->adminValidationStatus(); @endphp
+                        <div class="mb-3">
+                            <span class="badge badge-{{ $scheduleStatus['badge'] === 'success' ? 'success' : ($scheduleStatus['badge'] === 'danger' ? 'danger' : 'warning') }} badge-lg">
+                                <i class="fas fa-{{ $scheduleStatus['icon'] }} mr-1"></i>{{ $scheduleStatus['label'] }}
+                            </span>
+                        </div>
+
+                        @if($defenseSchedule->isDefenseScheduleVerified())
+                            @can('skripsi_defense_edit')
+                            <form method="POST" action="{{ route('admin.skripsi-defenses.update-schedule', $skripsiDefense->id) }}">
+                                @csrf
+                                @method('PUT')
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="schedule_waktu" class="font-weight-bold">
+                                                {{ trans('cruds.applicationSchedule.fields.waktu') }} <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="text" name="waktu" id="schedule_waktu"
+                                                class="form-control datetime {{ $errors->has('waktu') ? 'is-invalid' : '' }}"
+                                                value="{{ old('waktu', $defenseSchedule->waktu) }}" required>
+                                            @error('waktu')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="schedule_ruang_id" class="font-weight-bold">{{ trans('cruds.applicationSchedule.fields.ruang') }}</label>
+                                            <select name="ruang_id" id="schedule_ruang_id" class="form-control select2">
+                                                @foreach($ruangs as $id => $name)
+                                                    <option value="{{ $id }}"
+                                                        {{ (string) old('ruang_id', $defenseSchedule->ruang_id ?? '') === (string) $id ? 'selected' : '' }}>
+                                                        {{ $name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="schedule_custom_place" class="font-weight-bold">{{ trans('cruds.applicationSchedule.fields.custom_place') }}</label>
+                                            <input type="text" name="custom_place" id="schedule_custom_place" class="form-control"
+                                                value="{{ old('custom_place', $defenseSchedule->custom_place) }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="schedule_online_meeting" class="font-weight-bold">{{ trans('cruds.applicationSchedule.fields.online_meeting') }}</label>
+                                            <input type="text" name="online_meeting" id="schedule_online_meeting" class="form-control"
+                                                value="{{ old('online_meeting', $defenseSchedule->online_meeting) }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="schedule_note" class="font-weight-bold">{{ trans('cruds.applicationSchedule.fields.note') }}</label>
+                                            <textarea name="note" id="schedule_note" class="form-control" rows="2">{{ old('note', $defenseSchedule->note) }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group mb-0">
+                                            <label for="schedule_change_note" class="font-weight-bold">Catatan Perubahan Jadwal (Opsional)</label>
+                                            <textarea name="schedule_change_note" id="schedule_change_note" class="form-control" rows="2"
+                                                placeholder="Contoh: Perubahan jadwal atas permintaan penguji / ketersediaan ruang">{{ old('schedule_change_note') }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="submit" class="btn btn-info">
+                                        <i class="fas fa-save mr-1"></i> Simpan Perubahan Jadwal
+                                    </button>
+                                    <a href="{{ route('admin.application-schedules.show', $defenseSchedule->id) }}" class="btn btn-outline-secondary ml-1">
+                                        <i class="fas fa-external-link-alt mr-1"></i> Detail Jadwal
+                                    </a>
+                                </div>
+                            </form>
+
+                            @php $waScheduleVerifiedUrl = $defenseSchedule->whatsappMahasiswaScheduleVerifiedUrl(); @endphp
+                            @if($waScheduleVerifiedUrl)
+                                <div class="alert alert-success mt-3 mb-0" id="whatsapp-schedule-verified-alert">
+                                    <p class="mb-2">
+                                        <i class="fab fa-whatsapp mr-1"></i>
+                                        Jadwal sidang sudah diverifikasi. Kirim template alur sidang skripsi ke mahasiswa.
+                                    </p>
+                                    <a href="{{ $waScheduleVerifiedUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-success">
+                                        <i class="fab fa-whatsapp mr-1"></i> Kirim WA ke Mahasiswa
+                                    </a>
+                                </div>
+                            @else
+                                <div class="alert alert-warning mt-3 mb-0">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    Notifikasi WhatsApp tidak tersedia. Pastikan no. HP/WA mahasiswa sudah diisi di profil user.
+                                </div>
+                            @endif
+                            @else
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>{{ trans('cruds.applicationSchedule.fields.waktu') }}:</strong> {{ $defenseSchedule->waktu ?? '-' }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>{{ trans('cruds.applicationSchedule.fields.ruang') }}:</strong> {{ $defenseSchedule->ruang->name ?? ($defenseSchedule->custom_place ?: '-') }}</p>
+                                </div>
+                            </div>
+                            @endcan
+                        @else
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-clock mr-1"></i>
+                                Jadwal sidang menunggu persetujuan admin.
+                                <a href="{{ route('admin.application-schedules.show', $defenseSchedule->id) }}" class="alert-link">Buka detail jadwal</a>
+                                untuk menyetujui atau menolak.
+                            </div>
+                        @endif
+                    @else
+                        <div class="alert alert-secondary mb-0">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Mahasiswa belum mengajukan jadwal sidang skripsi.
+                        </div>
+                    @endif
+                </div>
+            </div>
+            @endif
+
             <!-- Dokumen Sidang Utama -->
             <div class="card mt-3">
                 <div class="card-header bg-dark text-white">
@@ -927,6 +1057,13 @@ $(document).ready(function() {
         const waAlert = document.getElementById('whatsapp-acceptance-alert');
         if (waAlert) {
             waAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    @endif
+
+    @if(session('prompt_whatsapp_schedule_verified'))
+        const waScheduleAlert = document.getElementById('whatsapp-schedule-verified-alert');
+        if (waScheduleAlert) {
+            waScheduleAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     @endif
 });

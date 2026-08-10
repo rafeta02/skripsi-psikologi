@@ -2,29 +2,19 @@
 
 namespace App\Http\Requests;
 
-use App\Models\ApplicationSchedule;
 use Gate;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Response;
 
-class UpdateApplicationScheduleRequest extends FormRequest
+class UpdateSkripsiDefenseScheduleRequest extends FormRequest
 {
     public function authorize()
     {
-        return Gate::allows('application_schedule_edit');
+        return Gate::allows('skripsi_defense_edit');
     }
 
     public function rules()
     {
         return [
-            'application_id' => [
-                'required',
-                'exists:applications,id',
-            ],
-            'schedule_type' => [
-                'required',
-                'in:seminar,defense,skripsi_seminar,mbkm_seminar,skripsi_defense',
-            ],
             'waktu' => [
                 'required',
                 'date_format:' . config('panel.date_format') . ' ' . config('panel.time_format'),
@@ -34,12 +24,14 @@ class UpdateApplicationScheduleRequest extends FormRequest
                 'exists:ruangs,id',
             ],
             'custom_place' => [
-                'string',
                 'nullable',
+                'string',
+                'max:255',
             ],
             'online_meeting' => [
-                'string',
                 'nullable',
+                'string',
+                'max:500',
             ],
             'note' => [
                 'nullable',
@@ -50,22 +42,15 @@ class UpdateApplicationScheduleRequest extends FormRequest
                 'string',
                 'max:1000',
             ],
-            'redirect_to' => [
-                'nullable',
-                'string',
-            ],
         ];
     }
 
     public function messages()
     {
         return [
-            'application_id.required' => 'Aplikasi skripsi wajib dipilih.',
-            'application_id.exists' => 'Aplikasi skripsi tidak valid.',
-            'schedule_type.required' => 'Tipe jadwal wajib dipilih.',
-            'schedule_type.in' => 'Tipe jadwal tidak valid. Pilih salah satu: Seminar atau Sidang.',
-            'waktu.required' => 'Waktu pelaksanaan wajib diisi.',
+            'waktu.required' => 'Waktu sidang wajib diisi.',
             'waktu.date_format' => 'Format waktu tidak valid.',
+            'ruang_id.exists' => 'Ruangan tidak valid.',
         ];
     }
 }

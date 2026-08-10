@@ -181,6 +181,75 @@
                 </div>
             </div>
             @endif
+
+            @if($applicationSchedule->isApprovedByAdmin())
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-edit mr-2"></i>
+                        Ubah Jadwal
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @can('application_schedule_edit')
+                    <form method="POST" action="{{ route('admin.application-schedules.update', $applicationSchedule->id) }}">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="redirect_to" value="show">
+                        <input type="hidden" name="application_id" value="{{ $applicationSchedule->application_id }}">
+                        <input type="hidden" name="schedule_type" value="{{ $applicationSchedule->schedule_type }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reschedule_waktu" class="font-weight-bold">{{ trans('cruds.applicationSchedule.fields.waktu') }} <span class="text-danger">*</span></label>
+                                    <input type="text" name="waktu" id="reschedule_waktu" class="form-control datetime {{ $errors->has('waktu') ? 'is-invalid' : '' }}"
+                                        value="{{ old('waktu', $applicationSchedule->waktu) }}" required>
+                                    @error('waktu')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reschedule_ruang_id" class="font-weight-bold">{{ trans('cruds.applicationSchedule.fields.ruang') }}</label>
+                                    <select name="ruang_id" id="reschedule_ruang_id" class="form-control select2">
+                                        @foreach($ruangs as $id => $name)
+                                            <option value="{{ $id }}" {{ (string) old('ruang_id', $applicationSchedule->ruang_id ?? '') === (string) $id ? 'selected' : '' }}>{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reschedule_custom_place" class="font-weight-bold">{{ trans('cruds.applicationSchedule.fields.custom_place') }}</label>
+                                    <input type="text" name="custom_place" id="reschedule_custom_place" class="form-control" value="{{ old('custom_place', $applicationSchedule->custom_place) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reschedule_online_meeting" class="font-weight-bold">{{ trans('cruds.applicationSchedule.fields.online_meeting') }}</label>
+                                    <input type="text" name="online_meeting" id="reschedule_online_meeting" class="form-control" value="{{ old('online_meeting', $applicationSchedule->online_meeting) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="reschedule_note" class="font-weight-bold">{{ trans('cruds.applicationSchedule.fields.note') }}</label>
+                                    <textarea name="note" id="reschedule_note" class="form-control" rows="2">{{ old('note', $applicationSchedule->note) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group mb-0">
+                                    <label for="reschedule_change_note" class="font-weight-bold">Catatan Perubahan Jadwal (Opsional)</label>
+                                    <textarea name="schedule_change_note" id="reschedule_change_note" class="form-control" rows="2">{{ old('schedule_change_note') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-warning mt-3">
+                            <i class="fas fa-save mr-1"></i> Simpan Perubahan Jadwal
+                        </button>
+                    </form>
+                    @endcan
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Sidebar -->
@@ -257,6 +326,32 @@
                     </div>
                 </div>
             </div>
+            @endif
+
+            @if($applicationSchedule->isApprovedByAdmin() && $applicationSchedule->isDefenseSchedule())
+                @php $waScheduleVerifiedUrl = $applicationSchedule->whatsappMahasiswaScheduleVerifiedUrl(); @endphp
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="card-title mb-0">
+                            <i class="fab fa-whatsapp mr-2"></i>
+                            Notifikasi Mahasiswa
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        @if($waScheduleVerifiedUrl)
+                            <p class="mb-2">Kirim template alur sidang skripsi setelah jadwal diverifikasi.</p>
+                            <a href="{{ $waScheduleVerifiedUrl }}" target="_blank" rel="noopener noreferrer"
+                               class="btn btn-success btn-block" id="whatsapp-schedule-verified-btn">
+                                <i class="fab fa-whatsapp mr-1"></i> Kirim WA ke Mahasiswa
+                            </a>
+                        @else
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Notifikasi WhatsApp tidak tersedia. Pastikan no. HP/WA mahasiswa sudah diisi di profil user.
+                            </div>
+                        @endif
+                    </div>
+                </div>
             @endif
 
             <!-- Navigation Card -->
@@ -412,14 +507,31 @@ $('#approveForm').on('submit', function(e) {
         success: function(response) {
             if (response.success) {
                 $('#approveModal').modal('hide');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: response.message,
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    location.reload();
-                });
+                if (response.whatsapp_url) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: response.message,
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="fab fa-whatsapp"></i> Kirim WA ke Mahasiswa',
+                        cancelButtonText: 'Tutup',
+                        confirmButtonColor: '#25D366',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.open(response.whatsapp_url, '_blank');
+                        }
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: response.message,
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        location.reload();
+                    });
+                }
             }
         },
         error: function(xhr) {

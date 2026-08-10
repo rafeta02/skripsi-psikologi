@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Application;
+use App\Models\ApplicationResultDefense;
 use App\Models\ApplicationResultReview;
 use App\Models\Dosen;
 use Carbon\Carbon;
@@ -17,6 +18,21 @@ class MahasiswaWatchlistService
     public function graceDays(): int
     {
         return (int) config('thesis.defense_registration_grace_days', 30);
+    }
+
+    public function defenseResultSubmissionWarningStartDays(): int
+    {
+        return ApplicationResultDefense::submissionWarningStartDays();
+    }
+
+    public function countAllWatchlist(): int
+    {
+        return $this->countRegulerWatchlist() + $this->countDefenseResultWatchlist();
+    }
+
+    public function countDefenseResultWatchlist(): int
+    {
+        return $this->getDefenseResultWatchlistEntries()->count();
     }
 
     public function countRegulerWatchlist(): int
@@ -173,5 +189,105 @@ class MahasiswaWatchlistService
             .'Terima kasih.';
 
         return 'https://wa.me/'.$phone.'?text='.rawurlencode($message);
+    }
+
+    /**
+     * Mahasiswa yang sidang sudah dilaksanakan tetapi belum mengirim laporan hasil sidang.
+     *
+     * @return Collection<int, object{
+     *     application_id: int,
+     *     skripsi_defense_id: int,
+     *     mahasiswa_id: int,
+     *     mahasiswa_name: string,
+     *     mahasiswa_nim: string,
+     *     pembimbing_name: ?string,
+     *     jalur_label: string,
+     *     defense_held_at: Carbon,
+     *     defense_held_at_label: string,
+     *     days_since_defense: int,
+     *     status_label: string,
+     *     wa_url: ?string,
+     *     detail_url: string,
+     * }>
+     */
+    public function getDefenseResultWatchlistEntries(): Collection
+    {
+        $warningStartDays = $this->defenseResultSubmissionWarningStartDays();
+        $scoringService = app(DefenseScoringService::class);
+        $supervisorNames = [];
+
+        $applications = Application::query()
+            ->with([
+                'mahasiswa.user',
+                'skripsiDefense',
+                'skripsiSeminar',
+            ])
+            ->where('stage', 'defense')
+            ->whereIn('type', ['skripsi', 'mbkm'])
+            ->whereHas('skripsiDefense', function ($query) {
+                $query->where('status', 'accepted');
+            })
+            ->whereDoesntHave('resultDefense')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return $applications
+            ->map(function (Application $application) use ($scoringService, &$supervisorNames) {
+                $mahasiswa = $application->mahasiswa;
+                $defense = $application->skripsiDefense;
+
+                if (! $mahasiswa || ! $defense) {
+                    return null;
+                }
+
+                if (! $scoringService->isDefenseHeld($application)) {
+                    return null;
+                }
+
+                $schedule = $scoringService->resolveDefenseSchedule($application);
+                $rawWaktu = $schedule?->getRawOriginal('waktu');
+
+                if (! $rawWaktu) {
+                    return null;
+                }
+
+                $defenseHeldAt = Carbon::parse($rawWaktu);
+                $daysSinceDefense = ApplicationResultDefense::daysSinceDefenseHeld($defenseHeldAt);
+
+                if ($daysSinceDefense < $warningStartDays) {
+                    return null;
+                }
+
+                $supervisorId = $application->resolveSupervisorLecturerId();
+                if ($supervisorId) {
+                    if (! array_key_exists($supervisorId, $supervisorNames)) {
+                        $supervisorNames[$supervisorId] = Dosen::find($supervisorId)?->nama;
+                    }
+                }
+
+                return (object) [
+                    'application_id' => $application->id,
+                    'skripsi_defense_id' => $defense->id,
+                    'mahasiswa_id' => $mahasiswa->id,
+                    'mahasiswa_name' => $mahasiswa->nama,
+                    'mahasiswa_nim' => $mahasiswa->nim,
+                    'pembimbing_name' => $supervisorId ? ($supervisorNames[$supervisorId] ?? null) : null,
+                    'jalur_label' => $application->type === 'mbkm' ? 'MBKM' : 'Reguler',
+                    'defense_held_at' => $defenseHeldAt,
+                    'defense_held_at_label' => $defenseHeldAt->format('d M Y H:i'),
+                    'days_since_defense' => $daysSinceDefense,
+                    'status_label' => $daysSinceDefense.' hari sejak sidang',
+                    'wa_url' => ApplicationResultDefense::whatsappSubmissionReminderUrl(
+                        $mahasiswa,
+                        $application,
+                        $defenseHeldAt,
+                        $daysSinceDefense
+                    ),
+                    'detail_url' => route('admin.skripsi-defenses.show', $defense->id),
+                ];
+            })
+            ->filter()
+            ->sortByDesc('days_since_defense')
+            ->values();
     }
 }

@@ -149,7 +149,7 @@ class AppServiceProvider extends ServiceProvider
 
                     if (Auth::user()->can('mahasiswa_watchlist_access')) {
                         $mahasiswaWatchlistCount = app(MahasiswaWatchlistService::class)
-                            ->countRegulerWatchlist();
+                            ->countAllWatchlist();
                     }
                 }
             } catch (\Throwable $e) {

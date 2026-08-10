@@ -304,4 +304,29 @@ class SkripsiDefense extends Model implements HasMedia
 
         return 'https://wa.me/'.$phone.'?text='.rawurlencode($message);
     }
+
+    public function dosenRoleLabel(int $dosenId): ?string
+    {
+        if ((int) ($this->examiner1?->dosen_id) === $dosenId) {
+            return 'Penguji 1';
+        }
+
+        if ((int) ($this->examiner2?->dosen_id) === $dosenId) {
+            return 'Penguji 2';
+        }
+
+        $application = $this->application;
+
+        if (! $application) {
+            return null;
+        }
+
+        $scorerIds = app(\App\Services\DefenseScoringService::class)->getScorerDosenIds($application);
+
+        if (in_array($dosenId, $scorerIds, true)) {
+            return 'Pembimbing';
+        }
+
+        return null;
+    }
 }

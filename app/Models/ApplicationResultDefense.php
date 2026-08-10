@@ -375,4 +375,45 @@ class ApplicationResultDefense extends Model implements HasMedia
     {
         return $this->getMedia('revision_approval_sheet')->last();
     }
+
+    public static function submissionWarningStartDays(): int
+    {
+        return (int) config('thesis.defense_result_submission_warning_start_days', 14);
+    }
+
+    public static function daysSinceDefenseHeld(Carbon $defenseHeldAt): int
+    {
+        return max(0, $defenseHeldAt->copy()->startOfDay()->diffInDays(now()->startOfDay()));
+    }
+
+    public static function whatsappSubmissionReminderUrl(
+        $mahasiswa,
+        Application $application,
+        Carbon $defenseHeldAt,
+        int $daysSinceDefense
+    ): ?string {
+        $phone = $mahasiswa->user?->whatsappNumberForLink();
+        if (! $phone) {
+            return null;
+        }
+
+        $nama = $mahasiswa->nama ?? 'Mahasiswa';
+        $nim = $mahasiswa->nim ?? '-';
+        $judul = $application->skripsiDefense?->title
+            ?? $application->skripsiSeminar?->title
+            ?? '-';
+        $defenseLabel = $defenseHeldAt->format('d M Y');
+        $jalur = $application->type === 'mbkm' ? 'MBKM' : 'Reguler';
+
+        $message = "Yth. {$nama},\n\n"
+            ."Sidang skripsi ({$jalur}) Anda telah dilaksanakan pada {$defenseLabel}. "
+            ."Sudah {$daysSinceDefense} hari berlalu, namun kami belum menerima Laporan Hasil Sidang Anda.\n\n"
+            ."Mohon segera login ke SIMSKRIPSI untuk mengunggah laporan hasil sidang.\n\n"
+            ."Detail:\n"
+            ."- NIM: {$nim}\n"
+            ."- Judul: {$judul}\n\n"
+            .'Terima kasih.';
+
+        return 'https://wa.me/'.$phone.'?text='.rawurlencode($message);
+    }
 }

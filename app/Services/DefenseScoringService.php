@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Application;
+use App\Models\ApplicationAction;
 use App\Models\ApplicationAssignment;
 use App\Models\ApplicationResultDefense;
 use App\Models\ApplicationSchedule;
@@ -60,12 +61,23 @@ class DefenseScoringService
             ->first();
 
         if ($regApp) {
+            $regApp->loadMissing('skripsiRegistration');
+
+            if ($regApp->skripsiRegistration?->assigned_supervisor_id) {
+                $ids[] = (int) $regApp->skripsiRegistration->assigned_supervisor_id;
+            }
+
             $supervisorIds = ApplicationAssignment::where('application_id', $regApp->id)
                 ->where('role', 'supervisor')
                 ->where('status', 'accepted')
                 ->pluck('lecturer_id')
                 ->all();
             $ids = array_merge($ids, $supervisorIds);
+        }
+
+        $supervisorId = $application->resolveSupervisorLecturerId();
+        if ($supervisorId) {
+            $ids[] = $supervisorId;
         }
 
         $skripsiDefense = SkripsiDefense::where('application_id', $application->id)->first();
@@ -75,6 +87,38 @@ class DefenseScoringService
         }
 
         return array_values(array_unique(array_filter($ids)));
+    }
+
+    /**
+     * Pendaftaran sidang dianggap disetujui (termasuk data lama yang belum sinkron status).
+     */
+    public function isDefenseApprovedForManuscriptAccess(SkripsiDefense $skripsiDefense): bool
+    {
+        if ($skripsiDefense->isAccepted()) {
+            return true;
+        }
+
+        if (! $skripsiDefense->application_id) {
+            return false;
+        }
+
+        if (ApplicationAction::where('application_id', $skripsiDefense->application_id)
+            ->where('action_type', 'defense_approved')
+            ->exists()) {
+            return true;
+        }
+
+        $application = $skripsiDefense->application;
+
+        return $application
+            && in_array($application->status, ['approved', 'scheduled', 'result', 'revision'], true)
+            && $skripsiDefense->examiners()->count() >= 2;
+    }
+
+    public function hasCompleteDefenseExaminers(SkripsiDefense $skripsiDefense): bool
+    {
+        return $skripsiDefense->examiners()->count() >= 2
+            || ($skripsiDefense->examiner1?->dosen_id && $skripsiDefense->examiner2?->dosen_id);
     }
 
     /**
@@ -159,5 +203,81 @@ class DefenseScoringService
             ]);
 
         $resultDefense->refresh();
+    }
+
+    /**
+     * Pembimbing atau penguji boleh membaca naskah sidang setelah admin menerima
+     * pendaftaran dan penguji sudah ditetapkan.
+     */
+    public function canDosenViewDefenseManuscript(Application $application, int $dosenId): bool
+    {
+        if (! in_array($dosenId, $this->getScorerDosenIds($application), true)) {
+            return false;
+        }
+
+        $skripsiDefense = SkripsiDefense::where('application_id', $application->id)->first();
+
+        if (! $skripsiDefense) {
+            return false;
+        }
+
+        if (! $this->isDefenseApprovedForManuscriptAccess($skripsiDefense)) {
+            return false;
+        }
+
+        return $this->hasCompleteDefenseExaminers($skripsiDefense);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, SkripsiDefense>
+     */
+    public function getViewableDefensesForDosen(int $dosenId): \Illuminate\Support\Collection
+    {
+        return SkripsiDefense::query()
+            ->with([
+                'application.mahasiswa.prodi',
+                'application.actions',
+                'examiners.dosen',
+                'examiner1.dosen',
+                'examiner2.dosen',
+            ])
+            ->whereHas('application', function ($query) {
+                $query->where('stage', 'defense');
+            })
+            ->orderByDesc('updated_at')
+            ->get()
+            ->filter(function (SkripsiDefense $defense) use ($dosenId) {
+                $application = $defense->application;
+
+                return $application && $this->canDosenViewDefenseManuscript($application, $dosenId);
+            })
+            ->values();
+    }
+
+    /**
+     * Cari naskah sidang aktif mahasiswa yang dapat diakses dosen pembimbing.
+     */
+    public function findViewableDefenseForMahasiswa(int $mahasiswaId, int $dosenId): ?SkripsiDefense
+    {
+        $applications = Application::query()
+            ->where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', 'defense')
+            ->orderByDesc('created_at')
+            ->get();
+
+        foreach ($applications as $application) {
+            $defense = SkripsiDefense::where('application_id', $application->id)->first();
+
+            if ($defense && $this->canDosenViewDefenseManuscript($application, $dosenId)) {
+                return $defense;
+            }
+        }
+
+        return null;
+    }
+
+    public function countViewableDefensesForDosen(int $dosenId): int
+    {
+        return $this->getViewableDefensesForDosen($dosenId)->count();
     }
 }

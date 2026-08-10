@@ -145,6 +145,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::post('skripsi-defenses/{skripsi_defense}/assign-examiners', 'SkripsiDefenseController@assignExaminers')->name('skripsi-defenses.assign-examiners');
     Route::post('skripsi-defenses/{skripsi_defense}/accept', 'SkripsiDefenseController@accept')->name('skripsi-defenses.accept');
     Route::post('skripsi-defenses/{skripsi_defense}/reject', 'SkripsiDefenseController@reject')->name('skripsi-defenses.reject');
+    Route::put('skripsi-defenses/{skripsi_defense}/update-schedule', 'SkripsiDefenseController@updateSchedule')->name('skripsi-defenses.update-schedule');
     Route::resource('skripsi-defenses', 'SkripsiDefenseController');
 
     // Skripsi Registration
@@ -441,6 +442,8 @@ Route::group(['prefix' => 'dosen', 'as' => 'dosen.', 'namespace' => 'Dosen', 'mi
     Route::get('/task-assignments', 'DashboardController@taskAssignments')->name('task-assignments');
     Route::get('/task-assignments/{assignment}/review', 'DashboardController@reviewProposal')->name('review-proposal');
     Route::post('/task-assignments/{assignment}/respond', 'DashboardController@respondToAssignment')->name('task-assignments.respond');
+    Route::get('/sidang-skripsi', 'SkripsiDefenseController@index')->name('skripsi-defenses.index');
+    Route::get('/sidang-skripsi/{skripsiDefense}', 'SkripsiDefenseController@show')->name('skripsi-defenses.show');
     Route::get('/scores', 'ApplicationScoreController@index')->name('scores');
     Route::get('/application-scores/{applicationScore}/edit', 'ApplicationScoreController@edit')->name('application-scores.edit');
     Route::put('/application-scores/{applicationScore}', 'ApplicationScoreController@update')->name('application-scores.update');

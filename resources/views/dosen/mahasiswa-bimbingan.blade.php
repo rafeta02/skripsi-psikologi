@@ -56,7 +56,16 @@
                                         </td>
                                         <td>{{ $bimbingan->assigned_at ? \Carbon\Carbon::parse($bimbingan->assigned_at)->format('d M Y') : '-' }}</td>
                                         <td class="text-nowrap">
-                                            <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#timelineModal{{ $bimbingan->application->id }}">
+                                            @php
+                                                $mahasiswaId = $bimbingan->application->mahasiswa_id ?? null;
+                                                $defenseManuscript = $mahasiswaId ? ($defenseManuscripts[$mahasiswaId] ?? null) : null;
+                                            @endphp
+                                            @if($defenseManuscript)
+                                                <a href="{{ route('dosen.skripsi-defenses.show', $defenseManuscript->id) }}" class="btn btn-sm btn-primary mb-1">
+                                                    <i class="fas fa-book-open"></i> Naskah Sidang
+                                                </a>
+                                            @endif
+                                            <button type="button" class="btn btn-sm btn-outline-primary {{ $defenseManuscript ? 'mb-1' : '' }}" data-toggle="modal" data-target="#timelineModal{{ $bimbingan->application->id }}">
                                                 Timeline
                                             </button>
                                         </td>
