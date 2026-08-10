@@ -74,7 +74,6 @@
     ajax: "{{ route('admin.application-result-reviews.index') }}",
     columns: [
       { data: 'placeholder', name: 'placeholder', className: 'text-center' },
-      { data: 'id', name: 'id', visible: false },
       { data: 'mahasiswa_name', name: 'mahasiswa_name', orderable: false, searchable: false, className: 'text-center' },
       { data: 'dosen_pembimbing', name: 'dosen_pembimbing', orderable: false, searchable: false, className: 'text-center' },
       { data: 'dosen_reviewer', name: 'dosen_reviewer', orderable: false, searchable: false, className: 'text-center' },
@@ -82,7 +81,7 @@
       { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-center' }
     ],
     orderCellsTop: true,
-    order: [[ 1, 'desc' ]],
+    order: [],
     pageLength: 25,
   };
   let table = $('.datatable-ApplicationResultReview').DataTable(dtOverrideGlobals);

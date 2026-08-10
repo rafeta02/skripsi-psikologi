@@ -31,7 +31,8 @@ class ApplicationResultReviewController extends Controller
                 'application.mahasiswa',
                 'reviewer1Assignment.lecturer',
                 'reviewer2Assignment.lecturer',
-            ])->select(sprintf('%s.*', (new ApplicationResultReview)->table));
+            ])->select(sprintf('%s.*', (new ApplicationResultReview)->table))
+                ->orderByDesc('application_result_reviews.id');
             $table = Datatables::of($query);
             $supervisorNames = [];
 
