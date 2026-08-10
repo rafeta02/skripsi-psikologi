@@ -191,7 +191,7 @@ class ApplicationResultDefenseController extends Controller
         $user = auth()->user();
 
         $applicationResultDefense->load([
-            'application.mahasiswa',
+            'application.mahasiswa.prodi',
             'scores.examiner',
         ]);
 

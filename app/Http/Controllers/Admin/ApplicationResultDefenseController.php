@@ -594,7 +594,7 @@ class ApplicationResultDefenseController extends Controller
         abort_if(Gate::denies('application_result_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $applicationResultDefense->load([
-            'application.mahasiswa',
+            'application.mahasiswa.prodi',
             'scores.examiner',
         ]);
 

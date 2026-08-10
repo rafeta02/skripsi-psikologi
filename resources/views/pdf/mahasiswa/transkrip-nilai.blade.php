@@ -179,9 +179,9 @@
     <div class="signature-section">
         <div class="signature-block">
             <div class="signature-title">Surakarta, {{ $date }}</div>
-            <div>Ketua Ajir Skripsi</div>
-            <div class="signature-name">[Nama Koordinator Skripsi]</div>
-            <div class="signature-nip">NIK. [NIK Koordinator]</div>
+            <div>Ketua Divisi Tugas Akhir</div>
+            <div class="signature-name">[Nama Ketua Divisi Tugas Akhir]</div>
+            <div class="signature-nip">NIK. [NIK Ketua Divisi Tugas Akhir]</div>
         </div>
     </div>
 
