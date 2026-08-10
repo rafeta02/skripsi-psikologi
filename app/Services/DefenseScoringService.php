@@ -80,7 +80,9 @@ class DefenseScoringService
             $ids[] = $supervisorId;
         }
 
-        $skripsiDefense = SkripsiDefense::where('application_id', $application->id)->first();
+        $skripsiDefense = SkripsiDefense::queryForDosenPortal()
+            ->where('application_id', $application->id)
+            ->first();
         if ($skripsiDefense) {
             $examinerIds = $skripsiDefense->examiners()->pluck('dosen_id')->all();
             $ids = array_merge($ids, $examinerIds);
@@ -209,13 +211,18 @@ class DefenseScoringService
      * Pembimbing atau penguji boleh membaca naskah sidang setelah admin menerima
      * pendaftaran dan penguji sudah ditetapkan.
      */
-    public function canDosenViewDefenseManuscript(Application $application, int $dosenId): bool
-    {
+    public function canDosenViewDefenseManuscript(
+        Application $application,
+        int $dosenId,
+        ?SkripsiDefense $skripsiDefense = null
+    ): bool {
         if (! in_array($dosenId, $this->getScorerDosenIds($application), true)) {
             return false;
         }
 
-        $skripsiDefense = SkripsiDefense::where('application_id', $application->id)->first();
+        $skripsiDefense ??= SkripsiDefense::queryForDosenPortal()
+            ->where('application_id', $application->id)
+            ->first();
 
         if (! $skripsiDefense) {
             return false;
@@ -233,7 +240,7 @@ class DefenseScoringService
      */
     public function getViewableDefensesForDosen(int $dosenId): \Illuminate\Support\Collection
     {
-        return SkripsiDefense::query()
+        $defenses = SkripsiDefense::queryForDosenPortal()
             ->with([
                 'application.mahasiswa.prodi',
                 'application.actions',
@@ -245,11 +252,14 @@ class DefenseScoringService
                 $query->where('stage', 'defense');
             })
             ->orderByDesc('updated_at')
-            ->get()
+            ->get();
+
+        return $defenses
             ->filter(function (SkripsiDefense $defense) use ($dosenId) {
                 $application = $defense->application;
 
-                return $application && $this->canDosenViewDefenseManuscript($application, $dosenId);
+                return $application
+                    && $this->canDosenViewDefenseManuscript($application, $dosenId, $defense);
             })
             ->values();
     }
@@ -266,9 +276,11 @@ class DefenseScoringService
             ->get();
 
         foreach ($applications as $application) {
-            $defense = SkripsiDefense::where('application_id', $application->id)->first();
+            $defense = SkripsiDefense::queryForDosenPortal()
+                ->where('application_id', $application->id)
+                ->first();
 
-            if ($defense && $this->canDosenViewDefenseManuscript($application, $dosenId)) {
+            if ($defense && $this->canDosenViewDefenseManuscript($application, $dosenId, $defense)) {
                 return $defense;
             }
         }

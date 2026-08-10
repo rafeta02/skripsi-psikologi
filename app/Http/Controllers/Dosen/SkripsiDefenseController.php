@@ -61,8 +61,10 @@ class SkripsiDefenseController extends Controller
         ]);
     }
 
-    public function show(SkripsiDefense $skripsiDefense)
+    public function show(int $skripsiDefenseId)
     {
+        $skripsiDefense = SkripsiDefense::queryForDosenPortal()->findOrFail($skripsiDefenseId);
+
         $skripsiDefense->load([
             'application.mahasiswa.prodi',
             'application.mahasiswa.jenjang',

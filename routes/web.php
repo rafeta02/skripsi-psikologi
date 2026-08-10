@@ -443,7 +443,7 @@ Route::group(['prefix' => 'dosen', 'as' => 'dosen.', 'namespace' => 'Dosen', 'mi
     Route::get('/task-assignments/{assignment}/review', 'DashboardController@reviewProposal')->name('review-proposal');
     Route::post('/task-assignments/{assignment}/respond', 'DashboardController@respondToAssignment')->name('task-assignments.respond');
     Route::get('/sidang-skripsi', 'SkripsiDefenseController@index')->name('skripsi-defenses.index');
-    Route::get('/sidang-skripsi/{skripsiDefense}', 'SkripsiDefenseController@show')->name('skripsi-defenses.show');
+    Route::get('/sidang-skripsi/{skripsiDefenseId}', 'SkripsiDefenseController@show')->name('skripsi-defenses.show');
     Route::get('/scores', 'ApplicationScoreController@index')->name('scores');
     Route::get('/application-scores/{applicationScore}/edit', 'ApplicationScoreController@edit')->name('application-scores.edit');
     Route::put('/application-scores/{applicationScore}', 'ApplicationScoreController@update')->name('application-scores.update');

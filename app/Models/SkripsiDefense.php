@@ -6,6 +6,7 @@ use App\Traits\Auditable;
 use App\Traits\FileNamingTrait;
 use App\Traits\MultiTenantModelTrait;
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -186,6 +187,14 @@ class SkripsiDefense extends Model implements HasMedia
     public function created_by()
     {
         return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    /**
+     * Query tanpa scope created_by — portal dosen memakai otorisasi pembimbing/penguji.
+     */
+    public static function queryForDosenPortal(): Builder
+    {
+        return static::withoutGlobalScopes();
     }
 
     public function examiners()
