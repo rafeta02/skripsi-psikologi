@@ -75,20 +75,16 @@
     ajax: "{{ route('admin.application-result-defenses.index') }}",
     columns: [
       { data: 'placeholder', name: 'placeholder', className: 'text-center' },
-      { data: 'id', name: 'id', visible: false },
       { data: 'mahasiswa_name', name: 'application.mahasiswa.nama', orderable: true, searchable: true, className: 'text-center' },
       { data: 'result_badge', name: 'result', orderable: true, searchable: true, className: 'text-center' },
       { data: 'final_title', name: 'final_title', orderable: true, searchable: true, className: 'text-center' },
       { data: 'dosen_pembimbing', name: 'dosen_pembimbing', orderable: false, searchable: false, className: 'text-center' },
       { data: 'dosen_penguji', name: 'dosen_penguji', orderable: false, searchable: false, className: 'text-center' },
-      { data: 'actions', name: '{{ trans('global.actions') }}', orderable: false, searchable: false, className: 'text-center' }
+      { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-center' }
     ],
     orderCellsTop: true,
-    order: [[ 1, 'desc' ]],
+    order: [],
     pageLength: 50,
-    columnDefs: [
-      { className: 'text-center', targets: '_all' }
-    ],
   };
   let table = $('.datatable-ApplicationResultDefense').DataTable(dtOverrideGlobals);
   $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){

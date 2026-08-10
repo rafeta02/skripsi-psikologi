@@ -38,7 +38,9 @@ class ApplicationResultDefenseController extends Controller
                 'application.mahasiswa',
                 'application.skripsiDefense.examiner1.dosen',
                 'application.skripsiDefense.examiner2.dosen',
-            ])->select(sprintf('%s.*', (new ApplicationResultDefense)->table));
+            ])
+                ->select(sprintf('%s.*', (new ApplicationResultDefense)->table))
+                ->orderByDesc('application_result_defenses.id');
             $table = Datatables::of($query);
             $supervisorNames = [];
 
