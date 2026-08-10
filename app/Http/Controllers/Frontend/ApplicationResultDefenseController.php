@@ -202,6 +202,10 @@ class ApplicationResultDefenseController extends Controller
             }
         }
 
+        if (! $applicationResultDefense->canPrintScore()) {
+            abort(403, 'Print nilai belum tersedia. Pastikan hasil sidang sudah divalidasi admin dan semua dosen telah mengisi nilai.');
+        }
+
         return view('frontend.applicationResultDefenses.print-score', compact('applicationResultDefense'));
     }
 

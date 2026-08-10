@@ -121,6 +121,19 @@ class ApplicationResultDefense extends Model implements HasMedia
         return $completed === $total;
     }
 
+    public function canPrintScore(): bool
+    {
+        if (! $this->isValidatedByAdmin()) {
+            return false;
+        }
+
+        if (! in_array($this->result, ['passed', 'revision'], true)) {
+            return false;
+        }
+
+        return $this->isScoringComplete();
+    }
+
     public function syncApplicationStatus(): void
     {
         if (!$this->application) {

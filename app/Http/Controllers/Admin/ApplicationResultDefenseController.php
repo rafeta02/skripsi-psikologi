@@ -592,13 +592,16 @@ class ApplicationResultDefenseController extends Controller
     public function printScore(ApplicationResultDefense $applicationResultDefense)
     {
         abort_if(Gate::denies('application_result_defense_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        
-        // Load relationships
+
         $applicationResultDefense->load([
             'application.mahasiswa',
-            'scores.examiner'
+            'scores.examiner',
         ]);
-        
+
+        if (! $applicationResultDefense->canPrintScore()) {
+            abort(403, 'Print nilai belum tersedia. Pastikan hasil sidang sudah divalidasi admin dan semua dosen telah mengisi nilai.');
+        }
+
         return view('frontend.applicationResultDefenses.print-score', compact('applicationResultDefense'));
     }
 }

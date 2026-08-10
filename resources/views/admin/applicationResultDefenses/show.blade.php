@@ -7,23 +7,26 @@
     </div>
 
     <div class="card-body">
+        @php
+            $adminValidated = $applicationResultDefense->isValidatedByAdmin();
+            $adminRejected = $applicationResultDefense->isRejectedByAdmin();
+            $adminFinalized = $applicationResultDefense->isFinalizedByAdmin();
+            $scoringComplete = $applicationResultDefense->isScoringComplete();
+            $canPrintScore = $applicationResultDefense->canPrintScore();
+        @endphp
+
         <div class="form-group">
-            <div class="form-group">
-                <a class="btn btn-default" href="{{ route('admin.application-result-defenses.index') }}">
-                    {{ trans('global.back_to_list') }}
-                </a>
+            <a class="btn btn-default" href="{{ route('admin.application-result-defenses.index') }}">
+                {{ trans('global.back_to_list') }}
+            </a>
+            @if($canPrintScore)
                 <a class="btn btn-success" href="{{ route('admin.application-result-defenses.print-score', $applicationResultDefense->id) }}" target="_blank">
                     <i class="fas fa-print"></i> {{ trans('global.print') }} Nilai
                 </a>
-            </div>
+            @endif
+        </div>
 
-            @php
-                $adminValidated = $applicationResultDefense->isValidatedByAdmin();
-                $adminRejected = $applicationResultDefense->isRejectedByAdmin();
-                $adminFinalized = $applicationResultDefense->isFinalizedByAdmin();
-                $scoringComplete = $applicationResultDefense->isScoringComplete();
-            @endphp
-
+        <div class="form-group">
             <div class="row mb-4">
                 <div class="col-md-8">
                     <h5 class="font-weight-bold mb-2">Status Validasi Admin</h5>
@@ -172,13 +175,17 @@
                 <a class="btn btn-default" href="{{ route('admin.application-result-defenses.index') }}">
                     {{ trans('global.back_to_list') }}
                 </a>
-                <a class="btn btn-success" href="{{ route('admin.application-result-defenses.print-score', $applicationResultDefense->id) }}" target="_blank">
-                    <i class="fas fa-print"></i> {{ trans('global.print') }} Nilai
-                </a>
+                @if($canPrintScore)
+                    <a class="btn btn-success" href="{{ route('admin.application-result-defenses.print-score', $applicationResultDefense->id) }}" target="_blank">
+                        <i class="fas fa-print"></i> {{ trans('global.print') }} Nilai
+                    </a>
+                @endif
             </div>
         </div>
     </div>
 </div>
+
+@include('partials.document-preview-modal')
 
 <!-- Approve Modal -->
 <div class="modal fade" id="approveDefenseModal" tabindex="-1">
@@ -264,6 +271,32 @@
 @parent
 <script>
 $(document).ready(function() {
+    $('.preview-doc').on('click', function() {
+        const url = $(this).data('url');
+        const type = $(this).data('type') || 'pdf';
+        const name = $(this).data('name') || 'Preview Dokumen';
+
+        $('#previewModalTitle').text(name);
+
+        if (type === 'image') {
+            $('#pdfViewer').hide().attr('src', '');
+            $('#imageViewer').attr('src', url);
+            $('#imageViewerWrap').removeClass('d-none').addClass('d-flex');
+        } else {
+            $('#imageViewerWrap').removeClass('d-flex').addClass('d-none');
+            $('#imageViewer').attr('src', '');
+            $('#pdfViewer').show().attr('src', url);
+        }
+
+        $('#previewModal').modal('show');
+    });
+
+    $('#previewModal').on('hidden.bs.modal', function() {
+        $('#pdfViewer').attr('src', '').hide();
+        $('#imageViewer').attr('src', '');
+        $('#imageViewerWrap').removeClass('d-flex').addClass('d-none');
+    });
+
     $('#approveDefenseForm').on('submit', function(e) {
         e.preventDefault();
         const btn = $(this).find('button[type="submit"]');

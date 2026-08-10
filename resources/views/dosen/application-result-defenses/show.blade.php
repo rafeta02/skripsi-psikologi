@@ -145,4 +145,39 @@
         @endif
     </div>
 </div>
+
+@include('partials.document-preview-modal')
+@endsection
+
+@section('scripts')
+@parent
+<script>
+$(document).ready(function() {
+    $('.preview-doc').on('click', function() {
+        const url = $(this).data('url');
+        const type = $(this).data('type') || 'pdf';
+        const name = $(this).data('name') || 'Preview Dokumen';
+
+        $('#previewModalTitle').text(name);
+
+        if (type === 'image') {
+            $('#pdfViewer').hide().attr('src', '');
+            $('#imageViewer').attr('src', url);
+            $('#imageViewerWrap').removeClass('d-none').addClass('d-flex');
+        } else {
+            $('#imageViewerWrap').removeClass('d-flex').addClass('d-none');
+            $('#imageViewer').attr('src', '');
+            $('#pdfViewer').show().attr('src', url);
+        }
+
+        $('#previewModal').modal('show');
+    });
+
+    $('#previewModal').on('hidden.bs.modal', function() {
+        $('#pdfViewer').attr('src', '').hide();
+        $('#imageViewer').attr('src', '');
+        $('#imageViewerWrap').removeClass('d-flex').addClass('d-none');
+    });
+});
+</script>
 @endsection
