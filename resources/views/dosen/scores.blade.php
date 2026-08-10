@@ -83,7 +83,7 @@
                                             @php
                                                 $resultReport = $app->resultDefense ?? null;
                                             @endphp
-                                            @if($resultReport)
+                                            @if($resultReport && $resultReport->isValidatedByAdmin())
                                                 <a href="{{ route('dosen.application-result-defenses.show', $resultReport->id) }}" class="btn btn-sm btn-outline-secondary mt-1">
                                                     <i class="fas fa-file-alt"></i> Laporan
                                                 </a>

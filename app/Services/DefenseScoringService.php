@@ -361,7 +361,7 @@ class DefenseScoringService
     }
 
     /**
-     * Pembimbing/penguji boleh melihat laporan hasil sidang setelah mahasiswa mengirimkannya.
+     * Pembimbing/penguji boleh melihat laporan hasil sidang setelah admin memvalidasi laporan mahasiswa.
      */
     public function canDosenViewDefenseResultReport(
         Application $application,
@@ -374,7 +374,7 @@ class DefenseScoringService
 
         $resultDefense ??= ApplicationResultDefense::where('application_id', $application->id)->first();
 
-        return $resultDefense !== null;
+        return $resultDefense !== null && $resultDefense->isValidatedByAdmin();
     }
 
     /**

@@ -68,7 +68,7 @@
                     <div class="text-center text-muted py-5">
                         <i class="fas fa-file-alt fa-3x mb-3"></i>
                         <p class="mb-0">Belum ada laporan hasil sidang.</p>
-                        <small>Laporan akan muncul setelah mahasiswa mengirim Laporan Hasil Sidang.</small>
+                        <small>Laporan akan muncul setelah mahasiswa mengirim dan admin memvalidasi laporan hasil sidang.</small>
                     </div>
                 @endif
             </div>

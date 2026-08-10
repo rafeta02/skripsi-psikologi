@@ -188,10 +188,21 @@
                     <h5 class="font-weight-bold mb-3">
                         <i class="fas fa-file-alt text-primary mr-2"></i> Laporan Hasil Sidang
                     </h5>
-                    <p class="mb-2 small text-muted">Mahasiswa sudah mengirim laporan hasil sidang.</p>
+                    <p class="mb-2 small text-muted">Laporan hasil sidang sudah divalidasi admin.</p>
                     <a href="{{ route('dosen.application-result-defenses.show', $resultDefense->id) }}" class="btn btn-sm btn-primary btn-block">
                         <i class="fas fa-eye"></i> Lihat Laporan Hasil Sidang
                     </a>
+                </div>
+            </div>
+        @elseif($resultDefense ?? null)
+            <div class="mhs-card mt-3">
+                <div class="mhs-card-body">
+                    <h5 class="font-weight-bold mb-3">
+                        <i class="fas fa-file-alt text-muted mr-2"></i> Laporan Hasil Sidang
+                    </h5>
+                    <p class="mb-0 small text-muted">
+                        Mahasiswa sudah mengirim laporan. Menunggu validasi admin sebelum dapat dilihat.
+                    </p>
                 </div>
             </div>
         @endif
