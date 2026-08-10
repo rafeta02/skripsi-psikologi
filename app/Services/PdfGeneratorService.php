@@ -342,6 +342,9 @@ class PdfGeneratorService
             'examiners' => $examiners,
             'defense' => $defense,
             'finalTitle' => $defenseResult?->final_title,
+            'finalTitleEn' => $defenseResult?->final_title_en
+                ?: $defense?->title_en
+                ?: ($application->skripsiRegistration->title_en ?? null),
             'averageScore' => round($averageScore, 2),
             'defenseDate' => $defenseDate,
             'eapGrade' => $defense?->eapGradeLabel(),

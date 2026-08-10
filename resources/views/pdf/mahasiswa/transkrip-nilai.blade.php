@@ -58,6 +58,16 @@
             width: 34%;
         }
 
+        .examiner-list {
+            margin: 0;
+            padding-left: 1.2em;
+            list-style-type: disc;
+        }
+
+        .examiner-list li {
+            margin: 0 0 2px;
+        }
+
         .note {
             font-size: 10pt;
             margin: 0.4cm 0 0.8cm;
@@ -119,7 +129,11 @@
             </tr>
             <tr>
                 <td>JUDUL SKRIPSI</td>
-                <td><strong>{{ $finalTitle ?? $defense?->title ?? ($application->skripsiRegistration->proposal_title_1 ?? '-') }}</strong></td>
+                <td><strong>{{ $finalTitle ?? $defense?->title ?? ($application->skripsiRegistration->title ?? '-') }}</strong></td>
+            </tr>
+            <tr>
+                <td>JUDUL SKRIPSI (EN)</td>
+                <td><strong>{{ $finalTitleEn ?? '-' }}</strong></td>
             </tr>
             <tr>
                 <td>PEMBIMBING</td>
@@ -129,7 +143,13 @@
                 <td>PENGUJI</td>
                 <td>
                     @if($examiners->isNotEmpty())
-                        {{ $examiners->pluck('nama')->filter()->implode(' / ') }}
+                        <ul class="examiner-list">
+                            @foreach($examiners as $examiner)
+                                @if($examiner?->nama)
+                                    <li>{{ $examiner->nama }}</li>
+                                @endif
+                            @endforeach
+                        </ul>
                     @else
                         -
                     @endif
