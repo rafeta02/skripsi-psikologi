@@ -32,6 +32,7 @@ class DosenPortalService
         $pendingAssignments = $dosenId ? $this->countPendingAssignments($dosenId) : 0;
         $pendingScores = $dosenId ? $this->countPendingDefenseScores($dosenId) : 0;
         $defenseManuscripts = $dosenId ? $this->countViewableDefenseManuscripts($dosenId) : 0;
+        $defenseResultReports = $dosenId ? $this->countViewableDefenseResultReports($dosenId) : 0;
 
         return [
             [
@@ -53,6 +54,7 @@ class DosenPortalService
                 'title' => 'Penilaian',
                 'items' => [
                     $this->navItem('Penilaian Sidang', 'dosen.scores', 'fa-star', ['dosen.scores', 'dosen.application-scores.*'], $pendingScores),
+                    $this->navItem('Laporan Hasil Sidang', 'dosen.application-result-defenses.index', 'fa-file-alt', ['dosen.application-result-defenses.*'], $defenseResultReports),
                 ],
             ],
             [
@@ -99,6 +101,16 @@ class DosenPortalService
                 'url' => route('dosen.skripsi-defenses.index'),
                 'icon' => 'fa-book-open',
                 'color' => 'info',
+            ];
+        }
+
+        $defenseResultReports = $this->countViewableDefenseResultReports($dosenId);
+        if ($defenseResultReports > 0) {
+            $actions[] = [
+                'label' => "Laporan Hasil Sidang ({$defenseResultReports})",
+                'url' => route('dosen.application-result-defenses.index'),
+                'icon' => 'fa-file-alt',
+                'color' => 'primary',
             ];
         }
 
@@ -190,7 +202,7 @@ class DosenPortalService
                 ->where('lecturer_id', $dosenId)
                 ->count(),
             'menunggu_respons' => $this->countPendingAssignments($dosenId),
-            'penilaian_pending' => $this->countPendingDefenseScores($dosenId),
+            'penilaian_pending' => app(DefenseScoringService::class)->countPendingScoresForDosen($dosenId),
         ];
     }
 
@@ -204,25 +216,17 @@ class DosenPortalService
 
     private function countPendingDefenseScores(int $dosenId): int
     {
-        return ApplicationScore::where('examiner_id', $dosenId)
-            ->whereNull('score')
-            ->where(function ($query) {
-                $query->where(function ($preReport) {
-                    $preReport->whereNotNull('application_id')
-                        ->whereDoesntHave('application_result_defence');
-                })->orWhereHas('application_result_defence', function ($resultQuery) {
-                    $resultQuery->whereIn('result', ['passed', 'revision'])
-                        ->whereHas('application.actions', function ($actionQuery) {
-                            $actionQuery->where('action_type', 'result_defense_approved');
-                        });
-                });
-            })
-            ->count();
+        return app(DefenseScoringService::class)->countPendingScoresForDosen($dosenId);
     }
 
     private function countViewableDefenseManuscripts(int $dosenId): int
     {
         return app(DefenseScoringService::class)->countViewableDefensesForDosen($dosenId);
+    }
+
+    private function countViewableDefenseResultReports(int $dosenId): int
+    {
+        return app(DefenseScoringService::class)->countViewableDefenseResultsForDosen($dosenId);
     }
 
     private function navItem(string $label, string $route, string $icon, array $activeRoutes, int $badge = 0): array

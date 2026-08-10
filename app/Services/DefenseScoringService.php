@@ -128,11 +128,13 @@ class DefenseScoringService
      */
     public function ensureScoreAssignments(Application $application): void
     {
-        if (!$this->isDefenseHeld($application)) {
+        if (! $this->isDefenseHeld($application)) {
             return;
         }
 
-        if (ApplicationResultDefense::where('application_id', $application->id)->exists()) {
+        $resultDefense = ApplicationResultDefense::where('application_id', $application->id)->first();
+
+        if ($resultDefense?->result === 'failed') {
             return;
         }
 
@@ -143,9 +145,15 @@ class DefenseScoringService
                     'examiner_id' => $dosenId,
                 ],
                 [
-                    'application_result_defence_id' => null,
+                    'application_result_defence_id' => $resultDefense?->id,
                 ]
             );
+        }
+
+        if ($resultDefense) {
+            ApplicationScore::where('application_id', $application->id)
+                ->whereNull('application_result_defence_id')
+                ->update(['application_result_defence_id' => $resultDefense->id]);
         }
     }
 
@@ -162,19 +170,78 @@ class DefenseScoringService
 
     public function canDosenScore(Application $application, int $dosenId): bool
     {
-        if (!in_array($dosenId, $this->getScorerDosenIds($application), true)) {
+        if (! in_array($dosenId, $this->getScorerDosenIds($application), true)) {
             return false;
         }
 
-        if (!$this->isDefenseHeld($application)) {
+        if (! $this->isDefenseHeld($application)) {
             return false;
         }
 
-        if (ApplicationResultDefense::where('application_id', $application->id)->exists()) {
+        $resultDefense = ApplicationResultDefense::where('application_id', $application->id)->first();
+
+        if ($resultDefense?->result === 'failed') {
             return false;
+        }
+
+        if ($resultDefense?->isValidatedByAdmin()) {
+            return in_array($resultDefense->result, ['passed', 'revision'], true);
         }
 
         return true;
+    }
+
+    public function findScoreAssignmentForApplication(Application $application, int $dosenId): ?ApplicationScore
+    {
+        if (! in_array($dosenId, $this->getScorerDosenIds($application), true)) {
+            return null;
+        }
+
+        $this->ensureScoreAssignments($application);
+
+        return ApplicationScore::where('application_id', $application->id)
+            ->where('examiner_id', $dosenId)
+            ->first();
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, ApplicationScore>
+     */
+    public function getScoreAssignmentsForDosen(int $dosenId): \Illuminate\Support\Collection
+    {
+        $this->syncAssignmentsForDosen($dosenId);
+
+        return ApplicationScore::with([
+            'application.mahasiswa.prodi',
+            'application.resultDefense',
+            'application.skripsiDefense',
+            'application_result_defence.application.mahasiswa.prodi',
+        ])
+            ->where('examiner_id', $dosenId)
+            ->orderByRaw('CASE WHEN score IS NULL THEN 0 ELSE 1 END')
+            ->orderByDesc('updated_at')
+            ->get()
+            ->filter(function (ApplicationScore $score) use ($dosenId) {
+                $application = $score->application ?? $score->application_result_defence?->application;
+
+                if (! $application) {
+                    return false;
+                }
+
+                if ($score->application_result_defence?->isValidatedByAdmin()) {
+                    return in_array($score->application_result_defence->result, ['passed', 'revision'], true);
+                }
+
+                return $this->canDosenScore($application, $dosenId);
+            })
+            ->values();
+    }
+
+    public function countPendingScoresForDosen(int $dosenId): int
+    {
+        return $this->getScoreAssignmentsForDosen($dosenId)
+            ->filter(fn (ApplicationScore $score) => ! $score->isComplete())
+            ->count();
     }
 
     /**
@@ -291,5 +358,70 @@ class DefenseScoringService
     public function countViewableDefensesForDosen(int $dosenId): int
     {
         return $this->getViewableDefensesForDosen($dosenId)->count();
+    }
+
+    /**
+     * Pembimbing/penguji boleh melihat laporan hasil sidang setelah mahasiswa mengirimkannya.
+     */
+    public function canDosenViewDefenseResultReport(
+        Application $application,
+        int $dosenId,
+        ?ApplicationResultDefense $resultDefense = null
+    ): bool {
+        if (! in_array($dosenId, $this->getScorerDosenIds($application), true)) {
+            return false;
+        }
+
+        $resultDefense ??= ApplicationResultDefense::where('application_id', $application->id)->first();
+
+        return $resultDefense !== null;
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, ApplicationResultDefense>
+     */
+    public function getViewableDefenseResultsForDosen(int $dosenId): \Illuminate\Support\Collection
+    {
+        return ApplicationResultDefense::query()
+            ->with([
+                'application.mahasiswa.prodi',
+                'application.skripsiDefense',
+            ])
+            ->whereHas('application', function ($query) {
+                $query->where('stage', 'defense');
+            })
+            ->orderByDesc('created_at')
+            ->get()
+            ->filter(function (ApplicationResultDefense $resultDefense) use ($dosenId) {
+                $application = $resultDefense->application;
+
+                return $application
+                    && $this->canDosenViewDefenseResultReport($application, $dosenId, $resultDefense);
+            })
+            ->values();
+    }
+
+    public function countViewableDefenseResultsForDosen(int $dosenId): int
+    {
+        return $this->getViewableDefenseResultsForDosen($dosenId)->count();
+    }
+
+    public function findViewableDefenseResultForMahasiswa(int $mahasiswaId, int $dosenId): ?ApplicationResultDefense
+    {
+        $applications = Application::query()
+            ->where('mahasiswa_id', $mahasiswaId)
+            ->where('stage', 'defense')
+            ->orderByDesc('created_at')
+            ->get();
+
+        foreach ($applications as $application) {
+            $resultDefense = ApplicationResultDefense::where('application_id', $application->id)->first();
+
+            if ($resultDefense && $this->canDosenViewDefenseResultReport($application, $dosenId, $resultDefense)) {
+                return $resultDefense;
+            }
+        }
+
+        return null;
     }
 }

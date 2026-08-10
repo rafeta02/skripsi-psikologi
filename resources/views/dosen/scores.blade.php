@@ -3,8 +3,16 @@
 @section('content')
 @include('partials.dosen.page-header', [
     'title' => 'Penilaian Sidang',
-    'subtitle' => $pendingCount > 0 ? $pendingCount . ' penilaian menunggu diisi' : 'Semua penilaian selesai',
+    'subtitle' => $pendingCount > 0
+        ? $pendingCount . ' penilaian menunggu diisi setelah sidang dilaksanakan'
+        : 'Semua penilaian selesai',
 ])
+
+<div class="alert alert-info mb-3">
+    <i class="fas fa-info-circle mr-1"></i>
+    Pembimbing dan penguji dapat mengisi nilai setelah <strong>waktu sidang skripsi lewat</strong>
+    dan jadwal sudah diverifikasi admin.
+</div>
 
 <div class="row">
     <div class="col-12">
@@ -72,6 +80,14 @@
                                             <a href="{{ route('dosen.application-scores.edit', $score) }}" class="btn btn-sm btn-primary">
                                                 {{ $score->isComplete() ? 'Ubah' : 'Isi Nilai' }}
                                             </a>
+                                            @php
+                                                $resultReport = $app->resultDefense ?? null;
+                                            @endphp
+                                            @if($resultReport)
+                                                <a href="{{ route('dosen.application-result-defenses.show', $resultReport->id) }}" class="btn btn-sm btn-outline-secondary mt-1">
+                                                    <i class="fas fa-file-alt"></i> Laporan
+                                                </a>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -82,6 +98,7 @@
                     <div class="text-center text-muted py-5">
                         <i class="fas fa-star fa-2x mb-2 d-block"></i>
                         Belum ada tugas penilaian sidang.
+                        <br><small>Penilaian akan muncul setelah sidang skripsi dilaksanakan (waktu sidang lewat).</small>
                     </div>
                 @endif
             </div>

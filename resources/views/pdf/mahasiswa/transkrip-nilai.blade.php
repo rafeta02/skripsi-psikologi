@@ -1,43 +1,133 @@
-@extends('pdf.layouts.base')
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Nilai Skripsi</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 1.5cm 2cm;
+        }
 
-@section('title', 'Nilai Skripsi')
+        * {
+            box-sizing: border-box;
+        }
 
-@section('content')
-<div class="document-title">
-    NILAI SKRIPSI
-</div>
+        body {
+            font-family: 'Times New Roman', 'DejaVu Serif', serif;
+            font-size: 11pt;
+            line-height: 1.35;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
 
-<div class="document-subtitle">
-    {{ $documentNumber }}
-</div>
+        .page {
+            page-break-inside: avoid;
+        }
 
-<div class="content">
-    <table class="table" style="width: 100%; border-collapse: collapse;">
+        .document-title {
+            font-size: 13pt;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 0.6cm;
+            text-transform: uppercase;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 0.5cm;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #000;
+            padding: 5px 7px;
+            vertical-align: top;
+            text-align: left;
+        }
+
+        .table th {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .table td:first-child {
+            width: 34%;
+        }
+
+        .note {
+            font-size: 10pt;
+            margin: 0.4cm 0 0.8cm;
+            text-align: justify;
+        }
+
+        .signature-section {
+            margin-top: 0.8cm;
+            width: 100%;
+            page-break-inside: avoid;
+        }
+
+        .signature-block {
+            width: 45%;
+            float: right;
+            text-align: center;
+        }
+
+        .signature-title {
+            margin-bottom: 2.2cm;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+            display: inline-block;
+            min-width: 180px;
+            padding-bottom: 2px;
+        }
+
+        .signature-nip {
+            margin-top: 4px;
+            font-size: 10pt;
+        }
+
+        .clearfix {
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="document-title">Nilai Skripsi</div>
+
+    <table class="table">
         <thead>
             <tr>
-                <th colspan="2" style="text-align: center; padding: 8px; border: 1px solid #000;">NILAI SKRIPSI</th>
+                <th colspan="2">NILAI SKRIPSI</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="width: 35%; padding: 8px; border: 1px solid #000;">NAMA</td>
-                <td style="padding: 8px; border: 1px solid #000;"><strong>{{ $mahasiswa->nama }}</strong></td>
+                <td>NAMA</td>
+                <td><strong>{{ $mahasiswa->nama }}</strong></td>
             </tr>
             <tr>
-                <td style="padding: 8px; border: 1px solid #000;">NIM</td>
-                <td style="padding: 8px; border: 1px solid #000;">{{ $mahasiswa->nim }}</td>
+                <td>NIM</td>
+                <td>{{ $mahasiswa->nim }}</td>
             </tr>
             <tr>
-                <td style="padding: 8px; border: 1px solid #000;">JUDUL SKRIPSI</td>
-                <td style="padding: 8px; border: 1px solid #000;"><strong>{{ $finalTitle ?? $defense?->title ?? ($application->skripsiRegistration->proposal_title_1 ?? '-') }}</strong></td>
+                <td>JUDUL SKRIPSI</td>
+                <td><strong>{{ $finalTitle ?? $defense?->title ?? ($application->skripsiRegistration->proposal_title_1 ?? '-') }}</strong></td>
             </tr>
             <tr>
-                <td style="padding: 8px; border: 1px solid #000;">PEMBIMBING</td>
-                <td style="padding: 8px; border: 1px solid #000;">{{ $pembimbing?->nama ?? '-' }}</td>
+                <td>PEMBIMBING</td>
+                <td>{{ $pembimbing?->nama ?? '-' }}</td>
             </tr>
             <tr>
-                <td style="padding: 8px; border: 1px solid #000;">PENGUJI</td>
-                <td style="padding: 8px; border: 1px solid #000;">
+                <td>PENGUJI</td>
+                <td>
                     @if($examiners->isNotEmpty())
                         {{ $examiners->pluck('nama')->filter()->implode(' / ') }}
                     @else
@@ -46,31 +136,36 @@
                 </td>
             </tr>
             <tr>
-                <td style="padding: 8px; border: 1px solid #000;">TANGGAL SIDANG SKRIPSI</td>
-                <td style="padding: 8px; border: 1px solid #000;">{{ $defenseDate }}</td>
+                <td>TANGGAL SIDANG SKRIPSI</td>
+                <td>{{ $defenseDate }}</td>
             </tr>
-                
             <tr>
-                <td style="padding: 8px; border: 1px solid #000;">NILAI SKRIPSI</td>
-                <td style="padding: 8px; border: 1px solid #000;"><strong>{{ number_format($averageScore, 2) }}</strong></td>
+                <td>NILAI SKRIPSI</td>
+                <td><strong>{{ number_format($averageScore, 2) }}</strong></td>
+            </tr>
+            <tr>
+                <td>NILAI EAP</td>
+                <td><strong>{{ $eapGrade ?? '-' }}</strong></td>
+            </tr>
+            <tr>
+                <td>SKOR EAP</td>
+                <td><strong>{{ isset($eapScore) ? $eapScore : '-' }}</strong></td>
             </tr>
         </tbody>
     </table>
 
-    <p class="mt-3">Dokumen ini diterbitkan sebagai bukti resmi nilai akhir skripsi mahasiswa.</p>
-</div>
+    <p class="note">Dokumen ini diterbitkan sebagai bukti resmi nilai akhir skripsi mahasiswa.</p>
 
-<div class="signature-section mt-4">
-    <div class="signature-block right">
-        <div class="signature-title">Surakarta, {{ $date }}</div>
-        <div class="signature-title mt-2">Ketua Ajir Skripsi</div>
-        <div class="signature-name mt-4">
-            [Nama Koordinator Skripsi]
+    <div class="signature-section">
+        <div class="signature-block">
+            <div class="signature-title">Surakarta, {{ $date }}</div>
+            <div>Ketua Ajir Skripsi</div>
+            <div class="signature-name">[Nama Koordinator Skripsi]</div>
+            <div class="signature-nip">NIK. [NIK Koordinator]</div>
         </div>
-        <div class="signature-nip">NIK. [NIK Koordinator]</div>
     </div>
+
+    <div class="clearfix"></div>
 </div>
-
-<div style="clear: both;"></div>
-
-@endsection
+</body>
+</html>

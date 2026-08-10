@@ -444,6 +444,8 @@ Route::group(['prefix' => 'dosen', 'as' => 'dosen.', 'namespace' => 'Dosen', 'mi
     Route::post('/task-assignments/{assignment}/respond', 'DashboardController@respondToAssignment')->name('task-assignments.respond');
     Route::get('/sidang-skripsi', 'SkripsiDefenseController@index')->name('skripsi-defenses.index');
     Route::get('/sidang-skripsi/{skripsiDefenseId}', 'SkripsiDefenseController@show')->name('skripsi-defenses.show');
+    Route::get('/laporan-hasil-sidang', 'ApplicationResultDefenseController@index')->name('application-result-defenses.index');
+    Route::get('/laporan-hasil-sidang/{applicationResultDefenseId}', 'ApplicationResultDefenseController@show')->name('application-result-defenses.show');
     Route::get('/scores', 'ApplicationScoreController@index')->name('scores');
     Route::get('/application-scores/{applicationScore}/edit', 'ApplicationScoreController@edit')->name('application-scores.edit');
     Route::put('/application-scores/{applicationScore}', 'ApplicationScoreController@update')->name('application-scores.update');

@@ -1,66 +1,34 @@
 @extends('layouts.admin')
 @section('content')
-@can('application_result_defense_create')
-    <div style="margin-bottom: 10px;" class="row">
-        <div class="col-lg-12">
-            <a class="btn btn-success" href="{{ route('admin.application-result-defenses.create') }}">
-                {{ trans('global.add') }} {{ trans('cruds.applicationResultDefense.title_singular') }}
-            </a>
-        </div>
-    </div>
-@endcan
 <div class="card">
     <div class="card-header">
-        {{ trans('cruds.applicationResultDefense.title_singular') }} {{ trans('global.list') }}
+        <i class="fas fa-clipboard-check mr-2"></i> Laporan Hasil Sidang Skripsi
     </div>
 
     <div class="card-body">
-        <table class=" table table-bordered table-striped table-hover ajaxTable datatable datatable-ApplicationResultDefense">
+        <table class="table table-bordered table-striped table-hover ajaxTable datatable datatable-ApplicationResultDefense text-center">
             <thead>
                 <tr>
-                    <th width="10">
-
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.application') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.result') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.revision_deadline') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.invitation_document') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.feedback_document') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.minutes_document') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.latest_script') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.approval_page') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.final_title') }}
-                    </th>
-                    <th>
-                        {{ trans('cruds.applicationResultDefense.fields.revision_approval_sheet') }}
-                    </th>
-                    <th>
-                        &nbsp;
-                    </th>
+                    <th width="10" class="text-center"></th>
+                    <th class="text-center">Mahasiswa</th>
+                    <th class="text-center">Result</th>
+                    <th class="text-center">Judul</th>
+                    <th class="text-center">Dosen Pembimbing</th>
+                    <th class="text-center">Dosen Penguji</th>
+                    <th width="120" class="text-center">Aksi</th>
                 </tr>
             </thead>
         </table>
     </div>
 </div>
 
-
+<style>
+    .datatable-ApplicationResultDefense th,
+    .datatable-ApplicationResultDefense td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+</style>
 
 @endsection
 @section('scripts')
@@ -106,22 +74,21 @@
     aaSorting: [],
     ajax: "{{ route('admin.application-result-defenses.index') }}",
     columns: [
-      { data: 'placeholder', name: 'placeholder' },
-{ data: 'application_status', name: 'application.status' },
-{ data: 'result', name: 'result' },
-{ data: 'revision_deadline', name: 'revision_deadline' },
-{ data: 'invitation_document', name: 'invitation_document', sortable: false, searchable: false },
-{ data: 'feedback_document', name: 'feedback_document', sortable: false, searchable: false },
-{ data: 'minutes_document', name: 'minutes_document', sortable: false, searchable: false },
-{ data: 'latest_script', name: 'latest_script', sortable: false, searchable: false },
-{ data: 'approval_page', name: 'approval_page', sortable: false, searchable: false },
-{ data: 'final_title', name: 'final_title' },
-{ data: 'revision_approval_sheet', name: 'revision_approval_sheet', sortable: false, searchable: false },
-{ data: 'actions', name: '{{ trans('global.actions') }}' }
+      { data: 'placeholder', name: 'placeholder', className: 'text-center' },
+      { data: 'id', name: 'id', visible: false },
+      { data: 'mahasiswa_name', name: 'application.mahasiswa.nama', orderable: true, searchable: true, className: 'text-center' },
+      { data: 'result_badge', name: 'result', orderable: true, searchable: true, className: 'text-center' },
+      { data: 'final_title', name: 'final_title', orderable: true, searchable: true, className: 'text-center' },
+      { data: 'dosen_pembimbing', name: 'dosen_pembimbing', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'dosen_penguji', name: 'dosen_penguji', orderable: false, searchable: false, className: 'text-center' },
+      { data: 'actions', name: '{{ trans('global.actions') }}', orderable: false, searchable: false, className: 'text-center' }
     ],
     orderCellsTop: true,
     order: [[ 1, 'desc' ]],
     pageLength: 50,
+    columnDefs: [
+      { className: 'text-center', targets: '_all' }
+    ],
   };
   let table = $('.datatable-ApplicationResultDefense').DataTable(dtOverrideGlobals);
   $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){

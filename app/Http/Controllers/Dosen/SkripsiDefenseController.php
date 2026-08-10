@@ -76,6 +76,18 @@ class SkripsiDefenseController extends Controller
         $application = $skripsiDefense->application;
         $schedule = $this->defenseScoringService->resolveDefenseSchedule($application);
         $schedule?->load('ruang');
+        $defenseHeld = $application
+            ? $this->defenseScoringService->isDefenseHeld($application)
+            : false;
+        $canScore = $application
+            ? $this->defenseScoringService->canDosenScore($application, $dosen->id)
+            : false;
+        $scoreAssignment = $application
+            ? $this->defenseScoringService->findScoreAssignmentForApplication($application, $dosen->id)
+            : null;
+        $resultDefense = $application
+            ? \App\Models\ApplicationResultDefense::where('application_id', $application->id)->first()
+            : null;
 
         return view('dosen.skripsi-defenses.show', [
             'skripsiDefense' => $skripsiDefense,
@@ -83,6 +95,12 @@ class SkripsiDefenseController extends Controller
             'dosenRole' => $skripsiDefense->dosenRoleLabel($dosen->id),
             'schedule' => $schedule,
             'scheduleVerified' => $schedule?->isDefenseScheduleVerified() ?? false,
+            'defenseHeld' => $defenseHeld,
+            'canScore' => $canScore,
+            'scoreAssignment' => $scoreAssignment,
+            'resultDefense' => $resultDefense,
+            'canViewResultReport' => $application && $resultDefense
+                && $this->defenseScoringService->canDosenViewDefenseResultReport($application, $dosen->id, $resultDefense),
         ]);
     }
 }

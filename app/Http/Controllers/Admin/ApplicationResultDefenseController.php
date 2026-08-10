@@ -11,6 +11,7 @@ use App\Models\Application;
 use App\Models\ApplicationAction;
 use App\Models\ApplicationResultDefense;
 use App\Models\ApplicationScore;
+use App\Models\Dosen;
 use App\Services\ThesisTranscriptDocumentNumberService;
 use Gate;
 use Illuminate\Http\Request;
@@ -33,8 +34,13 @@ class ApplicationResultDefenseController extends Controller
         abort_if(Gate::denies('application_result_defense_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = ApplicationResultDefense::with(['application'])->select(sprintf('%s.*', (new ApplicationResultDefense)->table));
+            $query = ApplicationResultDefense::with([
+                'application.mahasiswa',
+                'application.skripsiDefense.examiner1.dosen',
+                'application.skripsiDefense.examiner2.dosen',
+            ])->select(sprintf('%s.*', (new ApplicationResultDefense)->table));
             $table = Datatables::of($query);
+            $supervisorNames = [];
 
             $table->addColumn('placeholder', '&nbsp;');
             $table->addColumn('actions', '&nbsp;');
@@ -54,57 +60,80 @@ class ApplicationResultDefenseController extends Controller
                 ));
             });
 
-            $table->addColumn('application_status', function ($row) {
-                return $row->application ? $row->application->status : '';
+            $table->addColumn('mahasiswa_name', function ($row) {
+                if (! $row->application?->mahasiswa) {
+                    return '<span class="text-muted">-</span>';
+                }
+
+                $nama = e($row->application->mahasiswa->nama);
+                $nim = e($row->application->mahasiswa->nim);
+
+                return '<div class="font-weight-bold">'.$nama.'</div><small class="text-muted">'.$nim.'</small>';
             });
 
-            $table->editColumn('result', function ($row) {
-                return $row->result ? ApplicationResultDefense::RESULT_SELECT[$row->result] : '';
+            $table->addColumn('result_badge', function ($row) {
+                if (! $row->result) {
+                    return '<span class="text-muted">-</span>';
+                }
+
+                $label = ApplicationResultDefense::RESULT_SELECT[$row->result] ?? ucfirst($row->result);
+                $badgeClass = match ($row->result) {
+                    'passed' => 'badge-success',
+                    'revision' => 'badge-warning',
+                    'failed' => 'badge-danger',
+                    default => 'badge-secondary',
+                };
+
+                return '<span class="badge '.$badgeClass.' badge-lg">'.e($label).'</span>';
             });
 
             $table->editColumn('final_title', function ($row) {
-                return $row->final_title ?? '';
+                return $row->final_title
+                    ? e($row->final_title)
+                    : '<span class="text-muted">-</span>';
             });
 
-            $table->editColumn('invitation_document', function ($row) {
-                if (! $row->invitation_document) {
-                    return '';
-                }
-                $links = [];
-                foreach ($row->invitation_document as $media) {
-                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>';
+            $table->addColumn('dosen_pembimbing', function ($row) use (&$supervisorNames) {
+                if (! $row->application) {
+                    return '<span class="text-muted">-</span>';
                 }
 
-                return implode(', ', $links);
-            });
-            $table->editColumn('feedback_document', function ($row) {
-                if (! $row->feedback_document) {
-                    return '';
-                }
-                $links = [];
-                foreach ($row->feedback_document as $media) {
-                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>';
+                $supervisorId = $row->application->resolveSupervisorLecturerId();
+                if (! $supervisorId) {
+                    return '<span class="text-muted">-</span>';
                 }
 
-                return implode(', ', $links);
-            });
-            $table->editColumn('minutes_document', function ($row) {
-                return $row->minutes_document ? '<a href="' . $row->minutes_document->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
-            });
-            $table->editColumn('latest_script', function ($row) {
-                return $row->latest_script ? '<a href="' . $row->latest_script->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
-            });
-            $table->editColumn('approval_page', function ($row) {
-                return $row->approval_page ? '<a href="' . $row->approval_page->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
-            });
-            $table->editColumn('revision_approval_sheet', function ($row) {
-                return $row->revision_approval_sheet ? '<a href="' . $row->revision_approval_sheet->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
-            });
-            $table->editColumn('title_change_form', function ($row) {
-                return $row->title_change_form ? '<a href="' . $row->title_change_form->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
+                if (! array_key_exists($supervisorId, $supervisorNames)) {
+                    $supervisorNames[$supervisorId] = Dosen::find($supervisorId)?->nama;
+                }
+
+                return $supervisorNames[$supervisorId]
+                    ? e($supervisorNames[$supervisorId])
+                    : '<span class="text-muted">-</span>';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'invitation_document', 'feedback_document', 'minutes_document', 'latest_script', 'approval_page', 'title_change_form', 'revision_approval_sheet']);
+            $table->addColumn('dosen_penguji', function ($row) {
+                $names = collect([
+                    $row->application?->skripsiDefense?->examiner1?->dosen?->nama,
+                    $row->application?->skripsiDefense?->examiner2?->dosen?->nama,
+                ])->filter()->values();
+
+                if ($names->isEmpty()) {
+                    return '<span class="text-muted">-</span>';
+                }
+
+                return $names->map(fn ($name) => '<div>'.e($name).'</div>')->implode('');
+            });
+
+            $table->rawColumns([
+                'actions',
+                'placeholder',
+                'mahasiswa_name',
+                'result_badge',
+                'final_title',
+                'dosen_pembimbing',
+                'dosen_penguji',
+            ]);
 
             return $table->make(true);
         }

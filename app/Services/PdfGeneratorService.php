@@ -333,13 +333,7 @@ class PdfGeneratorService
                 ->values();
         }
 
-        $documentNumber = $application->transcript_document_number;
-        if (!$documentNumber && $defenseResult && $defenseResult->isFinalizedByAdmin()) {
-            $documentNumber = $this->transcriptDocumentNumberService->assign($application);
-        }
-
         $data = [
-            'documentNumber' => $documentNumber ?? '-',
             'date' => $this->formatDate(now()),
             'application' => $application,
             'mahasiswa' => $application->mahasiswa,
@@ -350,6 +344,8 @@ class PdfGeneratorService
             'finalTitle' => $defenseResult?->final_title,
             'averageScore' => round($averageScore, 2),
             'defenseDate' => $defenseDate,
+            'eapGrade' => $defense?->eapGradeLabel(),
+            'eapScore' => $defense?->eap_score,
         ];
 
         $pdf = Pdf::loadView('pdf.mahasiswa.transkrip-nilai', $data);

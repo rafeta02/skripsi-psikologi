@@ -71,6 +71,7 @@ class DashboardController extends Controller
         app(\App\Services\MbkmGroupProgressService::class)->purgeMirrorAssignments();
 
         app(ReviewerAssignmentService::class)->syncSupervisorInformantsForDosen($dosen->id);
+        app(DefenseScoringService::class)->syncAssignmentsForDosen($dosen->id);
 
         $totalMahasiswaBimbingan = ApplicationAssignment::withoutGroupMirrors()
             ->where('lecturer_id', $dosen->id)
@@ -105,20 +106,7 @@ class DashboardController extends Controller
             ->count();
 
         $totalScores = ApplicationScore::where('examiner_id', $dosen->id)->count();
-        $pendingDefenseScores = ApplicationScore::where('examiner_id', $dosen->id)
-            ->whereNull('score')
-            ->where(function ($query) {
-                $query->where(function ($preReport) {
-                    $preReport->whereNotNull('application_id')
-                        ->whereDoesntHave('application_result_defence');
-                })->orWhereHas('application_result_defence', function ($resultQuery) {
-                    $resultQuery->whereIn('result', ['passed', 'revision'])
-                        ->whereHas('application.actions', function ($actionQuery) {
-                            $actionQuery->where('action_type', 'result_defense_approved');
-                        });
-                });
-            })
-            ->count();
+        $pendingDefenseScores = app(DefenseScoringService::class)->countPendingScoresForDosen($dosen->id);
 
         $recentAssignments = ApplicationAssignment::withoutGroupMirrors()
             ->with([
@@ -179,7 +167,20 @@ class DashboardController extends Controller
                 return $defense ? [$mahasiswaId => $defense] : [];
             });
 
-        return view('dosen.mahasiswa-bimbingan', compact('mahasiswaBimbingan', 'dosen', 'defenseManuscripts'));
+        $defenseResultReports = $mahasiswaBimbingan
+            ->mapWithKeys(function (ApplicationAssignment $assignment) use ($dosen, $defenseScoringService) {
+                $mahasiswaId = $assignment->application?->mahasiswa_id;
+
+                if (! $mahasiswaId) {
+                    return [];
+                }
+
+                $result = $defenseScoringService->findViewableDefenseResultForMahasiswa($mahasiswaId, $dosen->id);
+
+                return $result ? [$mahasiswaId => $result] : [];
+            });
+
+        return view('dosen.mahasiswa-bimbingan', compact('mahasiswaBimbingan', 'dosen', 'defenseManuscripts', 'defenseResultReports'));
     }
 
     public function taskAssignments()

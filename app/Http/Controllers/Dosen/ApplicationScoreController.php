@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
 use App\Models\Application;
-use App\Models\ApplicationResultDefense;
 use App\Models\ApplicationScore;
 use App\Models\Dosen;
 use App\Services\DefenseScoringService;
@@ -28,13 +27,13 @@ class ApplicationScoreController extends Controller
             $dosen = Dosen::find($user->dosen_id);
         }
 
-        if (!$dosen) {
+        if (! $dosen) {
             $dosen = Dosen::where('nip', $user->email)
                 ->orWhere('nidn', $user->email)
                 ->first();
         }
 
-        if (!$dosen) {
+        if (! $dosen) {
             abort(404, 'Data dosen tidak ditemukan. Silakan hubungi administrator.');
         }
 
@@ -60,23 +59,11 @@ class ApplicationScoreController extends Controller
 
         $application = $this->resolveApplication($applicationScore);
 
-        if (!$application) {
+        if (! $application) {
             abort(403, 'Data aplikasi sidang tidak ditemukan.');
         }
 
-        // Alur baru: penilaian setelah sidang dilaksanakan, sebelum mahasiswa lapor hasil
         if ($this->defenseScoringService->canDosenScore($application, $dosen->id)) {
-            return;
-        }
-
-        // Alur legacy: penilaian setelah admin validasi laporan hasil sidang
-        $resultDefense = $applicationScore->application_result_defence;
-
-        if ($resultDefense && $resultDefense->isValidatedByAdmin()) {
-            if ($resultDefense->result === 'failed') {
-                abort(403, 'Penilaian tidak diperlukan untuk hasil sidang tidak lulus.');
-            }
-
             return;
         }
 
@@ -86,42 +73,8 @@ class ApplicationScoreController extends Controller
     public function index()
     {
         $dosen = $this->resolveDosen();
-        $this->defenseScoringService->syncAssignmentsForDosen($dosen->id);
-
-        $scores = ApplicationScore::with([
-            'application.mahasiswa.prodi',
-            'application.skripsiDefense',
-            'application_result_defence.application.mahasiswa.prodi',
-        ])
-            ->where('examiner_id', $dosen->id)
-            ->where(function ($query) {
-                $query->where(function ($preReport) {
-                    $preReport->whereNotNull('application_id')
-                        ->whereDoesntHave('application_result_defence');
-                })->orWhereHas('application_result_defence', function ($resultQuery) {
-                    $resultQuery->whereIn('result', ['passed', 'revision']);
-                });
-            })
-            ->orderByRaw('CASE WHEN score IS NULL THEN 0 ELSE 1 END')
-            ->orderByDesc('updated_at')
-            ->get()
-            ->filter(function (ApplicationScore $score) use ($dosen) {
-                $application = $this->resolveApplication($score);
-
-                if (!$application) {
-                    return false;
-                }
-
-                if ($score->application_result_defence) {
-                    return $score->application_result_defence->isValidatedByAdmin();
-                }
-
-                return $this->defenseScoringService->canDosenScore($application, $dosen->id)
-                    || $this->defenseScoringService->isDefenseHeld($application);
-            })
-            ->values();
-
-        $pendingCount = $scores->filter(fn ($s) => !$s->isComplete())->count();
+        $scores = $this->defenseScoringService->getScoreAssignmentsForDosen($dosen->id);
+        $pendingCount = $scores->filter(fn ($score) => ! $score->isComplete())->count();
 
         return view('dosen.scores', compact('scores', 'dosen', 'pendingCount'));
     }
@@ -132,14 +85,24 @@ class ApplicationScoreController extends Controller
 
         $applicationScore->load([
             'application.mahasiswa.prodi',
-            'application.skripsiDefense',
             'application_result_defence.application.mahasiswa.prodi',
             'examiner',
         ]);
 
+        $application = $this->resolveApplication($applicationScore);
+        $skripsiDefense = $application
+            ? \App\Models\SkripsiDefense::queryForDosenPortal()
+                ->where('application_id', $application->id)
+                ->first()
+            : null;
+
         $dosen = $this->resolveDosen();
 
-        return view('dosen.application-scores.edit', compact('applicationScore', 'dosen'));
+        return view('dosen.application-scores.edit', compact(
+            'applicationScore',
+            'dosen',
+            'skripsiDefense'
+        ));
     }
 
     public function update(Request $request, ApplicationScore $applicationScore)

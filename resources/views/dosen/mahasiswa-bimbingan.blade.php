@@ -59,13 +59,19 @@
                                             @php
                                                 $mahasiswaId = $bimbingan->application->mahasiswa_id ?? null;
                                                 $defenseManuscript = $mahasiswaId ? ($defenseManuscripts[$mahasiswaId] ?? null) : null;
+                                                $defenseResultReport = $mahasiswaId ? ($defenseResultReports[$mahasiswaId] ?? null) : null;
                                             @endphp
                                             @if($defenseManuscript)
                                                 <a href="{{ route('dosen.skripsi-defenses.show', $defenseManuscript->id) }}" class="btn btn-sm btn-primary mb-1">
                                                     <i class="fas fa-book-open"></i> Naskah Sidang
                                                 </a>
                                             @endif
-                                            <button type="button" class="btn btn-sm btn-outline-primary {{ $defenseManuscript ? 'mb-1' : '' }}" data-toggle="modal" data-target="#timelineModal{{ $bimbingan->application->id }}">
+                                            @if($defenseResultReport)
+                                                <a href="{{ route('dosen.application-result-defenses.show', $defenseResultReport->id) }}" class="btn btn-sm btn-info mb-1">
+                                                    <i class="fas fa-file-alt"></i> Laporan Hasil
+                                                </a>
+                                            @endif
+                                            <button type="button" class="btn btn-sm btn-outline-primary {{ ($defenseManuscript || $defenseResultReport) ? 'mb-1' : '' }}" data-toggle="modal" data-target="#timelineModal{{ $bimbingan->application->id }}">
                                                 Timeline
                                             </button>
                                         </td>

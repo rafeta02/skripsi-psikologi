@@ -150,6 +150,51 @@
                 @endif
             </div>
         </div>
+
+        @if($defenseHeld ?? false)
+            <div class="mhs-card mt-3">
+                <div class="mhs-card-body">
+                    <h5 class="font-weight-bold mb-3">
+                        <i class="fas fa-star text-warning mr-2"></i> Penilaian Sidang
+                    </h5>
+                    @if($canScore && $scoreAssignment)
+                        @if($scoreAssignment->isComplete())
+                            <p class="mb-2 small text-muted">
+                                Nilai Anda: <strong>{{ number_format($scoreAssignment->score, 2) }}</strong>
+                            </p>
+                            <a href="{{ route('dosen.application-scores.edit', $scoreAssignment) }}" class="btn btn-sm btn-outline-primary btn-block">
+                                <i class="fas fa-edit"></i> Ubah Penilaian
+                            </a>
+                        @else
+                            <p class="mb-2 small text-muted">Sidang sudah dilaksanakan. Silakan isi penilaian Anda.</p>
+                            <a href="{{ route('dosen.application-scores.edit', $scoreAssignment) }}" class="btn btn-sm btn-warning btn-block">
+                                <i class="fas fa-star"></i> Isi Nilai Sidang
+                            </a>
+                        @endif
+                    @elseif($canScore)
+                        <a href="{{ route('dosen.scores') }}" class="btn btn-sm btn-warning btn-block">
+                            <i class="fas fa-star"></i> Buka Penilaian Sidang
+                        </a>
+                    @else
+                        <p class="mb-0 small text-muted">Penilaian tidak tersedia untuk sidang ini.</p>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        @if($canViewResultReport ?? false)
+            <div class="mhs-card mt-3">
+                <div class="mhs-card-body">
+                    <h5 class="font-weight-bold mb-3">
+                        <i class="fas fa-file-alt text-primary mr-2"></i> Laporan Hasil Sidang
+                    </h5>
+                    <p class="mb-2 small text-muted">Mahasiswa sudah mengirim laporan hasil sidang.</p>
+                    <a href="{{ route('dosen.application-result-defenses.show', $resultDefense->id) }}" class="btn btn-sm btn-primary btn-block">
+                        <i class="fas fa-eye"></i> Lihat Laporan Hasil Sidang
+                    </a>
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 

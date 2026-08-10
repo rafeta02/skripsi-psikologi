@@ -10,7 +10,7 @@
     $app = $applicationScore->application
         ?? $applicationScore->application_result_defence?->application;
     $mahasiswa = $app->mahasiswa ?? null;
-    $defense = $app->skripsiDefense ?? null;
+    $defense = $skripsiDefense ?? $app->skripsiDefense ?? null;
 @endphp
 
 <div class="mb-3">
