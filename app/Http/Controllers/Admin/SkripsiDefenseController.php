@@ -605,8 +605,13 @@ class SkripsiDefenseController extends Controller
             ['dosen_id' => $validated['examiner_2_id']]
         );
 
+        $message = 'Penguji sidang berhasil ditetapkan.';
+        if ($skripsiDefense->isAccepted()) {
+            $message .= ' Anda dapat mengirim notifikasi WhatsApp ke mahasiswa.';
+        }
+
         return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
-            ->with('message', 'Penguji sidang berhasil ditetapkan.');
+            ->with('message', $message);
     }
 
     public function accept(Request $request, SkripsiDefense $skripsiDefense)
@@ -675,9 +680,11 @@ class SkripsiDefenseController extends Controller
             });
 
             $skripsiDefense->refresh();
+            $skripsiDefense->load('application.mahasiswa.user', 'examiner1.dosen', 'examiner2.dosen');
 
             return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
-                ->with('message', 'Pendaftaran sidang skripsi berhasil diterima.');
+                ->with('message', 'Pendaftaran sidang skripsi berhasil diterima.')
+                ->with('prompt_whatsapp_acceptance', true);
         } catch (\Exception $e) {
             return redirect()->route('admin.skripsi-defenses.show', $skripsiDefense->id)
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())

@@ -23,6 +23,14 @@
                             <span class="badge badge-success" style="font-size: 1.2rem; padding: 10px 20px;">
                                 <i class="fas fa-check-circle mr-1"></i> Diterima
                             </span>
+                            @php $waAcceptanceUrl = $skripsiDefense->whatsappMahasiswaAcceptanceUrl(); @endphp
+                            @if($waAcceptanceUrl)
+                                <a href="{{ $waAcceptanceUrl }}" target="_blank" rel="noopener noreferrer"
+                                   class="btn btn-success btn-lg ml-2"
+                                   title="Kirim notifikasi penetapan penguji ke mahasiswa via WhatsApp">
+                                    <i class="fab fa-whatsapp mr-1"></i> WA Mahasiswa
+                                </a>
+                            @endif
                         @else
                             <span class="badge badge-danger" style="font-size: 1.2rem; padding: 10px 20px;">
                                 <i class="fas fa-times-circle mr-1"></i> Ditolak
@@ -48,6 +56,13 @@
                         </div>
                         <div class="col-md-4">
                             <p><strong>Email:</strong> {{ $skripsiDefense->application->mahasiswa->user->email ?? 'N/A' }}</p>
+                            @if($skripsiDefense->application->mahasiswa->user?->displayPhoneNumber())
+                                <p class="mb-0">
+                                    <strong>HP/WA:</strong>
+                                    <i class="fab fa-whatsapp text-success ml-1"></i>
+                                    {{ $skripsiDefense->application->mahasiswa->user->displayPhoneNumber() }}
+                                </p>
+                            @endif
                         </div>
                     </div>
                     <div class="row">
@@ -227,6 +242,33 @@
                         </form>
                         @endif
                     @endcan
+
+                    @if($skripsiDefense->isAccepted())
+                        @php $waAcceptanceUrl = $waAcceptanceUrl ?? $skripsiDefense->whatsappMahasiswaAcceptanceUrl(); @endphp
+                        <div class="mt-3 pt-3 border-top">
+                            @if($waAcceptanceUrl)
+                                <div class="alert alert-success mb-0" id="whatsapp-acceptance-alert">
+                                    <p class="mb-2">
+                                        <i class="fab fa-whatsapp mr-1"></i>
+                                        Kirim notifikasi penetapan penguji ke mahasiswa via WhatsApp dengan template persyaratan sidang.
+                                    </p>
+                                    <a href="{{ $waAcceptanceUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-success">
+                                        <i class="fab fa-whatsapp mr-1"></i> Kirim WA ke Mahasiswa
+                                    </a>
+                                </div>
+                            @else
+                                <div class="alert alert-warning mb-0">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    Notifikasi WhatsApp tidak tersedia. Pastikan no. HP/WA mahasiswa sudah diisi di profil user
+                                    @if(!$skripsiDefense->examiner1?->dosen || !$skripsiDefense->examiner2?->dosen)
+                                        dan kedua penguji sudah ditetapkan.
+                                    @else
+                                        .
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -879,6 +921,13 @@ $(document).ready(function() {
 
     @if($errors->has('admin_note') && !$errors->has('examiner_1_id'))
         $('#rejectModal').modal('show');
+    @endif
+
+    @if(session('prompt_whatsapp_acceptance') && $skripsiDefense->isAccepted())
+        const waAlert = document.getElementById('whatsapp-acceptance-alert');
+        if (waAlert) {
+            waAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     @endif
 });
 </script>

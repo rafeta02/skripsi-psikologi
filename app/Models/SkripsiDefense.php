@@ -267,4 +267,41 @@ class SkripsiDefense extends Model implements HasMedia
     {
         return array_keys(self::EAP_GRADE_SELECT);
     }
+
+    public function whatsappMahasiswaAcceptanceUrl(): ?string
+    {
+        if (! $this->isAccepted()) {
+            return null;
+        }
+
+        $this->loadMissing([
+            'application.mahasiswa.user',
+            'examiner1.dosen',
+            'examiner2.dosen',
+        ]);
+
+        $phone = $this->application?->mahasiswa?->user?->whatsappNumberForLink();
+        if (! $phone) {
+            return null;
+        }
+
+        if (! $this->examiner1?->dosen || ! $this->examiner2?->dosen) {
+            return null;
+        }
+
+        $penguji1 = $this->examiner1->dosen->nama;
+        $penguji2 = $this->examiner2->dosen->nama;
+
+        $message = "Anda mendapatkan :\n"
+            ."Penguji 1: {$penguji1}\n"
+            ."Penguji 2: {$penguji2}\n"
+            ."Berkas persyaratan sidang telah lengkap. Silakan hubungi dewan dosen untuk mencari waktu sidang. Mahasiswa diharapkan memperhatikan bahwa berkas sidang harus sudah dikirimkan kepada para penguji paling lambat 5 hari kerja sebelum pelaksanaan sidang. Oleh karena itu, mahasiswa dimohon untuk mengantisipasi waktu tersebut dengan mencari jadwal sidang yang masih cukup longgar, agar berkas dapat diterima oleh penguji tepat waktu dan tidak dikirimkan secara mendadak.\n"
+            ."Setelah disepakati tanggal dan waktunya serta sudah mengkonfirmasi ke Mas Samsudin (terkait ketersediaan ruang Ujian) silakan membalas email ini kembali dengan menyertakan informasi tentang :\n\n"
+            ."Tanggal Sidang :\n"
+            ."Waktu Sidang :\n"
+            ."Tempat Sidang:\n"
+            ."No. WA Mas Samsudin: 085728035352";
+
+        return 'https://wa.me/'.$phone.'?text='.rawurlencode($message);
+    }
 }
