@@ -90,6 +90,7 @@ class ApplicationResultSeminarController extends Controller
             'form_document' => 'required|array|min:1',
             'form_document.*' => 'file|mimes:pdf|max:10240',
             'attendance_document' => 'required|file|mimes:pdf|max:10240',
+            'krs_latest' => 'nullable|file|mimes:pdf|max:5120',
             'documentation' => 'required|array|min:1',
             'documentation.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',
             'latest_script' => 'required|file|mimes:pdf|max:10240',
@@ -133,6 +134,13 @@ class ApplicationResultSeminarController extends Controller
             $request->file('attendance_document'),
             'attendance_document'
         );
+
+        if ($request->hasFile('krs_latest')) {
+            $applicationResultSeminar->addMediaWithCustomName(
+                $request->file('krs_latest'),
+                'krs_latest'
+            );
+        }
 
         $applicationResultSeminar->addMultipleMediaWithCustomName(
             $request->file('documentation'),

@@ -118,6 +118,7 @@ class MbkmRegistrationController extends Controller
             'theme_ids' => 'required|array|min:1',
             'theme_ids.*' => 'required|exists:keilmuans,id',
             'title_mbkm' => 'required|string|max:500',
+            'lokasi_kkn' => 'nullable|string|max:255',
             'note' => 'nullable|string',
             'proposal_mbkm' => 'required|file|mimes:pdf|max:10240',
             'group_members' => 'nullable|array',
@@ -136,7 +137,7 @@ class MbkmRegistrationController extends Controller
             'sks_mkp_taken' => 'required|integer|min:0',
             'khs_all' => 'required|array',
             'khs_all.*' => 'required|file|mimes:pdf|max:5120',
-            'krs_latest' => 'required|file|mimes:pdf|max:5120',
+            'krs_latest' => 'nullable|file|mimes:pdf|max:5120',
             'spp' => 'required|file|mimes:pdf|max:5120',
             'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
         ]);
@@ -154,6 +155,7 @@ class MbkmRegistrationController extends Controller
                 'preference_supervision_id' => $validated['preference_supervision_id'],
                 'theme_id' => $themeIds[0],
                 'title_mbkm' => $validated['title_mbkm'],
+                'lokasi_kkn' => $validated['lokasi_kkn'] ?? null,
                 'note' => $validated['note'] ?? null,
                 'group_status' => 'draft',
                 // Kompatibilitas tampilan lama: salin judul ketua ke registration
@@ -261,13 +263,13 @@ class MbkmRegistrationController extends Controller
             'sks_mkp_taken' => 'required|integer|min:0',
             'khs_all' => ($needsFiles ? 'required' : 'nullable') . '|array',
             'khs_all.*' => 'nullable|file|mimes:pdf|max:5120',
-            'krs_latest' => ($needsFiles ? 'required' : 'nullable') . '|file|mimes:pdf|max:5120',
+            'krs_latest' => 'nullable|file|mimes:pdf|max:5120',
             'spp' => ($needsFiles ? 'required' : 'nullable') . '|file|mimes:pdf|max:5120',
             'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
-        if ($needsFiles && (!$request->hasFile('khs_all') || !$request->hasFile('krs_latest') || !$request->hasFile('spp'))) {
-            return redirect()->back()->withInput()->with('error', 'Dokumen KHS, KRS, dan SPP wajib diunggah.');
+        if ($needsFiles && (!$request->hasFile('khs_all') || !$request->hasFile('spp'))) {
+            return redirect()->back()->withInput()->with('error', 'Dokumen KHS dan SPP wajib diunggah.');
         }
 
         try {
@@ -522,6 +524,7 @@ class MbkmRegistrationController extends Controller
             'theme_ids' => 'required|array|min:1',
             'theme_ids.*' => 'required|exists:keilmuans,id',
             'title_mbkm' => 'required|string|max:500',
+            'lokasi_kkn' => 'nullable|string|max:255',
             'note' => 'nullable|string',
             'group_members' => 'nullable|array',
             'group_members.*.mahasiswa_id' => 'nullable|exists:mahasiswas,id',
@@ -539,7 +542,7 @@ class MbkmRegistrationController extends Controller
             'sks_mkp_taken' => 'required|integer|min:0',
             'khs_all' => ($needsFiles ? 'required' : 'nullable') . '|array',
             'khs_all.*' => 'nullable|file|mimes:pdf|max:5120',
-            'krs_latest' => ($needsFiles ? 'required' : 'nullable') . '|file|mimes:pdf|max:5120',
+            'krs_latest' => 'nullable|file|mimes:pdf|max:5120',
             'spp' => ($needsFiles ? 'required' : 'nullable') . '|file|mimes:pdf|max:5120',
             'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
         ]);
@@ -555,6 +558,7 @@ class MbkmRegistrationController extends Controller
                 'preference_supervision_id' => $validated['preference_supervision_id'],
                 'theme_id' => $themeIds[0],
                 'title_mbkm' => $validated['title_mbkm'],
+                'lokasi_kkn' => $validated['lokasi_kkn'] ?? null,
                 'note' => $validated['note'] ?? null,
                 'title' => $validated['title'],
                 'title_en' => $validated['title_en'] ?? null,

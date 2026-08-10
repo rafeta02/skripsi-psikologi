@@ -124,6 +124,13 @@ class ApplicationResultSeminarController extends Controller
             );
         }
 
+        if ($request->input('krs_latest', false)) {
+            $applicationResultSeminar->addMediaWithCustomName(
+                storage_path('tmp/uploads/' . basename($request->input('krs_latest'))),
+                'krs_latest'
+            );
+        }
+
         if ($request->input('latest_script', false)) {
             $applicationResultSeminar->addMediaWithCustomName(
                 storage_path('tmp/uploads/' . basename($request->input('latest_script'))),
@@ -201,6 +208,20 @@ class ApplicationResultSeminarController extends Controller
             }
         } elseif ($applicationResultSeminar->attendance_document) {
             $applicationResultSeminar->attendance_document->delete();
+        }
+
+        if ($request->input('krs_latest', false)) {
+            if (! $applicationResultSeminar->krs_latest || $request->input('krs_latest') !== $applicationResultSeminar->krs_latest->file_name) {
+                if ($applicationResultSeminar->krs_latest) {
+                    $applicationResultSeminar->krs_latest->delete();
+                }
+                $applicationResultSeminar->addMediaWithCustomName(
+                    storage_path('tmp/uploads/' . basename($request->input('krs_latest'))),
+                    'krs_latest'
+                );
+            }
+        } elseif ($applicationResultSeminar->krs_latest) {
+            $applicationResultSeminar->krs_latest->delete();
         }
 
         if ($request->input('latest_script', false)) {

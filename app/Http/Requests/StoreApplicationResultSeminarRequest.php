@@ -50,6 +50,10 @@ class StoreApplicationResultSeminarRequest extends FormRequest
                 'required',
                 'string',
             ],
+            'krs_latest' => [
+                'nullable',
+                'string',
+            ],
             'latest_script' => [
                 'required',
                 'string',

@@ -31,6 +31,14 @@
                 <span class="help-block">{{ trans('cruds.mbkmSeminar.fields.title_helper') }}</span>
             </div>
             <div class="form-group">
+                <label for="lokasi_kkn">{{ trans('cruds.mbkmSeminar.fields.lokasi_kkn') }}</label>
+                <input class="form-control {{ $errors->has('lokasi_kkn') ? 'is-invalid' : '' }}" type="text" name="lokasi_kkn" id="lokasi_kkn" maxlength="255" value="{{ old('lokasi_kkn', $mbkmSeminar->lokasi_kkn) }}">
+                @if($errors->has('lokasi_kkn'))
+                    <span class="text-danger">{{ $errors->first('lokasi_kkn') }}</span>
+                @endif
+                <span class="help-block">{{ trans('cruds.mbkmSeminar.fields.lokasi_kkn_helper') }}</span>
+            </div>
+            <div class="form-group">
                 <label for="proposal_document">{{ trans('cruds.mbkmSeminar.fields.proposal_document') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('proposal_document') ? 'is-invalid' : '' }}" id="proposal_document-dropzone">
                 </div>

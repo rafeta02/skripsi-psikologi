@@ -38,6 +38,16 @@
                             @enderror
                         </div>
 
+                        <div class="form-group">
+                            <label class="form-label-modern">Lokasi KKN</label>
+                            <input type="text" name="lokasi_kkn" class="form-control-modern @error('lokasi_kkn') is-invalid @enderror"
+                                   value="{{ old('lokasi_kkn', $mbkmSeminar->lokasi_kkn) }}" maxlength="255"
+                                   placeholder="Contoh: Desa X, Kecamatan Y">
+                            @error('lokasi_kkn')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <!-- Description -->
                         <div class="form-group">
                             <label class="form-label-modern">Deskripsi / Abstrak</label>

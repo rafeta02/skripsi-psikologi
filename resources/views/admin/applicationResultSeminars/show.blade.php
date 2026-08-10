@@ -142,6 +142,14 @@
                                 'icon' => 'fa-file-pdf text-danger',
                             ],
                             [
+                                'label' => 'KRS Semester Terbaru',
+                                'items' => $applicationResultSeminar->krs_latest
+                                    ? collect([$applicationResultSeminar->krs_latest])
+                                    : collect(),
+                                'type' => 'pdf',
+                                'icon' => 'fa-file-pdf text-danger',
+                            ],
+                            [
                                 'label' => 'Dokumentasi Seminar (Screenshot atau Foto)',
                                 'items' => collect($applicationResultSeminar->documentation ?? []),
                                 'type' => 'image',

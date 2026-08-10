@@ -45,6 +45,7 @@ class ApplicationResultSeminar extends Model implements HasMedia
         'report_document',
         'attendance_document',
         'form_document',
+        'krs_latest',
         'latest_script',
         'documentation',
     ];
@@ -187,6 +188,11 @@ class ApplicationResultSeminar extends Model implements HasMedia
     public function getFormDocumentAttribute()
     {
         return $this->getMedia('form_document');
+    }
+
+    public function getKrsLatestAttribute()
+    {
+        return $this->getMedia('krs_latest')->last();
     }
 
     public function getLatestScriptAttribute()

@@ -26,6 +26,11 @@ class StoreMbkmSeminarRequest extends FormRequest
                 'string',
                 'max:255',
             ],
+            'lokasi_kkn' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
             'description' => [
                 'nullable',
                 'string',

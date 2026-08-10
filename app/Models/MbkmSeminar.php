@@ -37,6 +37,7 @@ class MbkmSeminar extends Model implements HasMedia
         'reviewer_2_id',
         'title',
         'title_en',
+        'lokasi_kkn',
         'created_at',
         'updated_at',
         'deleted_at',

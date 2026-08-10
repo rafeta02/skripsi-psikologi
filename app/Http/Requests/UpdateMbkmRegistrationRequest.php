@@ -25,6 +25,11 @@ class UpdateMbkmRegistrationRequest extends FormRequest
                 'string',
                 'nullable',
             ],
+            'lokasi_kkn' => [
+                'string',
+                'nullable',
+                'max:255',
+            ],
             'khs_all' => [
                 'required',
                 'array',
@@ -33,7 +38,7 @@ class UpdateMbkmRegistrationRequest extends FormRequest
                 'required',
             ],
             'krs_latest' => [
-                'required',
+                'nullable',
             ],
             'spp' => [
                 'required',

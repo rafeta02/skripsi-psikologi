@@ -125,6 +125,7 @@ class MbkmSeminarController extends Controller
                     'application_id' => $seminarApplication->id,
                     'title' => $title,
                     'title_en' => $request->input('title_en'),
+                    'lokasi_kkn' => $request->input('lokasi_kkn') ?: $registration?->lokasi_kkn,
                     'created_by_id' => auth()->id(),
                 ]);
 
@@ -166,7 +167,7 @@ class MbkmSeminarController extends Controller
         $mbkmSeminar = MbkmSeminar::withoutGlobalScopes()->with('application')->findOrFail($mbkmSeminar->id);
         $this->authorizeKetuaSeminar($mbkmSeminar);
 
-        $mbkmSeminar->update($request->only(['title', 'title_en']));
+        $mbkmSeminar->update($request->only(['title', 'title_en', 'lokasi_kkn']));
 
         foreach (['proposal_document', 'approval_document', 'plagiarism_document'] as $collection) {
             if ($request->hasFile($collection)) {

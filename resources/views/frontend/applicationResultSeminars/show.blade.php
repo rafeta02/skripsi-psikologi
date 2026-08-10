@@ -134,6 +134,25 @@
                         </div>
                     @endif
 
+                    @if($applicationResultSeminar->krs_latest)
+                        <div class="mb-4">
+                            <h6 class="font-weight-semibold mb-2">KRS Semester Terbaru:</h6>
+                            <div class="card border">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-file-pdf fa-2x text-primary"></i>
+                                            <span class="ml-2 font-weight-semibold">{{ $applicationResultSeminar->krs_latest->file_name }}</span>
+                                        </div>
+                                        <a href="{{ $applicationResultSeminar->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     @if($applicationResultSeminar->documentation && $applicationResultSeminar->documentation->count() > 0)
                         <div class="mb-4">
                             <h6 class="font-weight-semibold mb-2">Dokumentasi Seminar:</h6>
@@ -170,6 +189,7 @@
 
                     @if((!$applicationResultSeminar->form_document || $applicationResultSeminar->form_document->count() == 0)
                         && !$applicationResultSeminar->attendance_document
+                        && !$applicationResultSeminar->krs_latest
                         && (!$applicationResultSeminar->documentation || $applicationResultSeminar->documentation->count() == 0)
                         && !$applicationResultSeminar->latest_script)
                         <div class="text-center text-muted py-4">

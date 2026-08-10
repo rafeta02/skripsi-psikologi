@@ -75,6 +75,14 @@
                 <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.title_helper') }}</span>
             </div>
             <div class="form-group">
+                <label for="lokasi_kkn">{{ trans('cruds.mbkmRegistration.fields.lokasi_kkn') }}</label>
+                <input class="form-control {{ $errors->has('lokasi_kkn') ? 'is-invalid' : '' }}" type="text" name="lokasi_kkn" id="lokasi_kkn" maxlength="255" value="{{ old('lokasi_kkn', $mbkmRegistration->lokasi_kkn) }}">
+                @if($errors->has('lokasi_kkn'))
+                    <span class="text-danger">{{ $errors->first('lokasi_kkn') }}</span>
+                @endif
+                <span class="help-block">{{ trans('cruds.mbkmRegistration.fields.lokasi_kkn_helper') }}</span>
+            </div>
+            <div class="form-group">
                 <label for="khs_all">{{ trans('cruds.mbkmRegistration.fields.khs_all') }}</label>
                 <div class="needsclick dropzone {{ $errors->has('khs_all') ? 'is-invalid' : '' }}" id="khs_all-dropzone">
                 </div>

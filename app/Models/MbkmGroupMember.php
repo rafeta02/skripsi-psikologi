@@ -117,7 +117,6 @@ class MbkmGroupMember extends Model implements HasMedia
     public function hasCompleteDocuments(): bool
     {
         return $this->getMedia('khs_all')->isNotEmpty()
-            && $this->getMedia('krs_latest')->isNotEmpty()
             && $this->getMedia('spp')->isNotEmpty();
     }
 

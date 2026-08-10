@@ -93,6 +93,18 @@
                             </div>
 
                             <div class="form-group">
+                                <label class="form-label-modern">KRS Semester Terbaru (PDF) <span class="text-muted">(opsional)</span></label>
+                                <div class="custom-file">
+                                    <input type="file" name="krs_latest" class="custom-file-input @error('krs_latest') is-invalid @enderror" id="krsLatest" accept=".pdf,application/pdf">
+                                    <label class="custom-file-label" for="krsLatest">Pilih file...</label>
+                                </div>
+                                <small class="form-text text-muted">Max: 5MB</small>
+                                @error('krs_latest')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="form-group">
                                 <label class="form-label-modern required">Dokumentasi Seminar (Screenshot atau Foto)</label>
                                 <div class="custom-file">
                                     <input type="file" name="documentation[]" class="custom-file-input @error('documentation') is-invalid @enderror @error('documentation.*') is-invalid @enderror" id="documentation" accept="image/*,.jpg,.jpeg,.png,.webp" multiple required>

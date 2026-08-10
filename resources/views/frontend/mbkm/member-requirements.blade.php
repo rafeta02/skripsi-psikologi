@@ -117,12 +117,12 @@
                     @endunless
                 </div>
                 <div class="form-group">
-                    <label>KRS Semester Terbaru <span class="text-danger">*</span></label>
+                    <label>KRS Semester Terbaru</label>
                     @if($member->krs_latest)
                         <div class="mb-2"><a href="{{ $member->krs_latest->getUrl() }}" target="_blank" class="btn btn-sm btn-outline-secondary">{{ $member->krs_latest->file_name }}</a></div>
                     @endif
                     @unless($locked)
-                        <input type="file" name="krs_latest" class="form-control-file" accept=".pdf" {{ $member->krs_latest ? '' : 'required' }}>
+                        <input type="file" name="krs_latest" class="form-control-file" accept=".pdf">
                     @endunless
                 </div>
                 <div class="form-group">

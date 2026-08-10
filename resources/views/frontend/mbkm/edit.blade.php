@@ -344,6 +344,12 @@
                     <label for="title_mbkm">Judul Kegiatan MBKM <span class="text-danger">*</span></label>
                     <textarea name="title_mbkm" id="title_mbkm" class="form-control" rows="2" required>{{ old('title_mbkm', $registration->title_mbkm) }}</textarea>
                 </div>
+
+                <div class="form-group">
+                    <label for="lokasi_kkn">Lokasi KKN</label>
+                    <input type="text" name="lokasi_kkn" id="lokasi_kkn" class="form-control" maxlength="255"
+                        value="{{ old('lokasi_kkn', $registration->lokasi_kkn) }}" placeholder="Contoh: Desa X, Kecamatan Y">
+                </div>
                 
                 <div class="form-group">
                     <label for="note">Catatan Tambahan</label>

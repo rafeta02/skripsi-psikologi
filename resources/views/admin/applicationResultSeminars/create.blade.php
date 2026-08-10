@@ -70,7 +70,16 @@
             </div>
 
             <div class="form-group">
-                <label for="documentation">3. {{ trans('cruds.applicationResultSeminar.fields.documentation') }} <span class="text-danger">*</span></label>
+                <label for="krs_latest">3. {{ trans('cruds.applicationResultSeminar.fields.krs_latest') }} <span class="text-muted">(opsional)</span></label>
+                <div class="needsclick dropzone {{ $errors->has('krs_latest') ? 'is-invalid' : '' }}" id="krs_latest-dropzone"></div>
+                @if($errors->has('krs_latest'))
+                    <span class="text-danger">{{ $errors->first('krs_latest') }}</span>
+                @endif
+                <span class="help-block">{{ trans('cruds.applicationResultSeminar.fields.krs_latest_helper') }}</span>
+            </div>
+
+            <div class="form-group">
+                <label for="documentation">4. {{ trans('cruds.applicationResultSeminar.fields.documentation') }} <span class="text-danger">*</span></label>
                 <div class="needsclick dropzone {{ $errors->has('documentation') ? 'is-invalid' : '' }}" id="documentation-dropzone"></div>
                 @if($errors->has('documentation'))
                     <span class="text-danger">{{ $errors->first('documentation') }}</span>
@@ -78,7 +87,7 @@
             </div>
 
             <div class="form-group">
-                <label for="meeting_recording_link">4. {{ trans('cruds.applicationResultSeminar.fields.meeting_recording_link') }} <span class="text-muted">(opsional jika online)</span></label>
+                <label for="meeting_recording_link">5. {{ trans('cruds.applicationResultSeminar.fields.meeting_recording_link') }} <span class="text-muted">(opsional jika online)</span></label>
                 <input class="form-control {{ $errors->has('meeting_recording_link') ? 'is-invalid' : '' }}" type="url" name="meeting_recording_link" id="meeting_recording_link" value="{{ old('meeting_recording_link') }}" placeholder="https://...">
                 @if($errors->has('meeting_recording_link'))
                     <span class="text-danger">{{ $errors->first('meeting_recording_link') }}</span>
@@ -87,7 +96,7 @@
             </div>
 
             <div class="form-group">
-                <label for="latest_script">5. {{ trans('cruds.applicationResultSeminar.fields.latest_script') }} <span class="text-danger">*</span></label>
+                <label for="latest_script">6. {{ trans('cruds.applicationResultSeminar.fields.latest_script') }} <span class="text-danger">*</span></label>
                 <div class="needsclick dropzone {{ $errors->has('latest_script') ? 'is-invalid' : '' }}" id="latest_script-dropzone"></div>
                 @if($errors->has('latest_script'))
                     <span class="text-danger">{{ $errors->first('latest_script') }}</span>
@@ -148,6 +157,32 @@ Dropzone.options.formDocumentDropzone = {
       file.previewElement.remove()
       var name = typeof file.file_name !== 'undefined' ? file.file_name : uploadedFormDocumentMap[file.name]
       $('form').find('input[name="form_document[]"][value="' + name + '"]').remove()
+    },
+    error: function (file, response) {
+         var message = $.type(response) === 'string' ? response : response.errors.file
+         file.previewElement.classList.add('dz-error')
+         file.previewElement.querySelectorAll('[data-dz-errormessage]').forEach(function (node) { node.textContent = message })
+    }
+}
+
+Dropzone.options.krsLatestDropzone = {
+    url: '{{ route('admin.application-result-seminars.storeMedia') }}',
+    maxFilesize: 5,
+    maxFiles: 1,
+    acceptedFiles: '.pdf',
+    addRemoveLinks: true,
+    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+    params: { size: 5 },
+    success: function (file, response) {
+      $('form').find('input[name="krs_latest"]').remove()
+      $('form').append('<input type="hidden" name="krs_latest" value="' + response.name + '">')
+    },
+    removedfile: function (file) {
+      file.previewElement.remove()
+      if (file.status !== 'error') {
+        $('form').find('input[name="krs_latest"]').remove()
+        this.options.maxFiles = this.options.maxFiles + 1
+      }
     },
     error: function (file, response) {
          var message = $.type(response) === 'string' ? response : response.errors.file
