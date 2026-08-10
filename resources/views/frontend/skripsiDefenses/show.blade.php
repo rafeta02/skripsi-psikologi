@@ -54,11 +54,16 @@
                         </div>
                     @endif
 
-                    @if($skripsiDefense->eap_grade)
+                    @if($skripsiDefense->eap_grade || $skripsiDefense->eap_score)
                         <div class="mb-4">
-                            <label class="text-muted mb-1">Nilai EAP</label>
+                            <label class="text-muted mb-1">EAP</label>
                             <p class="font-weight-semibold mb-0">
-                                <span class="badge badge-primary badge-lg px-3 py-2">{{ $skripsiDefense->eapGradeLabel() }}</span>
+                                @if($skripsiDefense->eap_grade)
+                                    <span class="badge badge-primary badge-lg px-3 py-2 mr-1">{{ trans('cruds.skripsiDefense.fields.eap_grade') }}: {{ $skripsiDefense->eapGradeLabel() }}</span>
+                                @endif
+                                @if($skripsiDefense->eap_score)
+                                    <span class="badge badge-info badge-lg px-3 py-2">{{ trans('cruds.skripsiDefense.fields.eap_score') }}: {{ $skripsiDefense->eap_score }}</span>
+                                @endif
                             </p>
                         </div>
                     @endif
@@ -195,9 +200,14 @@
                                     <div class="card-body text-center d-flex flex-column">
                                         <i class="fas fa-certificate fa-3x text-success mb-3"></i>
                                         <h6 class="mb-2">{{ trans('cruds.skripsiDefense.fields.eap_certificate') }}</h6>
-                                        @if($skripsiDefense->eap_grade)
+                                        @if($skripsiDefense->eap_grade || $skripsiDefense->eap_score)
                                             <p class="mb-2">
-                                                <span class="badge badge-primary">Nilai EAP: {{ $skripsiDefense->eapGradeLabel() }}</span>
+                                                @if($skripsiDefense->eap_grade)
+                                                    <span class="badge badge-primary">{{ trans('cruds.skripsiDefense.fields.eap_grade') }}: {{ $skripsiDefense->eapGradeLabel() }}</span>
+                                                @endif
+                                                @if($skripsiDefense->eap_score)
+                                                    <span class="badge badge-info ml-1">{{ trans('cruds.skripsiDefense.fields.eap_score') }}: {{ $skripsiDefense->eap_score }}</span>
+                                                @endif
                                             </p>
                                         @endif
                                         <small class="text-muted d-block mb-2 text-truncate px-2" title="{{ $skripsiDefense->eap_certificate->file_name }}">

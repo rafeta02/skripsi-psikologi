@@ -30,7 +30,7 @@ class StoreSkripsiDefenseRequest extends FormRequest
             'title' => ['required', 'string'],
             'abstract' => ['required', 'string'],
             'eap_grade' => ['required', Rule::in(SkripsiDefense::allowedEapGrades())],
-            'eap_score' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'eap_score' => ['required', 'integer', 'min:1', 'max:100'],
             // Single file (PDF)
             'defence_document' => ['required', 'file', 'mimes:pdf', 'max:20480'],
             'plagiarism_report' => ['required', 'file', 'mimes:pdf', 'max:10240'],

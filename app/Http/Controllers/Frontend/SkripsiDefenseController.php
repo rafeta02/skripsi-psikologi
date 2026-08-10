@@ -81,6 +81,7 @@ class SkripsiDefenseController extends Controller
             'title' => $request->input('title'),
             'abstract' => $request->input('abstract'),
             'eap_grade' => $request->input('eap_grade'),
+            'eap_score' => $request->input('eap_score'),
             'status' => 'pending',
             'created_by_id' => auth()->id(),
         ]);
