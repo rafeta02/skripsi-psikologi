@@ -33,6 +33,14 @@ class SsoController extends Controller
             $samlUser = Saml::getAuthenticatedUser();
 
             $parsedAttributes = $this->parseSamlAttributes($samlUser->getAttributes());
+
+            Log::info('SSO ACS debug', [
+                'saml_user' => [
+                    'name_id' => $samlUser->getNameId(),
+                    'attributes_raw' => $samlUser->getAttributes(),
+                ],
+                'parsed_attributes' => $parsedAttributes,
+            ]);
             
             // Validate required email attribute
             if (empty($parsedAttributes['email'])) {
@@ -125,6 +133,11 @@ class SsoController extends Controller
             
             // No need to sync roles for existing users
         }
+
+            Log::info('SSO ACS user', [
+                'user' => $user?->except(['password', 'remember_token']),
+                'user_was_new' => $user?->wasRecentlyCreated,
+            ]);
         
             // Login the user
             Auth::login($user);
