@@ -444,8 +444,7 @@
                 <span>Atau login dengan:</span>
             </div>
 
-            <a href="#" class="btn btn-sso">
-            {{-- <a href="{{ route('sso.login') }}" class="btn btn-sso"> --}}
+            <a href="{{ route('sso.login') }}" class="btn btn-sso">
                 <img src="{{ asset('img/sso.jpg') }}" alt="SSO UNS" class="sso-logo">
             </a>
 
