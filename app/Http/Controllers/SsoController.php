@@ -18,24 +18,10 @@ class SsoController extends Controller
     private $afterLoginRoute = 'dashboard';
     private $afterLogoutRoute = 'home';
 
-    public function login() {
-        // if (Auth::check()) {
-        //     return redirect()->route($this->afterLoginRoute);
-        // }
-
-        $user = auth()->user();
-
-        if ($user->is_admin) {
-            return route('admin.home');
-        }
-
-        switch ($user->level) {
-            case 'MAHASISWA':
-                return route('mahasiswa.dashboard');
-            case 'DOSEN':
-                return route('dosen.dashboard');
-            case 'staff':
-                return route('admin.home');
+    public function login()
+    {
+        if (Auth::check()) {
+            return $this->resolvePostLoginRedirect(Auth::user());
         }
 
         return Saml::redirect();
@@ -157,8 +143,7 @@ class SsoController extends Controller
             // Login the user
             Auth::login($user);
 
-            // Redirect ke halaman dashboard
-            return redirect()->route('frontend.home');
+            return $this->resolvePostLoginRedirect($user);
             
         } catch (\Exception $e) {
             Log::error('SSO Login Error', [
@@ -235,5 +220,23 @@ class SsoController extends Controller
             $phone = '62' . $phone;
         }
         return $phone;
+    }
+
+    private function resolvePostLoginRedirect(User $user)
+    {
+        if ($user->is_admin) {
+            return redirect()->route('admin.home');
+        }
+
+        switch ($user->level) {
+            case 'MAHASISWA':
+                return redirect()->route('mahasiswa.dashboard');
+            case 'DOSEN':
+                return redirect()->route('dosen.dashboard');
+            case 'STAFF':
+                return redirect()->route('admin.home');
+        }
+
+        return redirect()->route('home');
     }
 }
