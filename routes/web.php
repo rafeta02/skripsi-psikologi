@@ -3,15 +3,6 @@
 // Public landing page
 Route::get('/', 'App\Http\Controllers\Frontend\HomeController@index')->name('home');
 
-// SSO Routes
-Route::group(['namespace' => 'App\Http\Controllers'], function () {
-    Route::get('/sso/login', 'SsoController@login')->name('sso.login');
-    Route::post('/sso/acs', 'SsoController@acs')->name('sso.acs');
-    Route::get('/sso/logout', 'SsoController@logout')->name('sso.logout');
-    Route::get('/sso/sls', 'SsoController@sls')->name('sso.sls');
-    Route::get('/sso/metadata', 'SsoController@metadata')->name('sso.metadata');
-});
-
 Auth::routes(['register' => false]);
 
 // PDF Generation Routes (Accessible by all authenticated users with proper authorization)
