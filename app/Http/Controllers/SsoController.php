@@ -19,8 +19,23 @@ class SsoController extends Controller
     private $afterLogoutRoute = 'home';
 
     public function login() {
-        if (Auth::check()) {
-            return redirect()->route($this->afterLoginRoute);
+        // if (Auth::check()) {
+        //     return redirect()->route($this->afterLoginRoute);
+        // }
+
+        $user = auth()->user();
+
+        if ($user->is_admin) {
+            return route('admin.home');
+        }
+
+        switch ($user->level) {
+            case 'MAHASISWA':
+                return route('mahasiswa.dashboard');
+            case 'DOSEN':
+                return route('dosen.dashboard');
+            case 'staff':
+                return route('admin.home');
         }
 
         return Saml::redirect();
