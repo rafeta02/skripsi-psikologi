@@ -130,6 +130,12 @@
             color: #cf1322;
         }
 
+        .alert-warning {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            color: #ad6800;
+        }
+
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -376,6 +382,18 @@
             @if(session()->has('message'))
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle"></i> {{ session()->get('message') }}
+                </div>
+            @endif
+
+            @if(session()->has('warning'))
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> {{ session()->get('warning') }}
+                </div>
+            @endif
+
+            @if(session()->has('error'))
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> {{ session()->get('error') }}
                 </div>
             @endif
 

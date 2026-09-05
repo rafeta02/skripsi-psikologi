@@ -139,8 +139,11 @@ class SsoController extends Controller
                 'user' => $user?->except(['password', 'remember_token']),
                 'user_was_new' => $user?->wasRecentlyCreated,
             ]);
-        
-            // Login the user
+
+            if (! $this->userHasApplicationAccess($user)) {
+                return $this->denyApplicationAccess();
+            }
+
             Auth::login($user);
 
             return $this->resolvePostLoginRedirect($user);
@@ -224,6 +227,10 @@ class SsoController extends Controller
 
     private function resolvePostLoginRedirect(User $user)
     {
+        if (! $this->userHasApplicationAccess($user)) {
+            return $this->denyApplicationAccess();
+        }
+
         if ($user->is_admin) {
             return redirect()->route('admin.home');
         }
@@ -233,10 +240,27 @@ class SsoController extends Controller
                 return redirect()->route('mahasiswa.dashboard');
             case 'DOSEN':
                 return redirect()->route('dosen.dashboard');
-            case 'STAFF':
-                return redirect()->route('admin.home');
         }
 
-        return redirect()->route('home');
+        return $this->denyApplicationAccess();
+    }
+
+    private function userHasApplicationAccess(User $user): bool
+    {
+        if ($user->is_admin) {
+            return true;
+        }
+
+        return in_array($user->level, ['MAHASISWA', 'DOSEN'], true);
+    }
+
+    private function denyApplicationAccess()
+    {
+        Auth::logout();
+
+        return redirect()->route('login')->with(
+            'warning',
+            'Akun Anda tidak memiliki akses ke aplikasi SIM Skripsi. Aplikasi ini hanya dapat diakses oleh admin, dosen, dan mahasiswa.'
+        );
     }
 }
