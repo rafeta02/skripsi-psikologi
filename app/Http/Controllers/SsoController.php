@@ -17,7 +17,8 @@ class SsoController extends Controller
 {
     private $afterLogoutRoute = 'home';
 
-    public function login() {
+    public function login()
+    {
         if (Auth::check()) {
             return redirect()->to($this->redirectPathFor(Auth::user()));
         }

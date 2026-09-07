@@ -130,6 +130,12 @@
             color: #cf1322;
         }
 
+        .alert-warning {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            color: #ad6800;
+        }
+
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -450,8 +456,7 @@
                 <span>Atau login dengan:</span>
             </div>
 
-            <a href="#" class="btn btn-sso">
-            {{-- <a href="{{ route('sso.login') }}" class="btn btn-sso"> --}}
+            <a href="{{ route('sso.login') }}" class="btn btn-sso">
                 <img src="{{ asset('img/sso.jpg') }}" alt="SSO UNS" class="sso-logo">
             </a>
 
