@@ -39,9 +39,9 @@ class User extends Authenticatable implements HasMedia
     ];
 
     public const LEVEL_SELECT = [
-        'MAHASISWA' => 'MAHASISWA',
-        'DOSEN'     => 'DOSEN',
-        'STAFF'     => 'STAFF',
+        'student' => 'MAHASISWA',
+        'dosen'     => 'DOSEN',
+        'staff'     => 'STAFF',
     ];
 
     protected $fillable = [

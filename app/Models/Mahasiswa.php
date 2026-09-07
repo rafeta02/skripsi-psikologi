@@ -78,6 +78,41 @@ class Mahasiswa extends Model
         return $this->hasOne(User::class, 'mahasiswa_id');
     }
 
+    public static function isPsikologiNim(?string $nim): bool
+    {
+        $nim = strtoupper(trim((string) $nim));
+
+        return $nim !== '' && str_starts_with($nim, 'P');
+    }
+
+    public static function syncFromSsoUser(User $user, ?string $nim = null): self
+    {
+        $nim = trim((string) ($nim ?: $user->identity_number));
+        $nama = trim((string) $user->name);
+
+        $mahasiswa = static::withTrashed()->where('nim', $nim)->first();
+
+        if ($mahasiswa) {
+            if ($mahasiswa->trashed()) {
+                $mahasiswa->restore();
+            }
+
+            $mahasiswa->update([
+                'nim' => $nim,
+                'nama' => $nama !== '' ? $nama : $mahasiswa->nama,
+                'alamat' => $user->alamat ?: $mahasiswa->alamat,
+            ]);
+
+            return $mahasiswa->fresh();
+        }
+
+        return static::create([
+            'nim' => $nim,
+            'nama' => $nama,
+            'alamat' => $user->alamat,
+        ]);
+    }
+
     public function getTanggalLahirAttribute($value)
     {
         return $value ? Carbon::parse($value)->format(config('panel.date_format')) : null;

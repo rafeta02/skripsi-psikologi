@@ -5,22 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Mahasiswa;
 use App\Models\Dosen;
-use Hash;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Overtrue\LaravelSaml\Saml;
 use Illuminate\Support\Str;
+use Overtrue\LaravelSaml\Saml;
 
 class SsoController extends Controller
 {
-    // Sesuaikan dengan aplikasi Anda
-    private $afterLoginRoute = 'dashboard';
     private $afterLogoutRoute = 'home';
 
     public function login() {
         if (Auth::check()) {
-            return redirect()->route($this->afterLoginRoute);
+            return redirect()->to($this->redirectPathFor(Auth::user()));
         }
 
         return Saml::redirect();
@@ -50,100 +49,64 @@ class SsoController extends Controller
                 return redirect()->route('login')->with('error', 'Login gagal: Email tidak ditemukan dalam response SSO.');
             }
 
-        $user = User::where('email', $parsedAttributes['email'])->first();
+            $identityNumber = trim((string) (
+                $parsedAttributes['identity_numbers']
+                ?? $parsedAttributes['identity_number']
+                ?? ''
+            ));
+            $ssoLevel = strtolower(trim((string) ($parsedAttributes['level'] ?? '')));
 
-        if (!$user) {
-            // Create new user if doesn't exist
-            $userData = [
-                'email' => $parsedAttributes['email'],
-                'name' => $parsedAttributes['nama'] ?? 'User',
-                'approved' => 1,
-                'verified' => 1,
-                'verified_at' => now()->format('d-m-Y H:i:s'),
-                'email_verified_at' => now()->format('d-m-Y H:i:s'),
-                'password' => bcrypt(random_int(1000000, 99999999)),
-            ];
+            if ($identityNumber === '') {
+                Log::warning('SSO access denied: identity number missing', [
+                    'email' => $parsedAttributes['email'] ?? null,
+                    'sso_level' => $ssoLevel,
+                ]);
 
-            // Add optional fields only if they exist and are not empty
-            if (!empty($parsedAttributes['no_hp'])) {
-                $userData['no_hp'] = $this->formatPhoneNumber($parsedAttributes['no_hp']);
-            }
-
-            if (!empty($parsedAttributes['username'])) {
-                $userData['username'] = $parsedAttributes['username'];
+                return redirect()->route('login')->with(
+                    'error',
+                    'Login gagal: Nomor identitas tidak ditemukan dalam response SSO.'
+                );
             }
 
-            if (!empty($parsedAttributes['level'])) {
-                $userData['level'] = $parsedAttributes['level'];
+            $dosen = Dosen::where('nip', $identityNumber)->first();
+
+            if ($dosen) {
+                $user = DB::transaction(function () use ($parsedAttributes, $identityNumber, $dosen) {
+                    $user = $this->findOrCreateSsoUser($parsedAttributes, $identityNumber);
+                    $this->grantDosenAccess($user, $dosen, $identityNumber);
+
+                    return $user;
+                });
+
+                return $this->loginSsoUser($user);
             }
 
-            if (!empty($parsedAttributes['identity_numbers'])) {
-                $userData['identity_number'] = $parsedAttributes['identity_numbers'];
+            $isStudent = in_array($ssoLevel, ['student', 'mahasiswa'], true);
+            $mahasiswa = Mahasiswa::where('nim', $identityNumber)->first();
+            $isPsikologi = Mahasiswa::isPsikologiNim($identityNumber)
+                || ($mahasiswa && Mahasiswa::isPsikologiNim($mahasiswa->nim));
+
+            if ($isStudent && $isPsikologi) {
+                $user = DB::transaction(function () use ($parsedAttributes, $identityNumber) {
+                    $user = $this->findOrCreateSsoUser($parsedAttributes, $identityNumber);
+                    $this->grantMahasiswaAccess($user, $identityNumber);
+
+                    return $user;
+                });
+
+                return $this->loginSsoUser($user);
             }
 
-            if (!empty($parsedAttributes['alamat'])) {
-                $userData['alamat'] = $parsedAttributes['alamat'];
-            }
-
-            if (!empty($parsedAttributes['id_simpeg'])) {
-                $userData['id_simpeg'] = $parsedAttributes['id_simpeg'];
-            }
-
-            $user = User::create($userData);
-            
-            // Sync roles for new user
-            $user->roles()->sync(2);
-
-        } else {
-            // For existing user, only update empty fields
-            $fieldsToUpdate = [];
-            
-            if (empty($user->name) && !empty($parsedAttributes['nama'])) {
-                $fieldsToUpdate['name'] = $parsedAttributes['nama'];
-            }
-            
-            if (empty($user->no_hp) && !empty($parsedAttributes['no_hp'])) {
-                $fieldsToUpdate['no_hp'] = $this->formatPhoneNumber($parsedAttributes['no_hp']);
-            }
-            
-            if (empty($user->username) && !empty($parsedAttributes['username'])) {
-                $fieldsToUpdate['username'] = $parsedAttributes['username'];
-            }
-            
-            if (empty($user->alamat) && !empty($parsedAttributes['alamat'])) {
-                $fieldsToUpdate['alamat'] = $parsedAttributes['alamat'];
-            }
-
-            if (empty($user->id_simpeg) && !empty($parsedAttributes['id_simpeg'])) {
-                $fieldsToUpdate['id_simpeg'] = $parsedAttributes['id_simpeg'];
-            }
-
-            if (empty($user->identity_number) && !empty($parsedAttributes['identity_numbers'])) {
-                $fieldsToUpdate['identity_number'] = $parsedAttributes['identity_numbers'];
-            }
-
-            if (empty($user->level) && !empty($parsedAttributes['level'])) {
-                $fieldsToUpdate['level'] = $parsedAttributes['level'];
-            }
-            
-            // Only update if there are fields to update
-            if (!empty($fieldsToUpdate)) {
-                $user->update($fieldsToUpdate);
-            }
-            
-            // No need to sync roles for existing users
-        }
-
-            Log::info('SSO ACS user', [
-                'user' => $user?->except(['password', 'remember_token']),
-                'user_was_new' => $user?->wasRecentlyCreated,
+            Log::warning('SSO access denied', [
+                'email' => $parsedAttributes['email'] ?? null,
+                'identity_number' => $identityNumber,
+                'sso_level' => $ssoLevel,
             ]);
-        
-            // Login the user
-            Auth::login($user);
 
-            // Redirect ke halaman dashboard
-            return redirect()->route('frontend.home');
+            return redirect()->route('login')->with(
+                'error',
+                'Login gagal: Anda tidak memiliki akses ke aplikasi ini. Akses hanya untuk dosen yang terdaftar atau mahasiswa Psikologi.'
+            );
             
         } catch (\Exception $e) {
             Log::error('SSO Login Error', [
@@ -220,5 +183,116 @@ class SsoController extends Controller
             $phone = '62' . $phone;
         }
         return $phone;
+    }
+
+    private function findOrCreateSsoUser(array $parsedAttributes, string $identityNumber): User
+    {
+        $email = $parsedAttributes['email'];
+        $name = $parsedAttributes['cn']
+            ?? $parsedAttributes['displayName']
+            ?? $parsedAttributes['name']
+            ?? $email;
+        $username = $parsedAttributes['uid']
+            ?? $parsedAttributes['username']
+            ?? $identityNumber;
+        $phone = $this->formatPhoneNumber(
+            $parsedAttributes['mobile']
+            ?? $parsedAttributes['phone']
+            ?? $parsedAttributes['telephoneNumber']
+            ?? $parsedAttributes['no_hp']
+            ?? null
+        );
+
+        $user = User::withTrashed()->where('email', $email)->first();
+
+        if (! $user && $identityNumber !== '') {
+            $user = User::withTrashed()->where('identity_number', $identityNumber)->first();
+        }
+
+        if ($user) {
+            if ($user->trashed()) {
+                $user->restore();
+            }
+
+            $user->update([
+                'name' => $name,
+                'email' => $email,
+                'username' => $username ?: $user->username,
+                'identity_number' => $identityNumber,
+                'no_hp' => $phone ?? $user->no_hp,
+                'whatshapp' => $phone ?? $user->whatshapp,
+            ]);
+
+            $this->ensureUserRole($user);
+
+            return $user->fresh();
+        }
+
+        $user = User::create([
+            'name' => $name,
+            'email' => $email,
+            'username' => $username,
+            'identity_number' => $identityNumber,
+            'password' => Str::random(32),
+            'no_hp' => $phone,
+            'whatshapp' => $phone,
+        ]);
+
+        $this->ensureUserRole($user);
+
+        return $user;
+    }
+
+    private function grantDosenAccess(User $user, Dosen $dosen, string $identityNumber): void
+    {
+        $user->update([
+            'level' => 'DOSEN',
+            'identity_number' => $identityNumber,
+            'dosen_id' => $dosen->id,
+            'mahasiswa_id' => null,
+        ]);
+    }
+
+    private function grantMahasiswaAccess(User $user, string $identityNumber): void
+    {
+        $mahasiswa = Mahasiswa::syncFromSsoUser($user, $identityNumber);
+
+        $user->update([
+            'level' => 'MAHASISWA',
+            'identity_number' => $identityNumber,
+            'mahasiswa_id' => $mahasiswa->id,
+            'dosen_id' => null,
+        ]);
+    }
+
+    private function loginSsoUser(User $user)
+    {
+        Auth::login($user, true);
+        request()->session()->regenerate();
+
+        return redirect()->intended($this->redirectPathFor($user));
+    }
+
+    private function redirectPathFor(User $user): string
+    {
+        if ($user->is_admin) {
+            return route('admin.home');
+        }
+
+        return match ($user->level) {
+            'MAHASISWA', 'student' => route('mahasiswa.dashboard'),
+            'DOSEN', 'dosen' => route('dosen.dashboard'),
+            'STAFF', 'staff' => route('admin.home'),
+            default => route($this->afterLogoutRoute),
+        };
+    }
+
+    private function ensureUserRole(User $user): void
+    {
+        $userRole = Role::find(2);
+
+        if ($userRole && ! $user->roles()->where('roles.id', $userRole->id)->exists()) {
+            $user->roles()->attach($userRole->id);
+        }
     }
 }
