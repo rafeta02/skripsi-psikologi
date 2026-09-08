@@ -43,6 +43,8 @@
                             @error('abstract')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
+                        @include('partials.skripsi-defense.sdgs-select', ['selected' => old('sdgs', [])])
+
                         <hr class="my-4">
 
                         <h5 class="font-weight-bold mb-3 text-primary"><i class="fas fa-file-pdf mr-2"></i>Dokumen Utama</h5>

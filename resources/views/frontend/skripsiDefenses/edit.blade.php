@@ -48,6 +48,8 @@
                             @enderror
                         </div>
 
+                        @include('partials.skripsi-defense.sdgs-select', ['selected' => old('sdgs', $skripsiDefense->sdgs ?? [])])
+
                         <!-- Defense Document -->
                         <div class="form-group">
                             <label class="form-label-modern">Naskah Skripsi/MBKM Final (PDF)</label>

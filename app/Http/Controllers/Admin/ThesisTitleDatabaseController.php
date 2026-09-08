@@ -62,6 +62,7 @@ class ThesisTitleDatabaseController extends Controller
         abort_if(Gate::denies('thesis_title_database_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $thesisTitleEntry->delete();
+        $this->titleService->clearEntriesCache();
 
         return redirect()
             ->route('admin.thesis-title-database.index')

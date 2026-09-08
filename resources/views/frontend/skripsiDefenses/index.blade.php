@@ -74,10 +74,15 @@
                             <div class="row align-items-center">
                                 <div class="col-md-8">
                                     <h4 class="mb-1 font-weight-bold">Pengajuan Sidang #{{ $defense->id }}</h4>
-                                    <p class="text-muted mb-0">
+                                    <p class="text-muted mb-2">
                                         <i class="far fa-calendar"></i>
                                         {{ $defense->created_at ? $defense->created_at->format('d M Y H:i') : '-' }}
                                     </p>
+                                    @include('partials.skripsi-defense.sdgs-badges', [
+                                        'skripsiDefense' => $defense,
+                                        'compact' => true,
+                                        'wrapperClass' => 'mb-0',
+                                    ])
                                 </div>
                                 <div class="col-md-4 text-right">
                                     @can('skripsi_defense_show')

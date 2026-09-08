@@ -128,6 +128,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::get('skripsi/dashboard', 'SkripsiDashboardController@index')->name('skripsi.dashboard');
     Route::get('skripsi/dashboard/data', 'SkripsiDashboardController@getData')->name('skripsi.dashboard.data');
     Route::get('skripsi/dashboard/chart-data', 'SkripsiDashboardController@getChartData')->name('skripsi.dashboard.chart-data');
+    Route::get('skripsi/dashboard/export-mbkm-rekap', 'SkripsiDashboardController@exportMbkmRekap')->name('skripsi.dashboard.export-mbkm-rekap');
 
     // Skripsi Defense
     Route::delete('skripsi-defenses/destroy', 'SkripsiDefenseController@massDestroy')->name('skripsi-defenses.massDestroy');

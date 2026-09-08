@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Http\Controllers\Concerns\ChecksThesisTitleSimilarity;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\MbkmRegistration;
@@ -18,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 
 class MbkmRegistrationController extends Controller
 {
+    use ChecksThesisTitleSimilarity;
+
     public function index()
     {
         $user = Auth::user();
@@ -141,6 +144,14 @@ class MbkmRegistrationController extends Controller
             'spp' => 'required|file|mimes:pdf|max:5120',
             'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
         ]);
+
+        if ($redirect = $this->redirectIfSimilarTitleUnacknowledged(
+            $request,
+            $validated['title'],
+            $validated['title_en'] ?? null
+        )) {
+            return $redirect;
+        }
         
         try {
             DB::beginTransaction();
@@ -270,6 +281,14 @@ class MbkmRegistrationController extends Controller
 
         if ($needsFiles && (!$request->hasFile('khs_all') || !$request->hasFile('spp'))) {
             return redirect()->back()->withInput()->with('error', 'Dokumen KHS dan SPP wajib diunggah.');
+        }
+
+        if ($redirect = $this->redirectIfSimilarTitleUnacknowledged(
+            $request,
+            $validated['title'],
+            $validated['title_en'] ?? null
+        )) {
+            return $redirect;
         }
 
         try {
@@ -546,6 +565,14 @@ class MbkmRegistrationController extends Controller
             'spp' => ($needsFiles ? 'required' : 'nullable') . '|file|mimes:pdf|max:5120',
             'recognition_form' => 'nullable|file|mimes:pdf|max:5120',
         ]);
+
+        if ($redirect = $this->redirectIfSimilarTitleUnacknowledged(
+            $request,
+            $validated['title'],
+            $validated['title_en'] ?? null
+        )) {
+            return $redirect;
+        }
         
         try {
             DB::beginTransaction();

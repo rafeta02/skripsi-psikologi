@@ -135,9 +135,20 @@
                         <label><strong>Judul Skripsi:</strong></label>
                         <p class="form-control-plaintext border p-2 bg-light">{{ $skripsiDefense->title ?? 'N/A' }}</p>
                     </div>
-            <div class="form-group">
+                    <div class="form-group">
                         <label><strong>Abstrak:</strong></label>
                         <p class="form-control-plaintext border p-2 bg-light" style="white-space: pre-wrap;">{{ $skripsiDefense->abstract ?? 'N/A' }}</p>
+                    </div>
+                    <div class="form-group">
+                        <label><strong>{{ trans('cruds.skripsiDefense.fields.sdgs') }}:</strong></label>
+                        <div class="border p-2 bg-light">
+                            @include('partials.skripsi-defense.sdgs-badges', [
+                                'skripsiDefense' => $skripsiDefense,
+                                'showLabel' => false,
+                                'showEmpty' => true,
+                                'wrapperClass' => 'mb-0',
+                            ])
+                        </div>
                     </div>
                     <div class="form-group">
                         <label><strong>{{ trans('cruds.skripsiDefense.fields.eap_grade') }}:</strong></label>

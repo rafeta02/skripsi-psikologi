@@ -244,6 +244,7 @@
         <form action="{{ route('frontend.skripsi-registrations.update', $registration->id) }}" method="POST" enctype="multipart/form-data" id="skripsiForm">
             @csrf
             @method('PUT')
+            @include('partials.thesis-title-similarity-warning')
 
             <div class="form-section active" data-section="1">
                 <h4 class="mb-4">Data Topik Skripsi</h4>

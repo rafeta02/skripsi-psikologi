@@ -298,6 +298,7 @@
         <form action="{{ route('frontend.mbkm.update', $application->id) }}" method="POST" enctype="multipart/form-data" id="mbkmForm" novalidate>
             @csrf
             @method('PUT')
+            @include('partials.thesis-title-similarity-warning')
             
             <!-- Step 1: Research Group & Pembimbing -->
             <div class="form-section active" data-section="1">

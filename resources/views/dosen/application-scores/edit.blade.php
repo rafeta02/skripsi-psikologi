@@ -42,6 +42,13 @@
                 <strong>{{ $defense->title }}</strong>
             </div>
         @endif
+        @if($defense)
+            @include('partials.skripsi-defense.sdgs-badges', [
+                'skripsiDefense' => $defense,
+                'compact' => true,
+                'wrapperClass' => 'mt-2 mb-0',
+            ])
+        @endif
     </div>
 </div>
 

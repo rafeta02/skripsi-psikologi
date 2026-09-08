@@ -80,6 +80,7 @@ class SkripsiDefenseController extends Controller
             'application_id' => $defenseApplication->id,
             'title' => $request->input('title'),
             'abstract' => $request->input('abstract'),
+            'sdgs' => SkripsiDefense::normalizeSdgsInput($request->input('sdgs')),
             'eap_grade' => $request->input('eap_grade'),
             'eap_score' => $request->input('eap_score'),
             'status' => 'pending',
@@ -107,7 +108,14 @@ class SkripsiDefenseController extends Controller
 
     public function update(UpdateSkripsiDefenseRequest $request, SkripsiDefense $skripsiDefense)
     {
-        $skripsiDefense->update($request->all());
+        $skripsiDefense->update([
+            'title' => $request->input('title'),
+            'abstract' => $request->input('abstract'),
+            'sdgs' => SkripsiDefense::normalizeSdgsInput($request->input('sdgs')),
+            'eap_grade' => $request->input('eap_grade'),
+            'eap_score' => $request->input('eap_score'),
+            'notes' => $request->input('notes'),
+        ]);
 
         if ($request->input('defence_document', false)) {
             if (! $skripsiDefense->defence_document || $request->input('defence_document') !== $skripsiDefense->defence_document->file_name) {

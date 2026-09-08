@@ -277,6 +277,7 @@
         
         <form action="{{ route('frontend.skripsi.store', $application->id) }}" method="POST" enctype="multipart/form-data" id="skripsiForm">
             @csrf
+            @include('partials.thesis-title-similarity-warning')
             
             <!-- Step 1: Data Topik -->
             <div class="form-section active" data-section="1">

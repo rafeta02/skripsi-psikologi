@@ -97,6 +97,9 @@ class SkripsiDefenseController extends Controller
             $table->editColumn('title', function ($row) {
                 return $row->title ? $row->title : '';
             });
+            $table->addColumn('sdgs', function ($row) {
+                return $row->sdgsSummaryHtml();
+            });
             $table->editColumn('abstract', function ($row) {
                 return $row->abstract ? $row->abstract : '';
             });
@@ -219,7 +222,7 @@ class SkripsiDefenseController extends Controller
                 return implode(', ', $links);
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'application', 'status', 'application_status', 'defence_document', 'plagiarism_report', 'ethics_statement', 'research_instruments', 'data_collection_letter', 'research_module', 'mbkm_recommendation_letter', 'publication_statement', 'signed_scientific_publication_statement', 'defense_approval_page', 'spp_receipt', 'krs_latest', 'eap_certificate', 'transcript', 'mbkm_report', 'research_poster', 'siakad_supervisor_screenshot', 'supervision_logbook']);
+            $table->rawColumns(['actions', 'placeholder', 'application', 'status', 'application_status', 'sdgs', 'defence_document', 'plagiarism_report', 'ethics_statement', 'research_instruments', 'data_collection_letter', 'research_module', 'mbkm_recommendation_letter', 'publication_statement', 'signed_scientific_publication_statement', 'defense_approval_page', 'spp_receipt', 'krs_latest', 'eap_certificate', 'transcript', 'mbkm_report', 'research_poster', 'siakad_supervisor_screenshot', 'supervision_logbook']);
 
             return $table->make(true);
         }
@@ -239,7 +242,9 @@ class SkripsiDefenseController extends Controller
 
     public function store(StoreSkripsiDefenseRequest $request)
     {
-        $skripsiDefense = SkripsiDefense::create($request->all());
+        $data = $request->all();
+        $data['sdgs'] = SkripsiDefense::normalizeSdgsInput($request->input('sdgs'));
+        $skripsiDefense = SkripsiDefense::create($data);
 
         if ($request->input('defence_document', false)) {
             $skripsiDefense->addMedia(storage_path('tmp/uploads/' . basename($request->input('defence_document'))))->toMediaCollection('defence_document');
@@ -334,7 +339,9 @@ class SkripsiDefenseController extends Controller
 
     public function update(UpdateSkripsiDefenseRequest $request, SkripsiDefense $skripsiDefense)
     {
-        $skripsiDefense->update($request->all());
+        $data = $request->all();
+        $data['sdgs'] = SkripsiDefense::normalizeSdgsInput($request->input('sdgs'));
+        $skripsiDefense->update($data);
 
         if ($request->input('defence_document', false)) {
             if (! $skripsiDefense->defence_document || $request->input('defence_document') !== $skripsiDefense->defence_document->file_name) {

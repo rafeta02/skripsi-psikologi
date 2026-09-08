@@ -60,11 +60,16 @@
                     </div>
                 @endif
                 @if($skripsiDefense->abstract)
-                    <div class="mb-0">
+                    <div class="mb-3">
                         <label class="text-muted mb-1">Abstrak</label>
                         <p class="text-justify mb-0">{{ $skripsiDefense->abstract }}</p>
                     </div>
                 @endif
+                @include('partials.skripsi-defense.sdgs-badges', [
+                    'skripsiDefense' => $skripsiDefense,
+                    'showEmpty' => true,
+                    'wrapperClass' => 'mb-0',
+                ])
             </div>
         </div>
 
