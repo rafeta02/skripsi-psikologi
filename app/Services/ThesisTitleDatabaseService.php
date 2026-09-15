@@ -8,9 +8,16 @@ use App\Models\ThesisTitleEntry;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class ThesisTitleDatabaseService
 {
+    private const CACHE_KEY = 'thesis_title_database_entries';
+
+    private const CACHE_TTL_SECONDS = 3600;
+
+    public const SIMILARITY_WARNING_THRESHOLD = 80;
+
     public function getAllEntries(): Collection
     {
         $fromDefense = ApplicationResultDefense::with([
@@ -34,9 +41,88 @@ class ThesisTitleDatabaseService
             ->values();
     }
 
+    public function getCachedEntries(): Collection
+    {
+        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, fn () => $this->getAllEntries());
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function findSimilarTitles(string $title, ?string $titleEn = null, int $limit = 5): array
+    {
+        $title = trim($title);
+        if ($title === '') {
+            return [];
+        }
+
+        $inputId = $this->normalizeTitle($title);
+        $inputEn = $titleEn ? $this->normalizeTitle($titleEn) : '';
+        $inputKeywords = $this->extractKeywords($title.' '.($titleEn ?? ''));
+
+        if ($inputId === '' && empty($inputKeywords)) {
+            return [];
+        }
+
+        return $this->getCachedEntries()
+            ->map(function (array $entry) use ($inputId, $inputEn, $inputKeywords) {
+                $score = 0;
+                $reason = null;
+
+                if ($inputId !== '' && $entry['normalized'] === $inputId) {
+                    $score = 100;
+                    $reason = 'Judul Indonesia sama persis';
+                } elseif ($inputEn !== '' && ! empty($entry['normalized_en']) && $entry['normalized_en'] === $inputEn) {
+                    $score = 100;
+                    $reason = 'Judul English sama persis';
+                } else {
+                    $entryKeywords = $this->extractKeywords(
+                        ($entry['title'] ?? '').' '.($entry['title_en'] ?? '')
+                    );
+                    $overlap = count(array_intersect($inputKeywords, $entryKeywords));
+                    $keywordScore = $inputKeywords !== []
+                        ? (int) round(($overlap / count($inputKeywords)) * 100)
+                        : 0;
+
+                    $fuzzyScore = 0;
+                    if ($inputId !== '' && ! empty($entry['normalized'])) {
+                        similar_text($inputId, $entry['normalized'], $fuzzyPercent);
+                        $fuzzyScore = (int) round($fuzzyPercent);
+                    }
+
+                    $score = max($keywordScore, $fuzzyScore);
+
+                    if ($score >= 95) {
+                        $reason = 'Judul sangat mirip';
+                    } elseif ($score >= self::SIMILARITY_WARNING_THRESHOLD) {
+                        $reason = 'Judul cukup mirip';
+                    }
+                }
+
+                $entry['similarity'] = $score;
+                $entry['reason'] = $reason;
+
+                return $entry;
+            })
+            ->filter(fn (array $entry) => $entry['similarity'] >= self::SIMILARITY_WARNING_THRESHOLD)
+            ->sortByDesc('similarity')
+            ->take($limit)
+            ->values()
+            ->map(fn (array $entry) => [
+                'title' => $entry['title'],
+                'title_en' => $entry['title_en'] ?? null,
+                'nama' => $entry['nama'] ?? '-',
+                'nim' => $entry['nim'] ?? '-',
+                'pembimbing' => $entry['pembimbing'] ?? '-',
+                'similarity' => $entry['similarity'],
+                'reason' => $entry['reason'],
+            ])
+            ->all();
+    }
+
     public function createManualEntry(array $data, int $userId): ThesisTitleEntry
     {
-        return ThesisTitleEntry::create([
+        $entry = ThesisTitleEntry::create([
             'nama' => $data['nama'] ?? null,
             'nim' => $data['nim'] ?? null,
             'angkatan' => $data['angkatan'] ?? null,
@@ -49,6 +135,10 @@ class ThesisTitleDatabaseService
             'source' => 'manual',
             'created_by_id' => $userId,
         ]);
+
+        $this->clearEntriesCache();
+
+        return $entry;
     }
 
     public function importFromCsv(UploadedFile $file, int $userId): array
@@ -111,6 +201,10 @@ class ThesisTitleDatabaseService
         }
 
         fclose($handle);
+
+        if ($imported > 0) {
+            $this->clearEntriesCache();
+        }
 
         return compact('imported', 'skipped', 'errors');
     }
@@ -224,6 +318,11 @@ class ThesisTitleDatabaseService
         $normalized = preg_replace('/\s+/', ' ', trim($normalized));
 
         return $normalized;
+    }
+
+    public function clearEntriesCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
     }
 
     private function makeDefenseEntry(ApplicationResultDefense $result): array

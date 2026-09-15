@@ -429,6 +429,8 @@ return [
             'title_helper'                        => ' ',
             'abstract'                            => 'Abstract',
             'abstract_helper'                     => ' ',
+            'sdgs'                                => 'Tujuan SDGs',
+            'sdgs_helper'                         => 'Pilih satu atau lebih SDGs yang relevan dengan penelitian. Referensi:',
             'eap_grade'                           => 'Nilai EAP',
             'eap_grade_helper'                    => 'Nilai huruf EAP sesuai sertifikat (A, A-, B+, dst.)',
             'eap_score'                           => 'Skor EAP',

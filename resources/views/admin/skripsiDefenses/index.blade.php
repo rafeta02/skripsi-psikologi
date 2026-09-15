@@ -15,6 +15,7 @@
                     <th>Mahasiswa</th>
                     <th>NIM</th>
                     <th>{{ trans('cruds.skripsiDefense.fields.title') }}</th>
+                    <th>{{ trans('cruds.skripsiDefense.fields.sdgs') }}</th>
                     <th>{{ trans('cruds.skripsiDefense.fields.application') }}</th>
                     <th>Status Validasi</th>
                     <th>Tanggal Dibuat</th>
@@ -72,6 +73,7 @@ $(function () {
       { data: 'mahasiswa_name', name: 'application.mahasiswa.user.name', orderable: true, searchable: true },
       { data: 'mahasiswa_nim', name: 'application.mahasiswa.nim', orderable: true, searchable: true },
       { data: 'title', name: 'title', orderable: true, searchable: true },
+      { data: 'sdgs', name: 'sdgs', orderable: false, searchable: false },
       { data: 'application_status', name: 'application.status', orderable: true, searchable: true },
       { data: 'status', name: 'status', orderable: true, searchable: true },
       { data: 'created_at', name: 'created_at', orderable: true, searchable: true },

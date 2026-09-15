@@ -42,6 +42,10 @@
                 @endif
                 <span class="help-block">{{ trans('cruds.skripsiDefense.fields.abstract_helper') }}</span>
             </div>
+            @include('partials.skripsi-defense.sdgs-select', [
+                'selected' => old('sdgs', $skripsiDefense->sdgs ?? []),
+                'labelClass' => '',
+            ])
             <div class="form-group">
                 <label for="eap_grade">{{ trans('cruds.skripsiDefense.fields.eap_grade') }}</label>
                 <select class="form-control {{ $errors->has('eap_grade') ? 'is-invalid' : '' }}" name="eap_grade" id="eap_grade" required>

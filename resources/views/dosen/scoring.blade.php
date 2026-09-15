@@ -53,6 +53,11 @@
                             <label class="text-muted mb-1">Judul</label>
                             <h6 class="font-weight-semibold">{{ $application->skripsiDefense->title ?? '-' }}</h6>
                         </div>
+                        @include('partials.skripsi-defense.sdgs-badges', [
+                            'skripsiDefense' => $application->skripsiDefense,
+                            'compact' => true,
+                            'wrapperClass' => 'mb-3',
+                        ])
                     @endif
 
                     <div class="row">

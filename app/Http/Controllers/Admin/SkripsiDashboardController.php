@@ -9,12 +9,17 @@ use App\Models\MbkmRegistration;
 use App\Models\SkripsiSeminar;
 use App\Models\SkripsiDefense;
 use App\Models\Mahasiswa;
+use App\Services\MbkmRisetRekapExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class SkripsiDashboardController extends Controller
 {
+    public function __construct(private MbkmRisetRekapExportService $mbkmRisetRekapExportService)
+    {
+    }
+
     public function index()
     {
         // Statistics - Include both skripsi and mbkm
@@ -209,6 +214,11 @@ class SkripsiDashboardController extends Controller
         }
 
         return response()->json([]);
+    }
+
+    public function exportMbkmRekap()
+    {
+        return $this->mbkmRisetRekapExportService->download();
     }
 }
 

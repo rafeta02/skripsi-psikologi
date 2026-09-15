@@ -34,6 +34,7 @@ class SkripsiDefense extends Model implements HasMedia
 
     protected $casts = [
         'eap_score' => 'integer',
+        'sdgs' => 'array',
     ];
 
     protected $dates = [
@@ -47,6 +48,7 @@ class SkripsiDefense extends Model implements HasMedia
         'title',
         'title_en',
         'abstract',
+        'sdgs',
         'eap_grade',
         'eap_score',
         'status',
@@ -275,6 +277,74 @@ class SkripsiDefense extends Model implements HasMedia
     public static function allowedEapGrades(): array
     {
         return array_keys(self::EAP_GRADE_SELECT);
+    }
+
+    /** @return array<int, string> */
+    public static function sdgOptions(): array
+    {
+        return config('sdgs.goals', []);
+    }
+
+    /** @return array<int, string> */
+    public function sdgLabels(): array
+    {
+        $options = self::sdgOptions();
+
+        return collect($this->sdgs ?? [])
+            ->map(fn ($id) => $options[(int) $id] ?? null)
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /** @param  array<int|string>|null  $sdgs */
+    public static function normalizeSdgsInput(?array $sdgs): array
+    {
+        $options = self::sdgOptions();
+
+        return collect($sdgs ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => array_key_exists($id, $options))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function sdgsSummaryHtml(): string
+    {
+        if (empty($this->sdgs)) {
+            return '<span class="text-muted">-</span>';
+        }
+
+        $colors = config('sdgs.colors', []);
+
+        return collect($this->sdgs)
+            ->map(function ($id) use ($colors) {
+                $number = (int) $id;
+                $color = $colors[$number] ?? '#6c757d';
+                $title = e(self::sdgOptions()[$number] ?? '');
+
+                return '<span class="badge text-white mr-1" style="background-color:' . e($color) . ';" title="' . $title . '">' . $number . '</span>';
+            })
+            ->implode('');
+    }
+
+    public function sdgsExportText(): string
+    {
+        if (empty($this->sdgs)) {
+            return '';
+        }
+
+        $options = self::sdgOptions();
+
+        return collect($this->sdgs)
+            ->map(function ($id) use ($options) {
+                $number = (int) $id;
+                $label = $options[$number] ?? '';
+
+                return $label !== '' ? "{$number} - {$label}" : (string) $number;
+            })
+            ->implode('; ');
     }
 
     public function whatsappMahasiswaAcceptanceUrl(): ?string

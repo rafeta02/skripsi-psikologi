@@ -20,6 +20,7 @@
                                     <th class="text-center">#</th>
                                     <th class="text-center">Mahasiswa</th>
                                     <th class="text-center">Judul</th>
+                                    <th class="text-center">SDGs</th>
                                     <th class="text-center">Jalur</th>
                                     <th class="text-center">Peran Anda</th>
                                     <th class="text-center">Penguji</th>
@@ -39,6 +40,7 @@
                                             <br><small class="text-muted">{{ $mahasiswa->nim ?? '-' }}</small>
                                         </td>
                                         <td class="text-left">{{ \Illuminate\Support\Str::limit($defense->title ?? '-', 60) }}</td>
+                                        <td>@include('partials.skripsi-defense.sdgs-badges', ['skripsiDefense' => $defense, 'compact' => true, 'showLabel' => false, 'wrapperClass' => 'mb-0'])</td>
                                         <td>
                                             @if(($defense->application->type ?? null) === 'mbkm')
                                                 <span class="badge badge-info">MBKM</span>

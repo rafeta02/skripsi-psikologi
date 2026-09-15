@@ -58,11 +58,12 @@
 
             <form method="POST" action="{{ route('frontend.mbkm.member-requirements.update') }}" enctype="multipart/form-data">
                 @csrf
+                @include('partials.thesis-title-similarity-warning')
 
                 <h5 class="mt-3 mb-3">Judul Skripsi (Individu)</h5>
                 <div class="form-group">
-                    <label>Judul Skripsi <span class="text-danger">*</span></label>
-                    <textarea name="title" class="form-control" rows="3" {{ $locked ? 'readonly' : 'required' }}>{{ old('title', $member->title) }}</textarea>
+                    <label for="title">Judul Skripsi <span class="text-danger">*</span></label>
+                    <textarea name="title" id="title" class="form-control" rows="3" {{ $locked ? 'readonly' : 'required' }}>{{ old('title', $member->title) }}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Judul Skripsi (English)</label>

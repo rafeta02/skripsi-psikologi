@@ -54,6 +54,8 @@
                         </div>
                     @endif
 
+                    @include('partials.skripsi-defense.sdgs-badges', ['skripsiDefense' => $skripsiDefense])
+
                     @if($skripsiDefense->eap_grade || $skripsiDefense->eap_score)
                         <div class="mb-4">
                             <label class="text-muted mb-1">EAP</label>

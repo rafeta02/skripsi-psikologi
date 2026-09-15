@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Http\Controllers\Concerns\ChecksThesisTitleSimilarity;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\SkripsiRegistration;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class SkripsiRegistrationController extends Controller
 {
+    use ChecksThesisTitleSimilarity;
+
     /**
      * Route skripsi-registrations/{id} memakai ID pendaftaran;
      * route skripsi/{application} memakai ID aplikasi.
@@ -113,6 +116,14 @@ class SkripsiRegistrationController extends Controller
             'khs_all.*' => 'required|file|mimes:pdf|max:5120',
             'krs_latest' => 'required|file|mimes:pdf|max:5120',
         ]);
+
+        if ($redirect = $this->redirectIfSimilarTitleUnacknowledged(
+            $request,
+            $validated['title'],
+            $validated['title_en'] ?? null
+        )) {
+            return $redirect;
+        }
         
         try {
             DB::beginTransaction();
@@ -259,6 +270,14 @@ class SkripsiRegistrationController extends Controller
             'khs_all.*' => 'nullable|file|mimes:pdf|max:5120',
             'krs_latest' => 'nullable|file|mimes:pdf|max:5120',
         ]);
+
+        if ($redirect = $this->redirectIfSimilarTitleUnacknowledged(
+            $request,
+            $validated['title'],
+            $validated['title_en'] ?? null
+        )) {
+            return $redirect;
+        }
         
         try {
             DB::beginTransaction();

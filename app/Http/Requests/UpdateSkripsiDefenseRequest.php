@@ -30,6 +30,15 @@ class UpdateSkripsiDefenseRequest extends FormRequest
                 'required',
                 'string',
             ],
+            'sdgs' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'sdgs.*' => [
+                'integer',
+                Rule::in(array_keys(SkripsiDefense::sdgOptions())),
+            ],
             'eap_grade' => [
                 'required',
                 Rule::in(SkripsiDefense::allowedEapGrades()),
@@ -73,6 +82,9 @@ class UpdateSkripsiDefenseRequest extends FormRequest
             'application_id.required' => 'Aplikasi harus dipilih',
             'title.required' => 'Judul skripsi harus diisi',
             'abstract.required' => 'Abstrak harus diisi',
+            'sdgs.required' => 'Pilih minimal satu Tujuan SDGs',
+            'sdgs.min' => 'Pilih minimal satu Tujuan SDGs',
+            'sdgs.*.in' => 'Tujuan SDGs tidak valid',
             'eap_grade.required' => 'Nilai EAP harus dipilih',
             'eap_grade.in' => 'Nilai EAP tidak valid',
             'eap_score.required' => 'Skor EAP harus diisi',
