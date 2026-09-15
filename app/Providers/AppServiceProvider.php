@@ -10,6 +10,7 @@ use App\Services\ReviewerAssignmentService;
 use App\Models\Application;
 use App\Observers\ApplicationObserver;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -53,6 +54,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        URL::forceScheme('https');
+
         Application::observe(ApplicationObserver::class);
 
         if (!function_exists('highlight_keywords')) {
