@@ -27,7 +27,7 @@ class UrlGenerator extends BaseUrlGenerator
         return 'https://';
     }
 
-    protected function formatRoot($scheme, $root = null)
+    public function formatRoot($scheme, $root = null)
     {
         $root = parent::formatRoot('https://', $root);
 
