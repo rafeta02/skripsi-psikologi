@@ -39,6 +39,7 @@ class User extends Authenticatable implements HasMedia
     ];
 
     public const LEVEL_SELECT = [
+        'mahasiswa' => 'MAHASISWA',
         'student' => 'MAHASISWA',
         'dosen'     => 'DOSEN',
         'staff'     => 'STAFF',
