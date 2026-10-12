@@ -46,6 +46,11 @@ require __DIR__.'/../vendor/autoload.php';
 
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
+$_SERVER['HTTPS'] = 'on';
+$_SERVER['SERVER_PORT'] = '443';
+$_SERVER['REQUEST_SCHEME'] = 'https';
+$_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+
 $kernel = $app->make(Kernel::class);
 
 $response = $kernel->handle(
