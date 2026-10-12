@@ -45,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
                 $app['url']->setRoutes($routes);
             });
 
+            $url->forceScheme('https');
+
             return $url;
         });
     }
@@ -54,7 +56,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        URL::forceScheme('https');
+        $this->forceHttps();
 
         Application::observe(ApplicationObserver::class);
 
@@ -143,5 +145,31 @@ class AppServiceProvider extends ServiceProvider
                 'mahasiswaWatchlistCount' => $mahasiswaWatchlistCount,
             ]);
         });
+    }
+
+    private function forceHttps(): void
+    {
+        URL::forceScheme('https');
+
+        foreach ([
+            'app.url',
+            'saml.baseurl',
+            'saml.sp.entityId',
+            'saml.sp.assertionConsumerService.url',
+            'saml.sp.singleLogoutService.url',
+        ] as $key) {
+            $value = config($key);
+
+            if (is_string($value) && str_starts_with($value, 'http://')) {
+                config([$key => 'https://'.substr($value, 7)]);
+            }
+        }
+
+        if ($this->app->runningInConsole()) {
+            return;
+        }
+
+        $request = $this->app->make('request');
+        $request->server->set('HTTPS', 'on');
     }
 }
