@@ -50,26 +50,18 @@ class SsoController extends Controller
                 return redirect()->route('login')->with('error', 'Login gagal: Email tidak ditemukan dalam response SSO.');
             }
 
+            $email = trim((string) $parsedAttributes['email']);
             $identityNumber = trim((string) (
                 $parsedAttributes['identity_numbers']
                 ?? $parsedAttributes['identity_number']
                 ?? ''
             ));
             $ssoLevel = strtolower(trim((string) ($parsedAttributes['level'] ?? '')));
+            $existingUser = User::withTrashed()->where('email', $email)->first();
 
-            if ($identityNumber === '') {
-                Log::warning('SSO access denied: identity number missing', [
-                    'email' => $parsedAttributes['email'] ?? null,
-                    'sso_level' => $ssoLevel,
-                ]);
-
-                return redirect()->route('login')->with(
-                    'error',
-                    'Login gagal: Nomor identitas tidak ditemukan dalam response SSO.'
-                );
-            }
-
-            $dosen = Dosen::where('nip', $identityNumber)->first();
+            $dosen = $identityNumber !== ''
+                ? Dosen::where('nip', $identityNumber)->first()
+                : null;
 
             if ($dosen) {
                 $user = DB::transaction(function () use ($parsedAttributes, $identityNumber, $dosen) {
@@ -83,7 +75,9 @@ class SsoController extends Controller
             }
 
             $isStudent = in_array($ssoLevel, ['student', 'mahasiswa'], true);
-            $mahasiswa = Mahasiswa::where('nim', $identityNumber)->first();
+            $mahasiswa = $identityNumber !== ''
+                ? Mahasiswa::where('nim', $identityNumber)->first()
+                : null;
             $isPsikologi = Mahasiswa::isPsikologiNim($identityNumber)
                 || ($mahasiswa && Mahasiswa::isPsikologiNim($mahasiswa->nim));
 
@@ -98,15 +92,23 @@ class SsoController extends Controller
                 return $this->loginSsoUser($user);
             }
 
+            if ($existingUser) {
+                $user = DB::transaction(function () use ($existingUser, $parsedAttributes, $identityNumber) {
+                    return $this->syncExistingSsoUser($existingUser, $parsedAttributes, $identityNumber);
+                });
+
+                return $this->loginSsoUser($user);
+            }
+
             Log::warning('SSO access denied', [
-                'email' => $parsedAttributes['email'] ?? null,
+                'email' => $email,
                 'identity_number' => $identityNumber,
                 'sso_level' => $ssoLevel,
             ]);
 
             return redirect()->route('login')->with(
                 'error',
-                'Login gagal: Anda tidak memiliki akses ke aplikasi ini. Akses hanya untuk dosen yang terdaftar atau mahasiswa Psikologi.'
+                'Login gagal: Anda tidak memiliki akses ke aplikasi ini. Akses hanya untuk akun yang sudah terdaftar, dosen yang terdaftar, atau mahasiswa Psikologi.'
             );
             
         } catch (\Exception $e) {
@@ -242,6 +244,40 @@ class SsoController extends Controller
         $this->ensureUserRole($user);
 
         return $user;
+    }
+
+    private function syncExistingSsoUser(User $user, array $parsedAttributes, string $identityNumber): User
+    {
+        if ($user->trashed()) {
+            $user->restore();
+        }
+
+        $name = $parsedAttributes['cn']
+            ?? $parsedAttributes['displayName']
+            ?? $parsedAttributes['name']
+            ?? $user->name;
+        $phone = $this->formatPhoneNumber(
+            $parsedAttributes['mobile']
+            ?? $parsedAttributes['phone']
+            ?? $parsedAttributes['telephoneNumber']
+            ?? $parsedAttributes['no_hp']
+            ?? null
+        );
+
+        $payload = [
+            'name' => $name ?: $user->name,
+            'email' => $parsedAttributes['email'],
+            'no_hp' => $phone ?? $user->no_hp,
+            'whatshapp' => $phone ?? $user->whatshapp,
+        ];
+
+        if ($identityNumber !== '') {
+            $payload['identity_number'] = $identityNumber;
+        }
+
+        $user->update($payload);
+
+        return $user->fresh();
     }
 
     private function grantDosenAccess(User $user, Dosen $dosen, string $identityNumber): void
