@@ -166,10 +166,20 @@ class AppServiceProvider extends ServiceProvider
         }
 
         if ($this->app->runningInConsole()) {
+            $appUrl = (string) config('app.url');
+            if ($appUrl !== '') {
+                URL::forceRootUrl(preg_replace('#^http://#i', 'https://', $appUrl));
+            }
+
             return;
         }
 
         $request = $this->app->make('request');
         $request->server->set('HTTPS', 'on');
+
+        $host = $request->getHttpHost();
+        if ($host) {
+            URL::forceRootUrl('https://'.$host);
+        }
     }
 }

@@ -404,7 +404,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('login') }}" method="POST">
+            <form action="{{ url('/login') }}" method="POST">
                 @csrf
 
                 <div class="form-group">

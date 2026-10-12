@@ -21,4 +21,16 @@ class UrlGenerator extends BaseUrlGenerator
 
         return parent::toRoute($route, $parameters, $absolute);
     }
+
+    public function formatScheme($secure = null)
+    {
+        return 'https://';
+    }
+
+    protected function formatRoot($scheme, $root = null)
+    {
+        $root = parent::formatRoot('https://', $root);
+
+        return preg_replace('#^http://#i', 'https://', $root);
+    }
 }
